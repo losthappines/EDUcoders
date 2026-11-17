@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed-data";
 import { recordAuditLog, resolveActorContext } from "@/lib/rbac";
 import { activateVerifiedPatientOnboardingTx } from "@/lib/patient-onboarding";
+import { notifyUserViaTelegram } from "@/lib/telegram-bot";
 export async function GET(req) {
     await connection();
     try {
@@ -34,6 +35,8 @@ export async function GET(req) {
                         mahalla: true,
                         bloodType: true,
                         status: true,
+                        latitude: true,
+                        longitude: true,
                     },
                 },
             },
@@ -50,6 +53,13 @@ export async function GET(req) {
             polyclinicName: u.polyclinicName,
             district: u.district,
             specialty: u.specialty,
+            expertiseArea: u.expertiseArea,
+            experienceYears: u.experienceYears,
+            latitude: u.latitude,
+            longitude: u.longitude,
+            telegramHandle: u.telegramHandle,
+            telegramLinked: Boolean(u.telegramChatId),
+            subscriptionTier: u.subscriptionTier,
             phone: u.phone,
             createdAt: u.createdAt,
             patientProfile: u.patientProfile,
@@ -132,6 +142,9 @@ export async function POST(req) {
             }
             return user;
         });
+        await notifyUserViaTelegram(updated.id, decision === "APPROVE"
+            ? `✅ <b>Tabriklaymiz, ${updated.fullName}!</b> Hisobingiz administrator tomonidan tasdiqlandi. Endi /start orqali barcha imkoniyatlardan foydalanishingiz mumkin!`
+            : `❌ <b>Afsuski, ${updated.fullName}</b>, hisobingiz rad etildi.${note ? `\nSabab: ${note}` : ""}`);
         await recordAuditLog({
             actor,
             action: decision === "APPROVE" ? "ACCOUNT_VERIFIED" : "ACCOUNT_REJECTED",

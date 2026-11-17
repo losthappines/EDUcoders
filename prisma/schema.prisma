@@ -11,39 +11,50 @@ datasource db {
 }
 
 model User {
-  id                 String    @id @default(cuid())
-  email              String    @unique
-  passwordHash       String    @default("")
-  fullName           String
-  role               String    // OVABMU_MD | FAMILY_MD | PATIENT | ADMIN_RECEPTION
-  verificationStatus String    @default("VERIFIED") // PENDING | VERIFIED | REJECTED
-  verificationNote   String?
-  verifiedAt         DateTime?
-  verifiedById       String?
-  polyclinicId       String?
-  polyclinicName     String?
-  district           String?
-  specialty          String?
-  phone              String?
-  telegramHandle     String?
-  scheduleSlotsJson  String    @default("[]")
-  createdAt          DateTime  @default(now())
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  passwordHash          String    @default("")
+  fullName              String
+  role                  String    // OVABMU_MD | FAMILY_MD | PATIENT | ADMIN_RECEPTION
+  verificationStatus    String    @default("VERIFIED") // PENDING | VERIFIED | REJECTED
+  verificationNote      String?
+  verifiedAt            DateTime?
+  verifiedById          String?
+  polyclinicId          String?
+  polyclinicName        String?
+  district              String?
+  specialty             String?
+  expertiseArea         String?
+  experienceYears       Int?
+  bioSummary            String?
+  latitude              Float?
+  longitude             Float?
+  phone                 String?
+  telegramHandle        String?
+  telegramChatId        String?   @unique
+  subscriptionTier      String    @default("FREE") // FREE | CARE_PLUS | CARE_FAMILY | DOCTOR_PRO | DOCTOR_CLINIC
+  subscriptionStatus    String    @default("NONE") // NONE | ACTIVE | EXPIRED
+  subscriptionExpiresAt DateTime?
+  scheduleSlotsJson     String    @default("[]")
+  createdAt             DateTime  @default(now())
 
-  patientProfile         Patient?       @relation("PatientAccount")
-  assignedPatients       Patient[]      @relation("FamilyDoctorPatients")
-  authoredEhrs           EhrRecord[]    @relation("EhrAuthor")
-  orderedLabs            LabReport[]    @relation("LabOrderer")
-  writtenPrescriptions   Prescription[] @relation("PrescriptionAuthor")
-  dischargedCalls        ActiveCall[]   @relation("DischargingDoctor")
-  assignedCalls          ActiveCall[]   @relation("AssignedFamilyDoctor")
+  patientProfile       Patient?             @relation("PatientAccount")
+  assignedPatients     Patient[]            @relation("FamilyDoctorPatients")
+  authoredEhrs         EhrRecord[]          @relation("EhrAuthor")
+  orderedLabs          LabReport[]          @relation("LabOrderer")
+  writtenPrescriptions Prescription[]       @relation("PrescriptionAuthor")
+  dischargedCalls      ActiveCall[]         @relation("DischargingDoctor")
+  assignedCalls        ActiveCall[]         @relation("AssignedFamilyDoctor")
+  assignedComplaints   Complaint[]          @relation("ComplaintDoctor")
+  subscriptions        SubscriptionRecord[]
 
   @@map("users")
 }
 
 model Patient {
-  id                     String   @id @default(cuid())
-  userId                 String?  @unique
-  user                   User?    @relation("PatientAccount", fields: [userId], references: [id])
+  id                     String    @id @default(cuid())
+  userId                 String?   @unique
+  user                   User?     @relation("PatientAccount", fields: [userId], references: [id])
   fullName               String
   jshshirEncrypted       String
   jshshirMasked          String
@@ -52,25 +63,33 @@ model Patient {
   district               String
   mahalla                String
   address                String
+  latitude               Float?
+  longitude              Float?
+  telegramChatId         String?
   bloodType              String
-  allergiesJson          String   @default("[]")
+  allergiesJson          String    @default("[]")
   polyclinicId           String
   polyclinicName         String
   assignedFamilyDoctorId String?
-  assignedFamilyDoctor   User?    @relation("FamilyDoctorPatients", fields: [assignedFamilyDoctorId], references: [id])
+  assignedFamilyDoctor   User?     @relation("FamilyDoctorPatients", fields: [assignedFamilyDoctorId], references: [id])
   emergencyContact       String
-  status                 String   @default("INPATIENT") // INPATIENT | PATRONAGE_ACTIVE | VISIT_COMPLETED
+  status                 String    @default("INPATIENT") // INPATIENT | PATRONAGE_ACTIVE | VISIT_COMPLETED | PENDING_VERIFICATION | REJECTED
   bedNumber              String?
-  admittedAt             DateTime @default(now())
+  subscriptionTier       String    @default("FREE")
+  subscriptionStatus     String    @default("NONE")
+  subscriptionExpiresAt  DateTime?
+  admittedAt             DateTime  @default(now())
   dischargedAt           DateTime?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
-  ehrRecords    EhrRecord[]
-  labReports    LabReport[]
-  prescriptions Prescription[]
-  activeCalls   ActiveCall[]
-  invoices      Invoice[]
+  ehrRecords     EhrRecord[]
+  labReports     LabReport[]
+  prescriptions  Prescription[]
+  activeCalls    ActiveCall[]
+  invoices       Invoice[]
+  complaints     Complaint[]
+  directMessages DirectMessage[]
 
   @@map("patients")
 }
@@ -188,12 +207,91 @@ model Invoice {
   @@map("invoices")
 }
 
+model Complaint {
+  id                    String    @id @default(cuid())
+  patientId             String
+  patient               Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  assignedDoctorId      String?
+  assignedDoctor        User?     @relation("ComplaintDoctor", fields: [assignedDoctorId], references: [id])
+  title                 String
+  description           String
+  category              String    @default("POSTPARTUM") // POSTPARTUM | CARDIO | PEDIATRIC | GENERAL | EMERGENCY | OTHER
+  severity              String    @default("MODERATE") // MILD | MODERATE | SEVERE | CRITICAL
+  status                String    @default("SUBMITTED") // SUBMITTED | DOCTOR_RESPONDED | EN_ROUTE | ARRIVED | VERIFIED_COMPLETED
+  visitDestination      String    @default("HOME") // HOME | CURRENT_GPS | RELATIVE_HOME | CLINIC | CUSTOM
+  visitAddress          String
+  latitude              Float?
+  longitude             Float?
+  distanceKm            Float?
+  preferredTimeWindow   String?
+  sourceChannel         String    @default("WEB") // WEB | TELEGRAM
+  doctorResponse        String?
+  doctorRespondedAt     DateTime?
+  visitOtpCode          String
+  visitVerifiedAt       DateTime?
+  visitVerificationNote String?
+  verifiedVitalsJson    String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  messages DirectMessage[]
+
+  @@map("complaints")
+}
+
+model DirectMessage {
+  id              String     @id @default(cuid())
+  complaintId     String?
+  complaint       Complaint? @relation(fields: [complaintId], references: [id], onDelete: SetNull)
+  patientId       String
+  patient         Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  senderUserId    String
+  senderName      String
+  senderRole      String     // PATIENT | FAMILY_MD | OVABMU_MD | ADMIN_RECEPTION
+  recipientUserId String?
+  body            String
+  channel         String     @default("WEB") // WEB | TELEGRAM
+  createdAt       DateTime   @default(now())
+
+  @@map("direct_messages")
+}
+
+model SubscriptionRecord {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole    String   // PATIENT | DOCTOR
+  planCode      String   // CARE_PLUS | CARE_FAMILY | DOCTOR_PRO | DOCTOR_CLINIC
+  planName      String
+  priceUzs      Int
+  paymentMethod String   @default("PAYME") // PAYME | CLICK | UZCARD | HUMO
+  status        String   @default("ACTIVE") // ACTIVE | CANCELLED | EXPIRED
+  startsAt      DateTime @default(now())
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@map("subscriptions")
+}
+
+model TelegramSession {
+  chatId            String   @id
+  telegramUsername  String?
+  telegramFirstName String?
+  userId            String?
+  flowState         String   @default("IDLE")
+  draftJson         String   @default("{}")
+  historyJson       String   @default("[]")
+  updatedAt         DateTime @updatedAt
+
+  @@map("telegram_sessions")
+}
+
 model AuditLog {
   id           String   @id @default(cuid())
   actorId      String
   actorName    String
   actorRole    String
-  action       String   // VIEW_EHR | TRIGGER_DISCHARGE | AI_HANDOFF_CREATED | SLA_ESCALATED | VISIT_VERIFIED | SYMPTOM_ALERT | LAB_FOLLOWUP_ORDERED | VIEW_FHIR_BUNDLE | RBAC_DENIED
+  action       String
   resourceType String
   resourceId   String
   ipAddress    String
@@ -204,9 +302,11 @@ model AuditLog {
 }
 
 model SystemSimState {
-  id              String   @id @default("singleton")
-  timeOffsetHours Int      @default(0)
-  updatedAt       DateTime @updatedAt
+  id                  String   @id @default("singleton")
+  timeOffsetHours     Int      @default(0)
+  telegramBotTokenEnc String?
+  telegramBotUsername String?
+  updatedAt           DateTime @updatedAt
 
   @@map("system_sim_state")
 }

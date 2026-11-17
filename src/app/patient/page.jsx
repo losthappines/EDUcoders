@@ -1,22 +1,58 @@
 "use client";
 import React, { useMemo, useRef, useState } from "react";
-import { IconAlertOctagon, IconCheck, IconChevronDown, IconChevronUp, IconCircleCheck, IconFlask, IconHeartbeat, IconKey, IconPhoneCall, IconPill, IconPlus, IconSend, IconShieldCheck, IconUser, IconX, } from "@tabler/icons-react";
+import Link from "next/link";
+import { IconAlertOctagon, IconBrandTelegram, IconCheck, IconChevronDown, IconChevronUp, IconCircleCheck, IconCrown, IconCurrentLocation, IconFlask, IconHeartbeat, IconKey, IconMapPin, IconMessageCircle, IconPhoneCall, IconPill, IconPlus, IconSend, IconShieldCheck, IconStethoscope, IconUser, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { CONDITION_SEVERITY_OPTIONS, EXTENDED_SYMPTOMS_CATALOG, getSeverityMeta, getSymptomLabel, PRIMARY_RED_FLAG_SYMPTOMS, } from "@/lib/symptoms-catalog";
+import { VISIT_DESTINATION_OPTIONS } from "@/lib/geo";
+import { PATIENT_PLANS } from "@/lib/subscriptions";
 const COPY = {
     uz: {
         loading: "Shaxsiy kabinet yuklanmoqda...",
-        noCall: "Sizda hozircha rejalashtirilgan uy tashrifi yo'q.",
-        title: "Shaxsiy parvarish kabineti",
-        subtitle: "Shifoxona tavsiyalari va 24 soatlik oilaviy shifokor tashrifi",
+        noCall: "Sizda hozircha shifoxonadan chiqish uy tashrifi yo'q, lekin pastda shikoyat yuborishingiz, GPS lokatsiya tanlashingiz va shifokor bilan bog'lanishingiz mumkin.",
+        title: "Bemor shaxsiy kabineti",
+        subtitle: "Shikoyat yuborish, tez yordam manzili (GPS), shifokor maslahati va obuna",
         doctorTitle: "Sizga biriktirilgan oilaviy shifokor",
         visitWindow: "Rejalashtirilgan tashrif vaqti:",
         visitCodeLabel: "Tasdiqlash kodi",
         visitCodeTip: "Shifokor uyingizga kelganda tashrifni tasdiqlash uchun ushbu 4 xonali kodni ko'rsating.",
+        complaintCardTitle: "Shikoyat yuborish va paramedik/shifokor tashrif joyi (GPS)",
+        complaintCardSub: "Shikoyatingiz eng yaqin mos shifokorga GPS orqali yuboriladi. Shifokor javob beradi, tanlangan joyga borib ko'radi va tashrifni verifikatsiya qiladi.",
+        complaintCategoryLabel: "Yo'nalish",
+        complaintSeverityLabel: "Holat jiddiyligi",
+        complaintDestLabel: "Paramedik / shifokor qayerga kelsin?",
+        complaintAddrLabel: "Aniq tashrif manzili",
+        complaintAddrPlaceholder: "Ko'cha, uy, mo'ljal...",
+        complaintDescLabel: "Shikoyatingizni yozing",
+        complaintDescPlaceholder: "Masalan: Bosh aylanishi, qon bosimi ko'tarilishi yoki isitma...",
+        shareGpsBtn: "Jonli GPS ulashish",
+        gpsReady: "GPS koordinata tayyor:",
+        complaintSubmitBtn: "Shikoyatni GPS bilan yuborish",
+        complaintSubmitting: "Yuborilmoqda...",
+        complaintSentOk: "Shikoyat yuborildi va eng yaqin shifokorga biriktirildi!",
+        complaintSentErr: "Shikoyatni yuborib bo'lmadi.",
+        complaintsListTitle: "Yuborilgan shikoyatlar va tashrif holati",
+        matchedDocLabel: "Biriktirilgan shifokor:",
+        distanceLabel: "Masofa:",
+        expYearsWord: "yil tajriba",
+        docReplyLabel: "Shifokor javobi:",
+        verifiedBanner: "Shifokor belgilangan joyga kelib tashrifni verifikatsiya qildi",
+        chatTitle: "Shifokor bilan to'g'ridan-to'g'ri maslahat chati",
+        chatSub: "Web va Telegram bot orqali yozishmalar bir joyda sinxronlanadi",
+        chatEmpty: "Hali xabarlar yo'q. Shifokorga savolingizni yozing.",
+        chatPlaceholder: "Shifokorga savol yoki holatingiz haqida yozing...",
+        chatSendBtn: "Yuborish",
+        telegramCta: "Telegram botga ulash",
+        subTitle: "Bemor obunalari (Subscription)",
+        subSub: "Tezkor GPS biriktirish va 24/7 maslahat uchun reja tanlang",
+        subActiveBadge: "Faol obuna",
+        subBuyBtn: "Obunani faollashtirish",
+        subActiveBtn: "Amaldagi reja ✓",
+        subOk: "Obuna muvaffaqiyatli faollashtirildi!",
         guideTitle: "Uyda parvarish qoidalari",
         rulesTitle: "Kunlik tavsiyalar",
         dangerTitle: "Zudlik bilan shifokorga murojaat qiling, agar:",
@@ -60,13 +96,46 @@ const COPY = {
     },
     ru: {
         loading: "Загрузка личного кабинета...",
-        noCall: "У вас пока нет запланированного домашнего визита.",
-        title: "Личный кабинет ухода",
-        subtitle: "Рекомендации после роддома и визит семейного врача в течение 24 часов",
+        noCall: "У вас пока нет выписного визита, но вы можете отправить жалобу с GPS, выбрать место выезда и написать врачу ниже.",
+        title: "Личный кабинет пациента",
+        subtitle: "Отправка жалобы с GPS, выбор точки приезда, чат с врачом и подписка",
         doctorTitle: "Ваш семейный врач",
         visitWindow: "Ожидаемое время визита:",
         visitCodeLabel: "Код визита",
         visitCodeTip: "Назовите этот 4-значный код врачу или медсестре, когда они придут к вам домой.",
+        complaintCardTitle: "Отправить жалобу и выбрать место выезда (GPS)",
+        complaintCardSub: "Жалоба по GPS направляется ближайшему профильному врачу. Врач ответит, приедет в выбранную точку и подтвердит осмотр.",
+        complaintCategoryLabel: "Категория",
+        complaintSeverityLabel: "Серьезность",
+        complaintDestLabel: "Куда должен приехать парамедик / врач?",
+        complaintAddrLabel: "Точный адрес визита",
+        complaintAddrPlaceholder: "Улица, дом, ориентир...",
+        complaintDescLabel: "Опишите вашу жалобу",
+        complaintDescPlaceholder: "Например: головокружение, высокое давление или температура...",
+        shareGpsBtn: "Поделиться GPS",
+        gpsReady: "GPS-координаты готовы:",
+        complaintSubmitBtn: "Отправить жалобу с GPS",
+        complaintSubmitting: "Отправка...",
+        complaintSentOk: "Жалоба отправлена и закреплена за ближайшим врачом!",
+        complaintSentErr: "Не удалось отправить жалобу.",
+        complaintsListTitle: "Мои жалобы и статус визита врача",
+        matchedDocLabel: "Назначенный врач:",
+        distanceLabel: "Дистанция:",
+        expYearsWord: "лет стажа",
+        docReplyLabel: "Ответ врача:",
+        verifiedBanner: "Врач посетил выбранную точку и подтвердил осмотр",
+        chatTitle: "Прямой чат-консультация с врачом",
+        chatSub: "Сообщения синхронизируются между сайтом и Telegram-ботом",
+        chatEmpty: "Сообщений пока нет. Напишите ваш вопрос врачу.",
+        chatPlaceholder: "Напишите врачу вопрос или симптомы...",
+        chatSendBtn: "Отправить",
+        telegramCta: "Подключить Telegram Бот",
+        subTitle: "Подписки пациента (Subscription)",
+        subSub: "Выберите тариф для быстрого GPS-подбора и связи 24/7",
+        subActiveBadge: "Активная подписка",
+        subBuyBtn: "Оформить подписку",
+        subActiveBtn: "Текущий тариф ✓",
+        subOk: "Подписка успешно активирована!",
         guideTitle: "Правила ухода на дому",
         rulesTitle: "Ежедневные советы",
         dangerTitle: "Срочно обратитесь к врачу, если:",
@@ -110,13 +179,46 @@ const COPY = {
     },
     en: {
         loading: "Loading your portal...",
-        noCall: "You do not have an active home visit scheduled right now.",
-        title: "Your Recovery Portal",
-        subtitle: "Simple home care tips and your 24-hour family doctor visit",
+        noCall: "You have no hospital discharge visit scheduled right now, yet you can submit a complaint with GPS, pick a visit destination, and message a doctor below.",
+        title: "Patient Portal (Bemor)",
+        subtitle: "Submit complaints with GPS, choose paramedic destination, direct advice & subscription",
         doctorTitle: "Your Assigned Family Doctor",
         visitWindow: "Expected Visit Window:",
         visitCodeLabel: "Visit Code",
         visitCodeTip: "Share this 4-digit confirmation code with your doctor when they arrive at your home.",
+        complaintCardTitle: "Submit Complaint & Choose Paramedic / Doctor Visit Location (GPS)",
+        complaintCardSub: "Your complaint matches the nearest specialist by GPS. The doctor responds, visits your chosen location, checks your health, and verifies the visit.",
+        complaintCategoryLabel: "Category",
+        complaintSeverityLabel: "Severity",
+        complaintDestLabel: "Where should paramedics / doctor visit?",
+        complaintAddrLabel: "Exact Visit Address",
+        complaintAddrPlaceholder: "Street, house, landmark...",
+        complaintDescLabel: "Describe your complaint",
+        complaintDescPlaceholder: "e.g. Dizziness, high blood pressure, or fever...",
+        shareGpsBtn: "Share Live GPS",
+        gpsReady: "GPS coordinates ready:",
+        complaintSubmitBtn: "Submit Complaint with GPS",
+        complaintSubmitting: "Submitting...",
+        complaintSentOk: "Complaint submitted and matched to nearest doctor!",
+        complaintSentErr: "Could not submit complaint.",
+        complaintsListTitle: "Submitted Complaints & Doctor Visit Status",
+        matchedDocLabel: "Matched Doctor:",
+        distanceLabel: "Distance:",
+        expYearsWord: "yrs exp",
+        docReplyLabel: "Doctor Response:",
+        verifiedBanner: "Doctor visited your chosen location and verified check-up",
+        chatTitle: "Direct Doctor Advice Chat",
+        chatSub: "Synced live across Web Portal and Telegram Bot",
+        chatEmpty: "No messages yet. Ask your doctor for advice anytime.",
+        chatPlaceholder: "Message your assigned doctor for advice...",
+        chatSendBtn: "Send",
+        telegramCta: "Open Telegram Bot",
+        subTitle: "Patient Subscription Plans",
+        subSub: "Upgrade for priority GPS doctor matching and 24/7 advice chat",
+        subActiveBadge: "Active Plan",
+        subBuyBtn: "Activate Plan",
+        subActiveBtn: "Current Plan ✓",
+        subOk: "Subscription activated successfully!",
         guideTitle: "Home Care Guide",
         rulesTitle: "Daily Care Tips",
         dangerTitle: "Call your doctor or emergency services right away if:",
@@ -205,12 +307,137 @@ export default function PatientPortalPage() {
     const [submittingSym, setSubmittingSym] = useState(false);
     const [otpInput, setOtpInput] = useState("");
     const [confirming, setConfirming] = useState(false);
+    const [complaintCategory, setComplaintCategory] = useState("POSTPARTUM");
+    const [complaintSeverity, setComplaintSeverity] = useState("MODERATE");
+    const [complaintDest, setComplaintDest] = useState("HOME");
+    const [complaintAddr, setComplaintAddr] = useState("");
+    const [complaintDesc, setComplaintDesc] = useState("");
+    const [gpsLat, setGpsLat] = useState(null);
+    const [gpsLng, setGpsLng] = useState(null);
+    const [sharingGps, setSharingGps] = useState(false);
+    const [submittingComplaint, setSubmittingComplaint] = useState(false);
+    const [chatBody, setChatBody] = useState("");
+    const [sendingChat, setSendingChat] = useState(false);
+    const [payMethod, setPayMethod] = useState("PAYME");
+    const [buyingPlanCode, setBuyingPlanCode] = useState(null);
     const activeCalls = useMemo(() => data?.activeCalls ?? [], [data?.activeCalls]);
     const call = activeCalls[0];
     const ownPatient = data?.patients?.[0];
+    const complaints = useMemo(() => data?.complaints ?? [], [data?.complaints]);
+    const directMessages = useMemo(() => data?.directMessages ?? [], [data?.directMessages]);
+    const currentSubTier = authUser?.subscriptionTier || ownPatient?.subscriptionTier || "FREE";
+    const effectiveLat = gpsLat ?? authUser?.latitude ?? ownPatient?.latitude ?? null;
+    const effectiveLng = gpsLng ?? authUser?.longitude ?? ownPatient?.longitude ?? null;
     const t = COPY[lang];
     const physicalSymptoms = useMemo(() => EXTENDED_SYMPTOMS_CATALOG.filter((s) => s.category === "physical"), []);
     const illnessConditions = useMemo(() => EXTENDED_SYMPTOMS_CATALOG.filter((s) => s.category === "conditions"), []);
+    const handleShareGps = () => {
+        if (typeof navigator === "undefined" || !navigator.geolocation) {
+            showToast("error", "GPS not supported in this browser");
+            return;
+        }
+        setSharingGps(true);
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = Number(pos.coords.latitude.toFixed(5));
+            const lng = Number(pos.coords.longitude.toFixed(5));
+            setGpsLat(lat);
+            setGpsLng(lng);
+            try {
+                await fetchWithAuth("/api/patient/location", {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng,
+                        address: complaintAddr || ownPatient?.address || "",
+                        district: ownPatient?.district || authUser?.district || "",
+                    }),
+                });
+                await refreshData();
+                showToast("success", `${t.gpsReady} ${lat}, ${lng}`);
+            }
+            finally {
+                setSharingGps(false);
+            }
+        }, () => {
+            setSharingGps(false);
+            showToast("error", "Could not access browser GPS location");
+        }, { enableHighAccuracy: true, timeout: 8000 });
+    };
+    const handleComplaintSubmit = async (e) => {
+        e.preventDefault();
+        if (!complaintDesc.trim())
+            return;
+        setSubmittingComplaint(true);
+        try {
+            const res = await fetchWithAuth("/api/complaints", {
+                method: "POST",
+                body: JSON.stringify({
+                    category: complaintCategory,
+                    severity: complaintSeverity,
+                    visitDestination: complaintDest,
+                    visitAddress: complaintAddr.trim() || ownPatient?.address || authUser?.district || "",
+                    description: complaintDesc.trim(),
+                    latitude: effectiveLat ?? undefined,
+                    longitude: effectiveLng ?? undefined,
+                }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || t.complaintSentErr);
+                return;
+            }
+            setComplaintDesc("");
+            await refreshData();
+            showToast("success", t.complaintSentOk);
+        }
+        finally {
+            setSubmittingComplaint(false);
+        }
+    };
+    const handleSendChat = async (e) => {
+        e.preventDefault();
+        if (!chatBody.trim())
+            return;
+        setSendingChat(true);
+        try {
+            const res = await fetchWithAuth("/api/messages", {
+                method: "POST",
+                body: JSON.stringify({
+                    body: chatBody.trim(),
+                    complaintId: complaints[0]?.id || undefined,
+                }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || "Could not send message");
+                return;
+            }
+            setChatBody("");
+            await refreshData();
+        }
+        finally {
+            setSendingChat(false);
+        }
+    };
+    const handleBuySubscription = async (planCode) => {
+        setBuyingPlanCode(planCode);
+        try {
+            const res = await fetchWithAuth("/api/subscriptions", {
+                method: "POST",
+                body: JSON.stringify({ planCode, paymentMethod: payMethod }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || "Failed to update subscription");
+                return;
+            }
+            await refreshData();
+            showToast("success", t.subOk);
+        }
+        finally {
+            setBuyingPlanCode(null);
+        }
+    };
     const toggleAdditionalSymptom = (id) => {
         setAdditionalSymptoms((prev) => prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]);
     };
@@ -334,18 +561,265 @@ export default function PatientPortalPage() {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-          <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
-            <IconUser className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
-            {ownPatient?.fullName ?? authUser?.fullName}
-          </span>
-          {ownPatient && (<span className="text-slate-500 dark:text-slate-400">
-              {ownPatient.district}
-              {ownPatient.mahalla ? `, ${ownPatient.mahalla}` : ""} • {ownPatient.polyclinicName}
-            </span>)}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+              <IconUser className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+              {ownPatient?.fullName ?? authUser?.fullName}
+            </span>
+            {effectiveLat !== null && effectiveLng !== null && (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[10px] font-mono text-emerald-700 dark:text-emerald-300">
+                <IconMapPin className="h-3 w-3"/>
+                {Number(effectiveLat).toFixed(4)}, {Number(effectiveLng).toFixed(4)}
+              </span>)}
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+              <IconCrown className="h-3 w-3"/>
+              {currentSubTier}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {ownPatient && (<span className="text-slate-500 dark:text-slate-400">
+                {ownPatient.district}
+                {ownPatient.mahalla ? `, ${ownPatient.mahalla}` : ""} • {ownPatient.polyclinicName}
+              </span>)}
+            <Link href="/telegram" className="inline-flex items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-2.5 py-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60">
+              <IconBrandTelegram className="h-3.5 w-3.5"/>
+              {t.telegramCta}
+            </Link>
+          </div>
         </div>
       </div>
 
-      {!call ? (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+      {/* Complaint Submission + Paramedic Destination & GPS */}
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <IconStethoscope className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+              {t.complaintCardTitle}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t.complaintCardSub}</p>
+          </div>
+          <button type="button" onClick={handleShareGps} disabled={sharingGps} className="inline-flex items-center gap-1.5 rounded-xl border border-teal-600 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/60 px-3 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/60 disabled:opacity-50 shrink-0">
+            <IconCurrentLocation className="h-3.5 w-3.5"/>
+            {sharingGps ? "..." : t.shareGpsBtn}
+          </button>
+        </div>
+
+        <form onSubmit={handleComplaintSubmit} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label htmlFor="comp-category" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                {t.complaintCategoryLabel}
+              </label>
+              <select id="comp-category" value={complaintCategory} onChange={(e) => setComplaintCategory(e.target.value)} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100">
+                <option value="POSTPARTUM">Postpartum / Tug&apos;ruqdan keyingi</option>
+                <option value="CARDIO">Cardio / Qon bosimi</option>
+                <option value="PEDIATRIC">Pediatric / Chaqaloq parvarishi</option>
+                <option value="GENERAL">General / Umumiy terapevt</option>
+                <option value="EMERGENCY">Emergency / Shoshilinch holat</option>
+                <option value="OTHER">Other / Boshqa</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="comp-severity" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                {t.complaintSeverityLabel}
+              </label>
+              <select id="comp-severity" value={complaintSeverity} onChange={(e) => setComplaintSeverity(e.target.value)} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100">
+                <option value="MILD">MILD</option>
+                <option value="MODERATE">MODERATE</option>
+                <option value="SEVERE">SEVERE</option>
+                <option value="CRITICAL">CRITICAL</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+              {t.complaintDestLabel}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {VISIT_DESTINATION_OPTIONS.map((opt) => {
+            const active = complaintDest === opt.value;
+            const label = lang === "ru" ? opt.ru : lang === "en" ? opt.en : opt.uz;
+            return (<button key={opt.value} type="button" onClick={() => setComplaintDest(opt.value)} className={`rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold transition ${active
+                    ? "border-teal-600 bg-teal-600 text-white"
+                    : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
+                    {label}
+                  </button>);
+        })}
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="comp-address" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              {t.complaintAddrLabel}
+            </label>
+            <input id="comp-address" type="text" value={complaintAddr} onChange={(e) => setComplaintAddr(e.target.value)} placeholder={ownPatient?.address || t.complaintAddrPlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+          </div>
+
+          <div>
+            <label htmlFor="comp-desc" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              {t.complaintDescLabel}
+            </label>
+            <textarea id="comp-desc" rows={2} value={complaintDesc} onChange={(e) => setComplaintDesc(e.target.value)} placeholder={t.complaintDescPlaceholder} required className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+          </div>
+
+          <button type="submit" disabled={submittingComplaint || !complaintDesc.trim()} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 py-2.5 text-xs font-bold text-white hover:bg-teal-700 disabled:opacity-50 transition">
+            <IconSend className="h-3.5 w-3.5"/>
+            {submittingComplaint ? t.complaintSubmitting : t.complaintSubmitBtn}
+          </button>
+        </form>
+
+        {complaints.length > 0 && (<div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {t.complaintsListTitle} ({complaints.length})
+            </h3>
+            {complaints.map((c) => (<div key={c.id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3 space-y-2 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-bold text-slate-900 dark:text-slate-100">{c.title}</span>
+                    <span className="rounded-full bg-slate-200/80 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                      {c.category} • {c.severity}
+                    </span>
+                  </div>
+                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${c.status === "VERIFIED_COMPLETED"
+                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
+                    : c.status === "EN_ROUTE" || c.status === "ARRIVED"
+                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"
+                        : "bg-sky-100 text-sky-800 dark:bg-sky-950/70 dark:text-sky-300"}`}>
+                    {c.status}
+                  </span>
+                </div>
+                <p className="text-slate-700 dark:text-slate-300">{c.description}</p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  <span>
+                    <IconMapPin className="inline h-3 w-3 mr-0.5"/>
+                    {c.visitDestination}: {c.visitAddress}
+                  </span>
+                  {c.visitOtpCode && (<span className="font-mono font-bold text-teal-700 dark:text-teal-300">
+                      OTP: {c.visitOtpCode}
+                    </span>)}
+                  {typeof c.distanceKm === "number" && (<span>
+                      {t.distanceLabel} <strong>{c.distanceKm} km</strong>
+                    </span>)}
+                </div>
+                {c.assignedDoctor && (<div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 text-[11px]">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
+                      {t.matchedDocLabel} {c.assignedDoctor.fullName}
+                    </span>{" "}
+                    {c.assignedDoctor.specialty ? `(${c.assignedDoctor.specialty})` : ""}
+                    {c.assignedDoctor.expertiseArea ? ` • ${c.assignedDoctor.expertiseArea}` : ""}
+                    {typeof c.assignedDoctor.experienceYears === "number"
+                        ? ` • ${c.assignedDoctor.experienceYears} ${t.expYearsWord}`
+                        : ""}
+                    {c.doctorResponse && (<p className="mt-1 text-teal-800 dark:text-teal-300 font-medium">
+                        {t.docReplyLabel} {c.doctorResponse}
+                      </p>)}
+                  </div>)}
+                {c.status === "VERIFIED_COMPLETED" && (<div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 p-2 text-[11px] text-emerald-800 dark:text-emerald-300">
+                    <p className="font-bold flex items-center gap-1">
+                      <IconCircleCheck className="h-3.5 w-3.5"/>
+                      {t.verifiedBanner}
+                    </p>
+                    {c.verifiedVitals && (<p className="font-mono mt-0.5">
+                        BP {c.verifiedVitals.systolicBp}/{c.verifiedVitals.diastolicBp} • HR {c.verifiedVitals.heartRate} • {c.verifiedVitals.tempC}°C • SpO2 {c.verifiedVitals.spo2}%
+                      </p>)}
+                    {c.visitVerificationNote && <p className="mt-0.5">{c.visitVerificationNote}</p>}
+                  </div>)}
+              </div>))}
+          </div>)}
+      </section>
+
+      {/* Direct Advice Chat with Assigned Doctor */}
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <IconMessageCircle className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+              {t.chatTitle}
+            </h2>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.chatSub}</p>
+          </div>
+          <Link href="/telegram" className="text-[11px] font-semibold text-sky-700 dark:text-sky-400 hover:underline">
+            {t.telegramCta} →
+          </Link>
+        </div>
+
+        <div className="max-h-56 overflow-y-auto space-y-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3">
+          {directMessages.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 text-center py-3">
+              {t.chatEmpty}
+            </p>) : (directMessages.map((msg) => {
+            const isMine = msg.senderUserId === authUser?.id || msg.senderRole === "PATIENT";
+            return (<div key={msg.id} className={`rounded-xl p-2.5 text-xs max-w-[88%] ${isMine
+                    ? "ml-auto bg-teal-600 text-white"
+                    : "mr-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"}`}>
+                  <div className="flex items-center justify-between gap-2 text-[10px] opacity-80 mb-0.5">
+                    <span className="font-bold">{msg.senderName}</span>
+                    <span>[{msg.channel}]</span>
+                  </div>
+                  <p>{msg.body}</p>
+                </div>);
+        }))}
+        </div>
+
+        <form onSubmit={handleSendChat} className="flex gap-2">
+          <input type="text" value={chatBody} onChange={(e) => setChatBody(e.target.value)} placeholder={t.chatPlaceholder} className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"/>
+          <button type="submit" disabled={sendingChat || !chatBody.trim()} className="inline-flex items-center gap-1 rounded-xl bg-slate-900 dark:bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50">
+            <IconSend className="h-3.5 w-3.5"/>
+            {t.chatSendBtn}
+          </button>
+        </form>
+      </section>
+
+      {/* Patient Subscription Plans */}
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <IconCrown className="h-4 w-4 text-amber-500"/>
+              {t.subTitle}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{t.subSub}</p>
+          </div>
+          <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)} aria-label="Payment method" className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs text-slate-800 dark:text-slate-200">
+            <option value="PAYME">Payme</option>
+            <option value="CLICK">Click</option>
+            <option value="UZCARD">Uzcard</option>
+            <option value="HUMO">Humo</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {PATIENT_PLANS.map((plan) => {
+            const isCurrent = currentSubTier === plan.code;
+            const title = lang === "ru" ? plan.nameRu : lang === "en" ? plan.nameEn : plan.nameUz;
+            const badge = lang === "ru" ? plan.badgeRu : lang === "en" ? plan.badgeEn : plan.badgeUz;
+            const feats = lang === "ru" ? plan.featuresRu : lang === "en" ? plan.featuresEn : plan.featuresUz;
+            return (<div key={plan.code} className={`rounded-xl border p-3.5 flex flex-col justify-between space-y-3 ${isCurrent
+                    ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/40"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50"}`}>
+                <div className="space-y-1.5">
+                  <span className="inline-block rounded-full bg-amber-100 dark:bg-amber-950/70 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                    {badge}
+                  </span>
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">{title}</h3>
+                  <ul className="space-y-1 text-[11px] text-slate-600 dark:text-slate-300">
+                    {feats.map((f, idx) => (<li key={idx} className="flex items-start gap-1">
+                        <IconCheck className="h-3.5 w-3.5 text-teal-600 shrink-0 mt-0.5"/>
+                        <span>{f}</span>
+                      </li>))}
+                  </ul>
+                </div>
+                <button type="button" disabled={isCurrent || buyingPlanCode === plan.code} onClick={() => handleBuySubscription(plan.code)} className={`w-full rounded-lg py-2 text-xs font-bold transition ${isCurrent
+                    ? "bg-emerald-600 text-white opacity-90"
+                    : "bg-slate-900 dark:bg-teal-600 text-white hover:bg-slate-800 dark:hover:bg-teal-500"} disabled:opacity-60`}>
+                  {isCurrent ? t.subActiveBtn : buyingPlanCode === plan.code ? "..." : t.subBuyBtn}
+                </button>
+              </div>);
+        })}
+        </div>
+      </section>
+
+      {!call ? (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center text-xs text-slate-500 dark:text-slate-400">
           {t.noCall}
         </div>) : (<>
           {/* Assigned Family Doctor & 24h Visit Window */}

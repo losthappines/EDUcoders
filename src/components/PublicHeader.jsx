@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { IconArrowRight, IconHeartHandshake, IconLogin, IconLogout, IconMenu2, IconUserPlus, IconX, } from "@tabler/icons-react";
+import { IconArrowRight, IconBrandTelegram, IconHeartHandshake, IconLogin, IconLogout, IconMenu2, IconUserPlus, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -19,6 +19,7 @@ const NAV_COPY = {
         howItWorks: "Qanday ishlaydi",
         portals: "Kimlar uchun",
         visitPromise: "24 soatlik tashrif",
+        telegramBot: "Telegram Bot",
         forClinics: "Klinikalar va texnologiya",
         languageLabel: "Til",
         signIn: "Kirish",
@@ -31,6 +32,7 @@ const NAV_COPY = {
         howItWorks: "Как это работает",
         portals: "Для кого сервис",
         visitPromise: "Визит за 24 часа",
+        telegramBot: "Telegram Бот",
         forClinics: "Клиникам и технологии",
         languageLabel: "Язык",
         signIn: "Войти",
@@ -43,6 +45,7 @@ const NAV_COPY = {
         howItWorks: "How we help",
         portals: "Who it's for",
         visitPromise: "24h home visit",
+        telegramBot: "Telegram Bot",
         forClinics: "For Clinics / Technology",
         languageLabel: "Language",
         signIn: "Sign In",
@@ -89,6 +92,10 @@ export function PublicHeader({ showAnchors = false }) {
                 {t.visitPromise}
               </a>
             </>)}
+          <Link href="/telegram" className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition">
+            <IconBrandTelegram className="h-3.5 w-3.5"/>
+            {t.telegramBot}
+          </Link>
           <Link href="/technology" className="text-slate-500 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-400 transition">
             {t.forClinics}
           </Link>
@@ -142,6 +149,10 @@ export function PublicHeader({ showAnchors = false }) {
                   {t.visitPromise}
                 </a>
               </>)}
+            <Link href="/telegram" onClick={() => setMenuOpen(false)} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-sky-600 dark:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <IconBrandTelegram className="h-4 w-4"/>
+              {t.telegramBot}
+            </Link>
             <Link href="/technology" onClick={() => setMenuOpen(false)} className="rounded-lg px-2.5 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
               {t.forClinics}
             </Link>

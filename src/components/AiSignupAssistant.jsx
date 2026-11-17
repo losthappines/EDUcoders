@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef, useState } from "react";
-import { IconAlertTriangle, IconCheck, IconEdit, IconRefresh, IconRobot, IconSend, IconSparkles, IconUserPlus, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconCheck, IconCurrentLocation, IconEdit, IconMapPin, IconRefresh, IconRobot, IconSend, IconSparkles, IconUserPlus, } from "@tabler/icons-react";
 import { createInitialDraft, getNextStep, getProgressPercent, getStepPrompt, processAiAnswer, } from "@/lib/ai-signup-helper";
 const UI_COPY = {
     uz: {
@@ -17,9 +17,15 @@ const UI_COPY = {
         dobField: "Tug'ilgan sana",
         phoneField: "Telefon",
         locationField: "Hudud va tuman",
+        gpsField: "GPS koordinata",
+        shareGpsBtn: "Jonli GPS ulashish",
+        gpsShared: "GPS ulashildi",
+        gpsError: "GPS ruxsati olinmadi — hudud bo'yicha avtomatik koordinata qo'llanadi.",
         mahallaField: "Mahalla",
         bloodField: "Qon guruhi",
-        specialtyField: "Mutaxassislik",
+        specialtyField: "Soha / Mutaxassislik",
+        expertiseField: "Ekspertiza",
+        experienceField: "Tajriba (yil)",
         emailField: "Elektron pochta",
         passwordField: "Parol",
         pendingAnswer: "Kutilmoqda...",
@@ -47,9 +53,15 @@ const UI_COPY = {
         dobField: "Дата рождения",
         phoneField: "Телефон",
         locationField: "Регион и район",
+        gpsField: "GPS-координаты",
+        shareGpsBtn: "Поделиться GPS",
+        gpsShared: "GPS добавлен",
+        gpsError: "Не удалось получить GPS — используются координаты района.",
         mahallaField: "Махалля",
         bloodField: "Группа крови",
-        specialtyField: "Специальность",
+        specialtyField: "Сфера / Специальность",
+        expertiseField: "Экспертиза",
+        experienceField: "Стаж (лет)",
         emailField: "Email",
         passwordField: "Пароль",
         pendingAnswer: "Ожидается...",
@@ -77,9 +89,15 @@ const UI_COPY = {
         dobField: "Date of Birth",
         phoneField: "Phone",
         locationField: "Region & District",
+        gpsField: "GPS Coordinates",
+        shareGpsBtn: "Share Live GPS",
+        gpsShared: "GPS shared",
+        gpsError: "GPS permission denied — district center coordinates will be used.",
         mahallaField: "Mahalla",
         bloodField: "Blood Type",
-        specialtyField: "Specialty",
+        specialtyField: "Field / Specialty",
+        expertiseField: "Expertise",
+        experienceField: "Experience (yrs)",
         emailField: "Email",
         passwordField: "Password",
         pendingAnswer: "Waiting...",
@@ -175,6 +193,25 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
         ]);
         scrollToBottom();
     };
+    const [gpsNotice, setGpsNotice] = useState(null);
+    const handleShareGps = () => {
+        setGpsNotice(null);
+        if (typeof navigator === "undefined" || !navigator.geolocation) {
+            setGpsNotice(t.gpsError);
+            return;
+        }
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const lat = Number(pos.coords.latitude.toFixed(5));
+            const lng = Number(pos.coords.longitude.toFixed(5));
+            const updated = { ...draft, latitude: lat, longitude: lng };
+            setDraft(updated);
+            onDraftChange(updated);
+            setGpsNotice(`${t.gpsShared}: ${lat}, ${lng}`);
+        }, () => {
+            setGpsNotice(t.gpsError);
+        }, { enableHighAccuracy: true, timeout: 7000 });
+    };
+    const hasGps = typeof draft.latitude === "number" && typeof draft.longitude === "number";
     const summaryRows = [
         {
             label: t.roleField,
@@ -191,6 +228,11 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
             value: [draft.district, draft.region].filter(Boolean).join(", "),
             filled: Boolean(draft.district),
         },
+        {
+            label: t.gpsField,
+            value: hasGps ? `${draft.latitude.toFixed(4)}, ${draft.longitude.toFixed(4)}` : "",
+            filled: hasGps,
+        },
     ];
     if (persona === "PATIENT") {
         summaryRows.push({ label: t.mahallaField, value: draft.mahalla, filled: Boolean(draft.mahalla) }, { label: t.bloodField, value: draft.bloodType, filled: Boolean(draft.bloodType) });
@@ -200,6 +242,14 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
             label: t.specialtyField,
             value: draft.specialty,
             filled: Boolean(draft.specialty),
+        }, {
+            label: t.expertiseField,
+            value: draft.expertiseArea,
+            filled: Boolean(draft.expertiseArea),
+        }, {
+            label: t.experienceField,
+            value: draft.experienceYears !== "" && draft.experienceYears !== null && draft.experienceYears !== undefined ? `${draft.experienceYears}` : "",
+            filled: draft.experienceYears !== "" && draft.experienceYears !== null && draft.experienceYears !== undefined,
         });
     }
     summaryRows.push({ label: t.emailField, value: draft.email, filled: Boolean(draft.email) }, {
@@ -322,10 +372,20 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
           </dl>
         </div>
 
-        <button type="button" onClick={() => onSwitchToForm(draft)} className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/60 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-          <IconEdit className="h-3.5 w-3.5"/>
-          {t.editInFormBtn}
-        </button>
+        <div className="space-y-2">
+          <button type="button" onClick={handleShareGps} className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 px-3 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition">
+            <IconCurrentLocation className="h-3.5 w-3.5"/>
+            {t.shareGpsBtn}
+          </button>
+          {gpsNotice && (<p className="inline-flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
+              <IconMapPin className="h-3 w-3 shrink-0 text-sky-600"/>
+              {gpsNotice}
+            </p>)}
+          <button type="button" onClick={() => onSwitchToForm(draft)} className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/60 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <IconEdit className="h-3.5 w-3.5"/>
+            {t.editInFormBtn}
+          </button>
+        </div>
       </div>
     </div>);
 }

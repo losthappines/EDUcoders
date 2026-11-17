@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { IconAlertTriangle, IconArrowRight, IconBed, IconCircleCheck, IconClock, IconFileCode, IconLock, IconMapPin, IconPackage, IconReceipt, IconShieldCheck, IconUserCheck, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconArrowRight, IconBed, IconBell, IconBrandTelegram, IconCircleCheck, IconClock, IconCrown, IconFileCode, IconLock, IconMapPin, IconPackage, IconReceipt, IconSend, IconShieldCheck, IconUserCheck, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
@@ -53,6 +53,22 @@ const ADMIN_COPY = {
         verifPendingDesc: "ta yangi bemor yoki shifokor hisobi tasdiqlashingizni kutmoqda.",
         verifClearDesc: "Barcha yangi bemor va shifokor arizalari ko'rib chiqilgan.",
         verifBtn: "Tasdiqlash sahifasini ochish",
+        complaintsMonitorTitle: "Bemor shikoyatlari va GPS dispetcher nazorati",
+        remindAllBtn: "Barcha shifokorlarga Telegram eslatma",
+        remindOneBtn: "Shifokorga eslatma",
+        complaintsEmpty: "Hozircha faol shikoyatlar yo'q.",
+        tgControlTitle: "Telegram Bot boshqaruv paneli (@BotFather & Webhook)",
+        tgTokenPlaceholder: "@BotFather API tokeni (masalan: 123456:ABC...)",
+        tgUserPlaceholder: "Bot username (masalan: @OnaCareBot)",
+        tgWebhookPlaceholder: "Webhook URL",
+        tgSaveBtn: "Saqlash va Webhook ulash",
+        tgConsoleBtn: "Bot Konsolni ochish",
+        tgConfiguredBadge: "Token sozlangan",
+        tgSimBadge: "Simulyator rejimi",
+        subsTitle: "Bemor va Shifokor obunalari (Subscriptions)",
+        subsEmpty: "Hozircha xarid qilingan obunalar yo'q.",
+        remindedOk: "Telegram tashrif eslatmasi yuborildi!",
+        tgSavedOk: "Telegram Bot va Webhook sozlandi!",
     },
     ru: {
         title: "Координация клиники и контроль 24-часовых визитов",
@@ -99,6 +115,22 @@ const ADMIN_COPY = {
         verifPendingDesc: "новых аккаунтов ожидают вашего подтверждения перед входом.",
         verifClearDesc: "Все заявки пациентов и врачей уже рассмотрены.",
         verifBtn: "Открыть страницу проверки",
+        complaintsMonitorTitle: "Мониторинг жалоб и GPS-диспетчеризация",
+        remindAllBtn: "Напомнить всем врачам в Telegram",
+        remindOneBtn: "Напомнить врачу",
+        complaintsEmpty: "Активных жалоб пока нет.",
+        tgControlTitle: "Управление Telegram Ботом (@BotFather & Webhook)",
+        tgTokenPlaceholder: "Токен @BotFather",
+        tgUserPlaceholder: "Username бота (@OnaCareBot)",
+        tgWebhookPlaceholder: "Webhook URL",
+        tgSaveBtn: "Сохранить и подключить Webhook",
+        tgConsoleBtn: "Открыть консоль бота",
+        tgConfiguredBadge: "Токен настроен",
+        tgSimBadge: "Режим симулятора",
+        subsTitle: "Подписки пациентов и врачей",
+        subsEmpty: "Оформленных подписок пока нет.",
+        remindedOk: "Напоминание врачу в Telegram отправлено!",
+        tgSavedOk: "Telegram бот и Webhook настроены!",
     },
     en: {
         title: "Clinic Reception, 24-Hour Visit Monitor & Governance",
@@ -145,16 +177,106 @@ const ADMIN_COPY = {
         verifPendingDesc: "new patient or doctor registration(s) awaiting your verification.",
         verifClearDesc: "All patient and doctor registrations have been reviewed.",
         verifBtn: "Open Verifications Page",
+        complaintsMonitorTitle: "Patient Complaints & GPS Dispatch Monitor",
+        remindAllBtn: "Send Batch Doctor Reminders",
+        remindOneBtn: "Remind Doctor on Telegram",
+        complaintsEmpty: "No patient complaints recorded yet.",
+        tgControlTitle: "Telegram Bot Control Panel (@BotFather & Webhook)",
+        tgTokenPlaceholder: "@BotFather token (e.g. 123456:ABC...)",
+        tgUserPlaceholder: "Bot username (e.g. @OnaCareBot)",
+        tgWebhookPlaceholder: "Webhook URL",
+        tgSaveBtn: "Save & Bind Webhook",
+        tgConsoleBtn: "Open Bot Console",
+        tgConfiguredBadge: "Bot Token Configured",
+        tgSimBadge: "Simulator Mode",
+        subsTitle: "Patient & Doctor Subscriptions",
+        subsEmpty: "No subscription transactions recorded yet.",
+        remindedOk: "Telegram visit reminder sent to doctor!",
+        tgSavedOk: "Telegram bot token & webhook updated!",
     },
 };
 export default function AdminPanelPage() {
-    const { data, loading, dataLoadedAtMs } = usePlatform();
+    const { data, loading, dataLoadedAtMs, fetchWithAuth, showToast } = usePlatform();
     const { lang } = useLanguage();
     const t = ADMIN_COPY[lang];
     const [fhirCallId, setFhirCallId] = useState(null);
     const [slaFilter, setSlaFilter] = useState("ALL");
+    const [tgStatus, setTgStatus] = useState(null);
+    const [tgToken, setTgToken] = useState("");
+    const [tgUsername, setTgUsername] = useState("");
+    const [tgWebhookUrl, setTgWebhookUrl] = useState("");
+    const [savingTg, setSavingTg] = useState(false);
+    const [remindingId, setRemindingId] = useState(null);
+    useEffect(() => {
+        let active = true;
+        fetchWithAuth("/api/telegram/setup")
+            .then((r) => (r.ok ? r.json() : null))
+            .then((json) => {
+            if (!active)
+                return;
+            if (typeof window !== "undefined") {
+                setTgWebhookUrl((prev) => prev || `${window.location.origin}/api/telegram/webhook`);
+            }
+            if (json) {
+                setTgStatus(json);
+                if (json.botUsername)
+                    setTgUsername(json.botUsername);
+            }
+        })
+            .catch(() => { });
+        return () => {
+            active = false;
+        };
+    }, [fetchWithAuth]);
+    const handleSaveTelegram = async (e) => {
+        e.preventDefault();
+        setSavingTg(true);
+        try {
+            const res = await fetchWithAuth("/api/telegram/setup", {
+                method: "POST",
+                body: JSON.stringify({
+                    botToken: tgToken.trim() || undefined,
+                    botUsername: tgUsername.trim() || undefined,
+                    webhookUrl: tgWebhookUrl.trim() || undefined,
+                }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || "Could not configure Telegram bot");
+                return;
+            }
+            if (json.status)
+                setTgStatus(json.status);
+            setTgToken("");
+            showToast("success", t.tgSavedOk);
+        }
+        finally {
+            setSavingTg(false);
+        }
+    };
+    const handleRemindDoctor = async (doctorId) => {
+        setRemindingId(doctorId || "BATCH");
+        try {
+            const res = await fetchWithAuth("/api/admin/remind-doctor", {
+                method: "POST",
+                body: JSON.stringify(doctorId ? { doctorId } : {}),
+            });
+            if (res.ok) {
+                showToast("success", t.remindedOk);
+            }
+            else {
+                const json = await res.json().catch(() => ({}));
+                showToast("error", json.error || "Failed to send reminder");
+            }
+        }
+        finally {
+            setRemindingId(null);
+        }
+    };
     const calls = data?.activeCalls ?? [];
     const patients = data?.patients ?? [];
+    const complaints = data?.complaints ?? [];
+    const subscriptions = data?.subscriptions ?? [];
     const doctors = (data?.users ?? []).filter((u) => u.role === "FAMILY_MD");
     const invoices = data?.invoices ?? [];
     const auditLogs = data?.auditLogs ?? [];
@@ -419,6 +541,109 @@ export default function AdminPanelPage() {
               {totalPatientPaid.toLocaleString()} UZS
             </strong>
           </p>
+        </section>
+      </div>
+
+      {/* Complaints & GPS Dispatch Monitor */}
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <IconMapPin className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+            {t.complaintsMonitorTitle} ({complaints.length})
+          </h2>
+          <button type="button" disabled={remindingId === "BATCH"} onClick={() => handleRemindDoctor(null)} className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50">
+            <IconBell className="h-3.5 w-3.5"/>
+            {remindingId === "BATCH" ? "..." : t.remindAllBtn}
+          </button>
+        </div>
+
+        {complaints.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 py-3">{t.complaintsEmpty}</p>) : (<div className="space-y-2">
+            {complaints.map((c) => (<div key={c.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50 p-3 text-xs">
+                <div className="space-y-0.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-slate-900 dark:text-slate-100">{c.patient?.fullName}</span>
+                    <span className="rounded-full bg-slate-200/80 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                      {c.category} • {c.severity}
+                    </span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${c.status === "VERIFIED_COMPLETED"
+                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
+                    : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                      {c.status}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-300">
+                    {c.visitDestination}: {c.visitAddress}
+                    {typeof c.distanceKm === "number" ? ` • ${c.distanceKm} km` : ""}
+                    {c.assignedDoctor ? ` • Dr. ${c.assignedDoctor.fullName}` : ""}
+                  </p>
+                </div>
+                {c.assignedDoctorId && (<button type="button" disabled={remindingId === c.assignedDoctorId} onClick={() => handleRemindDoctor(c.assignedDoctorId)} className="inline-flex items-center gap-1 rounded-lg border border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/60 px-3 py-1.5 text-[11px] font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 shrink-0">
+                    <IconBrandTelegram className="h-3.5 w-3.5"/>
+                    {remindingId === c.assignedDoctorId ? "..." : t.remindOneBtn}
+                  </button>)}
+              </div>))}
+          </div>)}
+      </section>
+
+      {/* Telegram Bot Control Panel & Subscriptions Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <IconBrandTelegram className="h-4 w-4 text-sky-500"/>
+              {t.tgControlTitle}
+            </h2>
+            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${tgStatus?.configured
+            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
+            : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+              {tgStatus?.configured ? t.tgConfiguredBadge : t.tgSimBadge}
+            </span>
+          </div>
+
+          <form onSubmit={handleSaveTelegram} className="space-y-2.5">
+            <input type="password" value={tgToken} onChange={(e) => setTgToken(e.target.value)} placeholder={t.tgTokenPlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono text-xs text-slate-900 dark:text-slate-100"/>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input type="text" value={tgUsername} onChange={(e) => setTgUsername(e.target.value)} placeholder={t.tgUserPlaceholder} className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+              <input type="url" value={tgWebhookUrl} onChange={(e) => setTgWebhookUrl(e.target.value)} placeholder={t.tgWebhookPlaceholder} className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono text-xs text-slate-900 dark:text-slate-100"/>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="submit" disabled={savingTg} className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-teal-700 disabled:opacity-50">
+                <IconSend className="h-3.5 w-3.5"/>
+                {savingTg ? "..." : t.tgSaveBtn}
+              </button>
+              <Link href="/telegram" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
+                {t.tgConsoleBtn}
+                <IconArrowRight className="h-3.5 w-3.5"/>
+              </Link>
+            </div>
+          </form>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <IconCrown className="h-4 w-4 text-amber-500"/>
+            {t.subsTitle} ({subscriptions.length})
+          </h2>
+          {subscriptions.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 py-3">{t.subsEmpty}</p>) : (<div className="space-y-2 max-h-56 overflow-y-auto">
+              {subscriptions.map((sub) => (<div key={sub.id} className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 p-2.5 text-xs">
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-slate-100">
+                      {sub.user?.fullName || sub.userId} ({sub.targetRole})
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {sub.planName} • {sub.paymentMethod}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                      {Number(sub.priceUzs || 0).toLocaleString()} UZS
+                    </p>
+                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950/70 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                      {sub.status}
+                    </span>
+                  </div>
+                </div>))}
+            </div>)}
         </section>
       </div>
 

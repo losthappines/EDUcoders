@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { IconAlertTriangle, IconArrowLeft, IconBuildingHospital, IconCheck, IconCircleCheck, IconClock, IconMail, IconMapPin, IconPhone, IconSearch, IconStethoscope, IconUser, IconUserCheck, IconX, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconArrowLeft, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClock, IconCrown, IconMail, IconMapPin, IconPhone, IconSearch, IconStethoscope, IconUser, IconUserCheck, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 const COPY = {
@@ -43,6 +43,8 @@ const COPY = {
         bloodLabel: "Qon guruhi:",
         mahallaLabel: "Mahalla:",
         notePrefix: "Izoh:",
+        expWord: "yil tajriba",
+        telegramLinkedLabel: "Telegram ulangan",
     },
     ru: {
         backDash: "Назад к обзору клиники",
@@ -82,6 +84,8 @@ const COPY = {
         bloodLabel: "Группа крови:",
         mahallaLabel: "Махалля:",
         notePrefix: "Комментарий:",
+        expWord: "лет стажа",
+        telegramLinkedLabel: "Telegram подключен",
     },
     en: {
         backDash: "Back to Dashboard Overview",
@@ -121,6 +125,8 @@ const COPY = {
         bloodLabel: "Blood Type:",
         mahallaLabel: "Mahalla:",
         notePrefix: "Note:",
+        expWord: "yrs exp",
+        telegramLinkedLabel: "Telegram Linked",
     },
 };
 export default function AdminVerificationsPage() {
@@ -213,6 +219,7 @@ export default function AdminVerificationsPage() {
                 (a.phone || "").toLowerCase().includes(q) ||
                 (a.district || "").toLowerCase().includes(q) ||
                 (a.specialty || "").toLowerCase().includes(q) ||
+                (a.expertiseArea || "").toLowerCase().includes(q) ||
                 (a.polyclinicName || "").toLowerCase().includes(q));
         });
     }, [accounts, statusFilter, roleFilter, query]);
@@ -336,6 +343,8 @@ export default function AdminVerificationsPage() {
                 const roleMeta = getRoleMeta(acc.role);
                 const isBusy = busyId === acc.id;
                 const isRejecting = rejectingId === acc.id;
+                const latVal = acc.latitude ?? acc.patientProfile?.latitude ?? null;
+                const lngVal = acc.longitude ?? acc.patientProfile?.longitude ?? null;
                 return (<div key={acc.id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 p-4 space-y-3">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0">
@@ -352,6 +361,20 @@ export default function AdminVerificationsPage() {
                           </span>
                           {acc.role !== "PATIENT" && acc.specialty && (<span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300">
                               {acc.specialty}
+                            </span>)}
+                          {acc.role !== "PATIENT" && acc.expertiseArea && (<span className="inline-flex items-center rounded-full border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:text-indigo-300">
+                              {acc.expertiseArea}
+                            </span>)}
+                          {acc.role !== "PATIENT" && typeof acc.experienceYears === "number" && (<span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                              {acc.experienceYears} {t.expWord}
+                            </span>)}
+                          {acc.telegramLinked && (<span className="inline-flex items-center gap-1 rounded-full bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-2 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300">
+                              <IconBrandTelegram className="h-3 w-3"/>
+                              {t.telegramLinkedLabel}
+                            </span>)}
+                          {acc.subscriptionTier && acc.subscriptionTier !== "FREE" && (<span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                              <IconCrown className="h-3 w-3"/>
+                              {acc.subscriptionTier}
                             </span>)}
                           {acc.verificationStatus === "PENDING" ? (<span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
                               <IconClock className="h-3 w-3"/>
@@ -378,6 +401,9 @@ export default function AdminVerificationsPage() {
                               <IconMapPin className="h-3.5 w-3.5 text-slate-400"/>
                               {acc.district}
                               {acc.polyclinicName ? ` • ${acc.polyclinicName}` : ""}
+                            </span>)}
+                          {latVal !== null && lngVal !== null && (<span className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-300">
+                              GPS: {Number(latVal).toFixed(4)}, {Number(lngVal).toFixed(4)}
                             </span>)}
                         </div>
 

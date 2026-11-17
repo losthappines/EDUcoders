@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { IconArrowRight, IconCalendarHeart, IconClipboardCheck, IconFileText, IconHeartHandshake, IconLock, IconLogin, IconMessageHeart, IconShieldCheck, IconStethoscope, IconUserPlus, } from "@tabler/icons-react";
+import { IconArrowRight, IconBrandTelegram, IconCalendarHeart, IconClipboardCheck, IconFileText, IconHeartHandshake, IconLock, IconLogin, IconMapPin, IconMessageHeart, IconRobot, IconShieldCheck, IconStethoscope, IconUserPlus, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { PublicHeader } from "@/components/PublicHeader";
@@ -20,6 +20,19 @@ const LANDING_COPY = {
         ctaSignup: "Bepul hisob yaratish",
         ctaSignin: "Kabinetga kirish",
         ctaOpenPortal: "Kabinetimni ochish",
+        ctaTelegram: "Telegram Botni ochish",
+        archEyebrow: "Platforma Arxitekturasi",
+        archTitle: "3 kirish kanali → Admin nazorati → Bemor va Shifokor kabinetlari",
+        archSub: "Telegram bot, oddiy hisob yoki SI (AI yordamchi) orqali GPS lokatsiya bilan ro'yxatdan o'ting. Admin barcha foydalanuvchilarni tasdiqlaydi va tashriflarni kuzatadi.",
+        archChannelsTitle: "1. Kirish va Ro'yxatdan o'tish",
+        archHubTitle: "2. Admin Dashboard",
+        archPortalsTitle: "3. Asosiy Kabinetlar",
+        archChannelTelegram: "Telegram Bot (GPS + Shikoyat + Chat)",
+        archChannelAccount: "Account (Bemor / Shifokor formasi)",
+        archChannelAi: "SI / AI Yordamchi (Suvolda to'ldirish)",
+        archHubDesc: "Bemor va shifokorlarni verifikatsiya qiladi, GPS dispetcherni boshqaradi va Telegram eslatma yuboradi",
+        archBemorDesc: "Shikoyat + GPS manzil, paramedik boradigan joyni tanlash, shifokor bilan maslahat chati va obuna",
+        archShifokorDesc: "Ekspertiza, tajriba yili va GPS ulashish, eng yaqin bemorlarni ko'rish, joyida tasdiqlash va obuna",
         trust1: "Ma'lumotlaringiz shifrlangan va maxfiy",
         trust2: "24 soat ichida shifokor yoki hamshira keladi",
         trust3: "Faqat siz va shifokoringiz ko'radi",
@@ -115,6 +128,19 @@ const LANDING_COPY = {
         ctaSignup: "Создать аккаунт бесплатно",
         ctaSignin: "Войти в кабинет",
         ctaOpenPortal: "Открыть мой кабинет",
+        ctaTelegram: "Открыть Telegram Бот",
+        archEyebrow: "Архитектура платформы",
+        archTitle: "3 канала входа → Панель Администратора → Кабинеты Пациента и Врача",
+        archSub: "Регистрируйтесь через Telegram-бот, стандартную форму или AI-помощника с GPS-локацией. Администратор верифицирует всех и контролирует визиты.",
+        archChannelsTitle: "1. Каналы входа",
+        archHubTitle: "2. Admin Dashboard",
+        archPortalsTitle: "3. Основные порталы",
+        archChannelTelegram: "Telegram Бот (GPS + Жалобы + Чат)",
+        archChannelAccount: "Account (Форма Пациента / Врача)",
+        archChannelAi: "SI / AI Помощник (Быстрый опрос)",
+        archHubDesc: "Проверяет пациентов и врачей, координирует GPS-вызовы и отправляет напоминания в Telegram",
+        archBemorDesc: "Жалоба с GPS, выбор точки приезда парамедиков, прямой чат с врачом и подписки",
+        archShifokorDesc: "Специализация, стаж и GPS, радар ближайших жалоб, подтверждение осмотра на месте и подписки",
         trust1: "Ваши данные зашифрованы и конфиденциальны",
         trust2: "Врач или медсестра придут в течение 24 часов",
         trust3: "Доступ есть только у вас и ваших врачей",
@@ -210,6 +236,19 @@ const LANDING_COPY = {
         ctaSignup: "Create Free Account",
         ctaSignin: "Sign In",
         ctaOpenPortal: "Open My Portal",
+        ctaTelegram: "Open Telegram Bot",
+        archEyebrow: "Platform Architecture",
+        archTitle: "3 Entry Channels → Admin Hub → Patient (Bemor) & Doctor (Shifokor) Portals",
+        archSub: "Sign up via Telegram Bot, traditional Account form, or SI (AI Helper) with live GPS coordinates. Admins verify every account and coordinate dispatch.",
+        archChannelsTitle: "1. Entry & Sign-Up Channels",
+        archHubTitle: "2. Admin Dashboard",
+        archPortalsTitle: "3. Core Portals",
+        archChannelTelegram: "Telegram Bot (GPS + Complaints + Chat)",
+        archChannelAccount: "Account (Patient / Doctor Form)",
+        archChannelAi: "SI / AI Helper (Guided Q&A)",
+        archHubDesc: "Verifies Bemor & Shifokor accounts, monitors GPS complaint dispatch, and sends Telegram visit reminders",
+        archBemorDesc: "Submit complaints with GPS, choose paramedic destination, direct advice chat & subscriptions",
+        archShifokorDesc: "Share specialty, experience & GPS, view nearest patients, verify visits on-site & subscriptions",
         trust1: "Your data is encrypted and private",
         trust2: "A nurse or doctor visits you within 24 hours",
         trust3: "Only you and your care team see your data",
@@ -339,6 +378,10 @@ export default function LandingPage() {
                         {t.ctaSignin}
                       </Link>
                     </>)}
+                  <Link href="/telegram" className="inline-flex items-center gap-2 rounded-xl border border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/60 px-5 py-3 text-sm font-semibold text-sky-800 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 transition">
+                    <IconBrandTelegram className="h-4 w-4"/>
+                    {t.ctaTelegram}
+                  </Link>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -385,6 +428,102 @@ export default function LandingPage() {
                           <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">{item.desc}</p>
                         </div>
                       </div>))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* System Architecture: 3 Entry Channels -> Admin Hub -> Bemor / Shifokor */}
+        <section id="architecture" className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 py-12">
+          <div className="mx-auto max-w-7xl px-4 space-y-6">
+            <div className="max-w-3xl space-y-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+                {t.archEyebrow}
+              </span>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                {t.archTitle}
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                {t.archSub}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+              {/* Column 1: 3 Signup Channels */}
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  {t.archChannelsTitle}
+                </p>
+                <div className="space-y-2.5 text-xs">
+                  <Link href="/telegram" className="flex items-center justify-between gap-2 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 p-3 hover:bg-sky-100/70 transition">
+                    <span className="flex items-center gap-2 font-semibold text-sky-900 dark:text-sky-200">
+                      <IconBrandTelegram className="h-4 w-4 text-sky-600 dark:text-sky-400 shrink-0"/>
+                      {t.archChannelTelegram}
+                    </span>
+                    <IconArrowRight className="h-3.5 w-3.5 text-sky-600 shrink-0"/>
+                  </Link>
+                  <Link href="/signup" className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <span className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
+                      <IconUserPlus className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0"/>
+                      {t.archChannelAccount}
+                    </span>
+                    <IconArrowRight className="h-3.5 w-3.5 text-teal-600 shrink-0"/>
+                  </Link>
+                  <Link href="/signup" className="flex items-center justify-between gap-2 rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-950/40 p-3 hover:bg-teal-100/70 transition">
+                    <span className="flex items-center gap-2 font-semibold text-teal-900 dark:text-teal-200">
+                      <IconRobot className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0"/>
+                      {t.archChannelAi}
+                    </span>
+                    <IconArrowRight className="h-3.5 w-3.5 text-teal-600 shrink-0"/>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Column 2: Admin Dashboard Hub */}
+              <div className="rounded-2xl border border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-5 flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                    {t.archHubTitle}
+                  </p>
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 dark:bg-amber-700 text-white">
+                      <IconShieldCheck className="h-5 w-5"/>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">Admin & Verification Hub</p>
+                      <p className="text-[11px] text-amber-800 dark:text-amber-300 font-semibold">GPS Dispatch • Telegram Alerts</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed pt-1">
+                    {t.archHubDesc}
+                  </p>
+                </div>
+                <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-300 hover:underline">
+                  {t.adminCta} <IconArrowRight className="h-3.5 w-3.5"/>
+                </Link>
+              </div>
+
+              {/* Column 3: Bemor & Shifokor Portals */}
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  {t.archPortalsTitle}
+                </p>
+                <div className="space-y-2.5 text-xs">
+                  <div className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3 space-y-1">
+                    <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <IconMapPin className="h-3.5 w-3.5 text-teal-600"/>
+                      Bemor Portal
+                    </p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300">{t.archBemorDesc}</p>
+                  </div>
+                  <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/40 dark:bg-indigo-950/30 p-3 space-y-1">
+                    <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <IconStethoscope className="h-3.5 w-3.5 text-indigo-600"/>
+                      Shifokor Portal
+                    </p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300">{t.archShifokorDesc}</p>
                   </div>
                 </div>
               </div>

@@ -2,7 +2,7 @@
 import React, { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { IconAlertTriangle, IconBuildingHospital, IconCircleCheck, IconClipboardText, IconClock, IconEye, IconEyeOff, IconNurse, IconShieldCheck, IconSparkles, IconStethoscope, IconUser, IconUserPlus, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconBrandTelegram, IconBuildingHospital, IconCircleCheck, IconClipboardText, IconClock, IconCurrentLocation, IconEye, IconEyeOff, IconMapPin, IconNurse, IconShieldCheck, IconSparkles, IconStethoscope, IconUser, IconUserPlus, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { PublicHeader } from "@/components/PublicHeader";
@@ -11,6 +11,7 @@ import { InfoTooltip } from "@/components/InfoTooltip";
 import { AiSignupAssistant } from "@/components/AiSignupAssistant";
 import { createInitialDraft, } from "@/lib/ai-signup-helper";
 import { BLOOD_TYPE_OPTIONS, UZ_REGIONS } from "@/lib/uz-locations";
+import { resolveCoordinatesForLocation } from "@/lib/geo";
 const PERSONA_CARDS = [
     {
         persona: "PATIENT",
@@ -73,21 +74,32 @@ const PERSONA_CARDS = [
 const COPY = {
     uz: {
         title: "OnaCare hisobini yaratish",
-        subtitle: "Avval kim ekanligingizni tanlang, so'ngra odatiy shakl yoki AI yordamchisi orqali tez ro'yxatdan o'ting.",
+        subtitle: "Avval kim ekanligingizni tanlang, so'ngra SI (AI), Account shakli yoki Telegram Bot orqali tez ro'yxatdan o'ting.",
         step1Title: "1-qadam: Siz kimsiz?",
-        step2Title: "2-qadam: Ro'yxatdan o'tish usulini tanlang",
-        aiCardTitle: "AI yordamchisi bilan ro'yxatdan o'tish",
+        step2Title: "2-qadam: Ro'yxatdan o'tish kanalini tanlang (SI / Account / Telegram)",
+        aiCardTitle: "SI / AI yordamchisi",
         aiCardBadge: "Tavsiya etiladi",
-        aiCardDesc: "AI sizdan ismingiz, tug'ilgan sanangiz va kerakli ma'lumotlarni so'rab, shaklni o'zi to'ldirib beradi.",
-        tradCardTitle: "An'anaviy ro'yxatdan o'tish",
+        aiCardDesc: "Sun'iy intellekt sizdan ismingiz, tajribangiz/holatingiz va lokatsiyangizni so'rab shaklni to'ldirib beradi.",
+        tradCardTitle: "Account (An'anaviy shakl)",
         tradCardDesc: "Standart ro'yxatdan o'tish maydonlarini o'zingiz qo'lda to'ldiring.",
+        telegramCardTitle: "Telegram Bot orqali",
+        telegramCardBadge: "Tezkor GPS",
+        telegramCardDesc: "Telegram orqali GPS lokatsiya bilan ro'yxatdan o'ting, shikoyat yuboring va shifokor bilan bog'laning.",
         adminToggle: "Poliklinika koordinatori / administrator sifatida ro'yxatdan o'tish",
         adminBadge: "Poliklinika koordinatori",
         doctorTypeLabel: "Shifokor ish joyi",
         doctorHospital: "Tug'ruqxona shifokori (OvaBMU)",
         doctorFamily: "Hududiy oilaviy shifokor",
-        specialtyLabel: "Mutaxassislik / Bo'lim",
-        specialtyPlaceholder: "Masalan: Patronaj hamshirasi yoki Akusher-ginekolog",
+        specialtyLabel: "Qaysi soha / Mutaxassislik",
+        specialtyPlaceholder: "Masalan: Akusher-ginekolog, Oilaviy shifokor, Pediatr",
+        expertiseLabel: "Asosiy ekspertiza yo'nalishi",
+        expertisePlaceholder: "Masalan: Tug'ruqdan keyingi nazorat, qon bosimi",
+        experienceLabel: "Ish tajribasi (yil)",
+        experiencePlaceholder: "Masalan: 6",
+        gpsLabel: "GPS lokatsiya ulashish",
+        gpsShareBtn: "Jonli GPS lokatsiyamni ulashish",
+        gpsSharedText: "Jonli GPS koordinata saqlandi",
+        gpsFallbackText: "Tuman markazi bo'yicha koordinata avtomatik qo'llanadi",
         fullName: "F.I.O. (To'liq ism-familiya)",
         fullNamePlaceholder: "Masalan: Malika Karimova",
         email: "Elektron pochta",
@@ -124,21 +136,32 @@ const COPY = {
     },
     ru: {
         title: "Создать аккаунт OnaCare",
-        subtitle: "Сначала выберите вашу роль, а затем — удобный способ регистрации: с AI-помощником или через обычную форму.",
+        subtitle: "Выберите вашу роль и канал регистрации: SI (AI-помощник), Account (форма) или Telegram Бот.",
         step1Title: "Шаг 1: Кем вы являетесь?",
-        step2Title: "Шаг 2: Выберите способ регистрации",
-        aiCardTitle: "Регистрация с AI-помощником",
+        step2Title: "Шаг 2: Выберите канал регистрации (SI / Account / Telegram)",
+        aiCardTitle: "SI / AI-помощник",
         aiCardBadge: "Быстро и просто",
-        aiCardDesc: "AI задаст вопросы об имени, дате рождения и нужных данных и сам заполнит анкету за вас.",
-        tradCardTitle: "Традиционная форма",
+        aiCardDesc: "AI задаст вопросы об имени, опыте, специализации и локации и сам заполнит анкету.",
+        tradCardTitle: "Account (Традиционная форма)",
         tradCardDesc: "Заполните все поля стандартной регистрационной анкеты вручную.",
+        telegramCardTitle: "Через Telegram Бот",
+        telegramCardBadge: "Быстрый GPS",
+        telegramCardDesc: "Регистрация по GPS в Telegram, отправка жалоб и прямая связь с врачом.",
         adminToggle: "Регистрация для координатора клиники / администратора",
         adminBadge: "Координатор клиники",
         doctorTypeLabel: "Место работы врача",
         doctorHospital: "Врач роддома (стационар)",
         doctorFamily: "Участковый семейный врач",
-        specialtyLabel: "Специальность / Направление",
-        specialtyPlaceholder: "Например: Патронажная медсестра или Акушер-гинеколог",
+        specialtyLabel: "Сфера / Специальность",
+        specialtyPlaceholder: "Например: Акушер-гинеколог, Семейный врач, Педиатр",
+        expertiseLabel: "Ключевая экспертиза",
+        expertisePlaceholder: "Например: Послеродовое наблюдение и давление",
+        experienceLabel: "Стаж работы (лет)",
+        experiencePlaceholder: "Например: 6",
+        gpsLabel: "Поделиться GPS-локацией",
+        gpsShareBtn: "Поделиться моей GPS-локацией",
+        gpsSharedText: "Точные GPS-координаты сохранены",
+        gpsFallbackText: "Автоматически используются координаты вашего района",
         fullName: "ФИО (Полное имя)",
         fullNamePlaceholder: "Например: Малика Каримова",
         email: "Электронная почта",
@@ -175,21 +198,32 @@ const COPY = {
     },
     en: {
         title: "Create Your OnaCare Account",
-        subtitle: "First tell us who you are, then choose either the traditional form or our AI Sign-Up Helper.",
+        subtitle: "Select your role, then sign up through SI (AI Helper), Account (Form), or our Telegram Bot.",
         step1Title: "Step 1: Who are you?",
-        step2Title: "Step 2: Choose how you want to sign up",
-        aiCardTitle: "Sign Up with AI Helper",
+        step2Title: "Step 2: Choose your signup channel (SI / Account / Telegram)",
+        aiCardTitle: "SI / AI Sign-Up Helper",
         aiCardBadge: "Easy & Guided",
-        aiCardDesc: "AI asks simple questions about your name, birth date, and details, and fills everything out for you.",
-        tradCardTitle: "Traditional Sign Up",
+        aiCardDesc: "AI asks about your name, medical expertise, experience & location and fills out your profile.",
+        tradCardTitle: "Account (Traditional Form)",
         tradCardDesc: "Fill in the standard registration fields manually yourself.",
+        telegramCardTitle: "Via Telegram Bot",
+        telegramCardBadge: "Live GPS",
+        telegramCardDesc: "Sign up with live GPS location in Telegram, submit complaints & chat with doctors.",
         adminToggle: "Registering as a Clinic Coordinator / Admin instead?",
         adminBadge: "Clinic Coordinator",
         doctorTypeLabel: "Doctor Practice Type",
         doctorHospital: "Hospital Doctor (Maternity)",
         doctorFamily: "Local Family Doctor",
-        specialtyLabel: "Specialty / Focus",
-        specialtyPlaceholder: "e.g. Monitoring Nurse or OB-GYN",
+        specialtyLabel: "Field / Medical Specialty",
+        specialtyPlaceholder: "e.g. OB-GYN, Family Doctor, Pediatrician",
+        expertiseLabel: "Clinical Expertise Focus",
+        expertisePlaceholder: "e.g. Postpartum recovery & hypertension risk",
+        experienceLabel: "Years of Experience",
+        experiencePlaceholder: "e.g. 6",
+        gpsLabel: "Share GPS Location",
+        gpsShareBtn: "Share My Live GPS Coordinates",
+        gpsSharedText: "Live GPS coordinates captured",
+        gpsFallbackText: "District center GPS will be used automatically",
         fullName: "Full Name",
         fullNamePlaceholder: "e.g. Malika Karimova",
         email: "Email Address",
@@ -266,6 +300,11 @@ function SignupFormInner() {
     const [dateOfBirth, setDateOfBirth] = useState("");
     const [bloodType, setBloodType] = useState("");
     const [specialty, setSpecialty] = useState("");
+    const [expertiseArea, setExpertiseArea] = useState("");
+    const [experienceYears, setExperienceYears] = useState("");
+    const [latitude, setLatitude] = useState(null);
+    const [longitude, setLongitude] = useState(null);
+    const [gpsMessage, setGpsMessage] = useState(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState(null);
     const [pendingInfo, setPendingInfo] = useState(null);
@@ -300,9 +339,27 @@ function SignupFormInner() {
         setError(null);
         if (nextPersona !== selectedPersona) {
             setSpecialty("");
+            setExpertiseArea("");
+            setExperienceYears("");
         }
         setSelectedPersona(nextPersona);
         setAiSessionKey((k) => k + 1);
+    };
+    const handleShareGps = () => {
+        setGpsMessage(null);
+        if (typeof navigator === "undefined" || !navigator.geolocation) {
+            setGpsMessage(t.gpsFallbackText);
+            return;
+        }
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const lat = Number(pos.coords.latitude.toFixed(5));
+            const lng = Number(pos.coords.longitude.toFixed(5));
+            setLatitude(lat);
+            setLongitude(lng);
+            setGpsMessage(`${t.gpsSharedText}: ${lat}, ${lng}`);
+        }, () => {
+            setGpsMessage(t.gpsFallbackText);
+        }, { enableHighAccuracy: true, timeout: 7000 });
     };
     const applyDraftToForm = (draft) => {
         if (draft.persona === "DOCTOR") {
@@ -324,6 +381,14 @@ function SignupFormInner() {
             setBloodType(draft.bloodType);
         if (draft.specialty)
             setSpecialty(draft.specialty);
+        if (draft.expertiseArea)
+            setExpertiseArea(draft.expertiseArea);
+        if (draft.experienceYears !== "" && draft.experienceYears !== null && draft.experienceYears !== undefined)
+            setExperienceYears(String(draft.experienceYears));
+        if (typeof draft.latitude === "number" && typeof draft.longitude === "number") {
+            setLatitude(draft.latitude);
+            setLongitude(draft.longitude);
+        }
         if (draft.email)
             setEmail(draft.email);
         if (draft.password)
@@ -337,23 +402,37 @@ function SignupFormInner() {
     const handleDistrictChange = (nextDistrict) => {
         setDistrict(nextDistrict);
         setMahalla("");
+        let resolvedReg = region;
         if (nextDistrict && !region) {
             const parentRegion = UZ_REGIONS.find((r) => r.districts.some((d) => d.name === nextDistrict));
             if (parentRegion) {
+                resolvedReg = parentRegion.name;
                 setRegion(parentRegion.name);
             }
+        }
+        if (nextDistrict && (latitude === null || longitude === null)) {
+            const coords = resolveCoordinatesForLocation(nextDistrict, resolvedReg);
+            setLatitude(coords.latitude);
+            setLongitude(coords.longitude);
         }
     };
     const performSignup = async (payload) => {
         setError(null);
         setBusy(true);
         try {
+            const fallbackCoords = resolveCoordinatesForLocation(payload.district, payload.region);
+            const finalLat = typeof payload.latitude === "number" ? payload.latitude : fallbackCoords.latitude;
+            const finalLng = typeof payload.longitude === "number" ? payload.longitude : fallbackCoords.longitude;
             const res = await signup({
                 fullName: payload.fullName,
                 email: payload.email,
                 password: payload.password,
                 role: payload.role,
                 specialty: payload.specialty,
+                expertiseArea: payload.expertiseArea,
+                experienceYears: payload.experienceYears,
+                latitude: finalLat,
+                longitude: finalLng,
                 phone: payload.phone,
                 region: payload.region,
                 district: payload.district,
@@ -385,6 +464,7 @@ function SignupFormInner() {
             setError(t.districtError);
             return;
         }
+        const isDocOrNurse = selectedPersona === "DOCTOR" || selectedPersona === "NURSE";
         await performSignup({
             persona: selectedPersona,
             fullName,
@@ -396,6 +476,10 @@ function SignupFormInner() {
                 : selectedPersona === "DOCTOR"
                     ? specialty.trim() || undefined
                     : undefined,
+            expertiseArea: isDocOrNurse ? (expertiseArea.trim() || specialty.trim() || undefined) : undefined,
+            experienceYears: isDocOrNurse && experienceYears !== "" ? Number(experienceYears) : undefined,
+            latitude,
+            longitude,
             phone: phone.trim(),
             region: region.trim(),
             district: district.trim(),
@@ -406,6 +490,7 @@ function SignupFormInner() {
     };
     const handleAiCreateAccount = async (draft) => {
         applyDraftToForm(draft);
+        const isDocOrNurse = draft.persona === "DOCTOR" || draft.persona === "NURSE";
         await performSignup({
             persona: draft.persona,
             fullName: draft.fullName,
@@ -417,6 +502,12 @@ function SignupFormInner() {
                 : draft.persona === "DOCTOR"
                     ? draft.specialty.trim() || undefined
                     : undefined,
+            expertiseArea: isDocOrNurse ? (draft.expertiseArea?.trim() || draft.specialty.trim() || undefined) : undefined,
+            experienceYears: isDocOrNurse && draft.experienceYears !== "" && draft.experienceYears !== undefined
+                ? Number(draft.experienceYears)
+                : undefined,
+            latitude: draft.latitude,
+            longitude: draft.longitude,
             phone: draft.phone.trim(),
             region: draft.region.trim(),
             district: draft.district.trim(),
@@ -443,6 +534,10 @@ function SignupFormInner() {
             mahalla: mahalla || base.mahalla,
             bloodType: bloodType || base.bloodType,
             specialty: specialty || base.specialty,
+            expertiseArea: expertiseArea || base.expertiseArea,
+            experienceYears: experienceYears || base.experienceYears,
+            latitude: latitude ?? base.latitude,
+            longitude: longitude ?? base.longitude,
             email: email || base.email,
             password: password || base.password,
         };
@@ -552,7 +647,7 @@ function SignupFormInner() {
             <legend className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 pt-2">
               {t.step2Title}
             </legend>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button type="button" aria-pressed={signupMethod === "ai"} onClick={() => {
                 setError(null);
                 setSignupMethod("ai");
@@ -595,6 +690,25 @@ function SignupFormInner() {
                   </p>
                 </div>
               </button>
+
+              <Link href="/telegram" className="flex items-start gap-3 rounded-2xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 p-4 text-left hover:border-sky-400 dark:hover:border-sky-600 transition">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500 text-white">
+                  <IconBrandTelegram className="h-5 w-5"/>
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {t.telegramCardTitle}
+                    </p>
+                    <span className="rounded-full bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-[10px] font-bold text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                      {t.telegramCardBadge}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
+                    {t.telegramCardDesc}
+                  </p>
+                </div>
+              </Link>
             </div>
           </fieldset>
 
@@ -669,12 +783,26 @@ function SignupFormInner() {
                   <input id="signup-phone" name="tel" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 123 45 67" className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
                 </div>
 
-                {(selectedPersona === "DOCTOR" || selectedPersona === "NURSE") && (<div>
-                    <label htmlFor="signup-specialty" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {t.specialtyLabel}
-                    </label>
-                    <input id="signup-specialty" name="specialty" type="text" value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder={t.specialtyPlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
-                  </div>)}
+                {(selectedPersona === "DOCTOR" || selectedPersona === "NURSE") && (<>
+                    <div>
+                      <label htmlFor="signup-specialty" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        {t.specialtyLabel}
+                      </label>
+                      <input id="signup-specialty" name="specialty" type="text" required value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder={t.specialtyPlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
+                    </div>
+                    <div>
+                      <label htmlFor="signup-expertise" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        {t.expertiseLabel}
+                      </label>
+                      <input id="signup-expertise" name="expertiseArea" type="text" required value={expertiseArea} onChange={(e) => setExpertiseArea(e.target.value)} placeholder={t.expertisePlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
+                    </div>
+                    <div>
+                      <label htmlFor="signup-experience" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        {t.experienceLabel}
+                      </label>
+                      <input id="signup-experience" name="experienceYears" type="number" min={0} max={65} required value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} placeholder={t.experiencePlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
+                    </div>
+                  </>)}
 
                 <SearchableCombobox id="signup-region" name="address-level1" label={t.region} value={region} onChange={handleRegionChange} options={regionNames} placeholder={t.regionPlaceholder} autoComplete="address-level1" emptyText={t.emptySearch} customHint={t.customHint}/>
 
@@ -704,6 +832,24 @@ function SignupFormInner() {
                       </select>
                     </div>
                   </>)}
+              </div>
+
+              <div className="rounded-xl border border-sky-200 dark:border-sky-800/70 bg-sky-50/50 dark:bg-sky-950/30 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="text-xs text-slate-700 dark:text-slate-300 space-y-0.5">
+                  <p className="font-semibold inline-flex items-center gap-1.5">
+                    <IconMapPin className="h-4 w-4 text-sky-600 dark:text-sky-400"/>
+                    {t.gpsLabel}
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {typeof latitude === "number" && typeof longitude === "number"
+                    ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+                    : (gpsMessage || t.gpsFallbackText)}
+                  </p>
+                </div>
+                <button type="button" onClick={handleShareGps} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-sky-300 dark:border-sky-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-950 transition shrink-0">
+                  <IconCurrentLocation className="h-4 w-4"/>
+                  {t.gpsShareBtn}
+                </button>
               </div>
 
               <button type="submit" disabled={busy} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50 transition">

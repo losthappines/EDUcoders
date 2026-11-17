@@ -41,6 +41,16 @@ async function ensureDatabaseSchema() {
                 await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "verificationNote" TEXT`);
                 await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "verifiedAt" TIMESTAMP(3)`);
                 await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "verifiedById" TEXT`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "expertiseArea" TEXT`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "experienceYears" INTEGER`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bioSummary" TEXT`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "latitude" DOUBLE PRECISION`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "longitude" DOUBLE PRECISION`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "telegramChatId" TEXT`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "subscriptionTier" TEXT NOT NULL DEFAULT 'FREE'`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "subscriptionStatus" TEXT NOT NULL DEFAULT 'NONE'`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "subscriptionExpiresAt" TIMESTAMP(3)`);
+                await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "users_telegramChatId_key" ON "users"("telegramChatId")`);
                 await prisma.$executeRawUnsafe(`
           CREATE TABLE IF NOT EXISTS "patients" (
             "id" TEXT NOT NULL,
@@ -53,6 +63,9 @@ async function ensureDatabaseSchema() {
             "district" TEXT NOT NULL,
             "mahalla" TEXT NOT NULL,
             "address" TEXT NOT NULL,
+            "latitude" DOUBLE PRECISION,
+            "longitude" DOUBLE PRECISION,
+            "telegramChatId" TEXT,
             "bloodType" TEXT NOT NULL,
             "allergiesJson" TEXT NOT NULL DEFAULT '[]',
             "polyclinicId" TEXT NOT NULL,
@@ -61,6 +74,9 @@ async function ensureDatabaseSchema() {
             "emergencyContact" TEXT NOT NULL,
             "status" TEXT NOT NULL DEFAULT 'INPATIENT',
             "bedNumber" TEXT,
+            "subscriptionTier" TEXT NOT NULL DEFAULT 'FREE',
+            "subscriptionStatus" TEXT NOT NULL DEFAULT 'NONE',
+            "subscriptionExpiresAt" TIMESTAMP(3),
             "admittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             "dischargedAt" TIMESTAMP(3),
             "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -69,6 +85,12 @@ async function ensureDatabaseSchema() {
           );
         `);
                 await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "userId" TEXT`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "latitude" DOUBLE PRECISION`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "longitude" DOUBLE PRECISION`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "telegramChatId" TEXT`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "subscriptionTier" TEXT NOT NULL DEFAULT 'FREE'`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "subscriptionStatus" TEXT NOT NULL DEFAULT 'NONE'`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "subscriptionExpiresAt" TIMESTAMP(3)`);
                 await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "patients_userId_key" ON "patients"("userId")`);
                 await prisma.$executeRawUnsafe(`
           DO $$
@@ -193,6 +215,83 @@ async function ensureDatabaseSchema() {
           );
         `);
                 await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "complaints" (
+            "id" TEXT NOT NULL,
+            "patientId" TEXT NOT NULL,
+            "assignedDoctorId" TEXT,
+            "title" TEXT NOT NULL,
+            "description" TEXT NOT NULL,
+            "category" TEXT NOT NULL DEFAULT 'POSTPARTUM',
+            "severity" TEXT NOT NULL DEFAULT 'MODERATE',
+            "status" TEXT NOT NULL DEFAULT 'SUBMITTED',
+            "visitDestination" TEXT NOT NULL DEFAULT 'HOME',
+            "visitAddress" TEXT NOT NULL,
+            "latitude" DOUBLE PRECISION,
+            "longitude" DOUBLE PRECISION,
+            "distanceKm" DOUBLE PRECISION,
+            "preferredTimeWindow" TEXT,
+            "sourceChannel" TEXT NOT NULL DEFAULT 'WEB',
+            "doctorResponse" TEXT,
+            "doctorRespondedAt" TIMESTAMP(3),
+            "visitOtpCode" TEXT NOT NULL,
+            "visitVerifiedAt" TIMESTAMP(3),
+            "visitVerificationNote" TEXT,
+            "verifiedVitalsJson" TEXT,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "complaints_pkey" PRIMARY KEY ("id"),
+            CONSTRAINT "complaints_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "patients"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT "complaints_assignedDoctorId_fkey" FOREIGN KEY ("assignedDoctorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE
+          );
+        `);
+                await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "direct_messages" (
+            "id" TEXT NOT NULL,
+            "complaintId" TEXT,
+            "patientId" TEXT NOT NULL,
+            "senderUserId" TEXT NOT NULL,
+            "senderName" TEXT NOT NULL,
+            "senderRole" TEXT NOT NULL,
+            "recipientUserId" TEXT,
+            "body" TEXT NOT NULL,
+            "channel" TEXT NOT NULL DEFAULT 'WEB',
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "direct_messages_pkey" PRIMARY KEY ("id"),
+            CONSTRAINT "direct_messages_complaintId_fkey" FOREIGN KEY ("complaintId") REFERENCES "complaints"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+            CONSTRAINT "direct_messages_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "patients"("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+        `);
+                await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "subscriptions" (
+            "id" TEXT NOT NULL,
+            "userId" TEXT NOT NULL,
+            "targetRole" TEXT NOT NULL,
+            "planCode" TEXT NOT NULL,
+            "planName" TEXT NOT NULL,
+            "priceUzs" INTEGER NOT NULL,
+            "paymentMethod" TEXT NOT NULL DEFAULT 'PAYME',
+            "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+            "startsAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "expiresAt" TIMESTAMP(3) NOT NULL,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "subscriptions_pkey" PRIMARY KEY ("id"),
+            CONSTRAINT "subscriptions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+        `);
+                await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "telegram_sessions" (
+            "chatId" TEXT NOT NULL,
+            "telegramUsername" TEXT,
+            "telegramFirstName" TEXT,
+            "userId" TEXT,
+            "flowState" TEXT NOT NULL DEFAULT 'IDLE',
+            "draftJson" TEXT NOT NULL DEFAULT '{}',
+            "historyJson" TEXT NOT NULL DEFAULT '[]',
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "telegram_sessions_pkey" PRIMARY KEY ("chatId")
+          );
+        `);
+                await prisma.$executeRawUnsafe(`
           CREATE TABLE IF NOT EXISTS "audit_logs" (
             "id" TEXT NOT NULL,
             "actorId" TEXT NOT NULL,
@@ -211,10 +310,14 @@ async function ensureDatabaseSchema() {
           CREATE TABLE IF NOT EXISTS "system_sim_state" (
             "id" TEXT NOT NULL,
             "timeOffsetHours" INTEGER NOT NULL DEFAULT 0,
+            "telegramBotTokenEnc" TEXT,
+            "telegramBotUsername" TEXT,
             "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT "system_sim_state_pkey" PRIMARY KEY ("id")
           );
         `);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "system_sim_state" ADD COLUMN IF NOT EXISTS "telegramBotTokenEnc" TEXT`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "system_sim_state" ADD COLUMN IF NOT EXISTS "telegramBotUsername" TEXT`);
                 schemaChecked = true;
             }
             catch (err) {
@@ -252,6 +355,128 @@ export async function ensureSeeded() {
                 where: { id: "pat-zulfiya", userId: null },
                 data: { userId: "usr-patient-1" },
             });
+            // Backfill GPS coordinates & doctor expertise on seeded accounts if missing
+            await prisma.user.updateMany({
+                where: { id: "usr-ovabmu-1", experienceYears: null },
+                data: {
+                    expertiseArea: "Akusherlik, og'ir preeklampsiya va tug'ruqdan keyingi reanimatsiya",
+                    experienceYears: 12,
+                    bioSummary: "Respublika Ona va Bola Markazi yetakchi akusher-ginekologi.",
+                    latitude: 41.3266,
+                    longitude: 69.3422,
+                    subscriptionTier: "DOCTOR_PRO",
+                    subscriptionStatus: "ACTIVE",
+                    subscriptionExpiresAt: new Date(Date.now() + 30 * 86400000),
+                },
+            });
+            await prisma.user.updateMany({
+                where: { id: "usr-family-tashkent", experienceYears: null },
+                data: {
+                    expertiseArea: "Hududiy oilaviy shifokor, tug'ruqdan keyingi patronaj va anemiya nazorati",
+                    experienceYears: 8,
+                    bioSummary: "14-sonli Oilaviy Poliklinika patronaj shifokori, uyda tashriflar mutaxassisi.",
+                    latitude: 41.331,
+                    longitude: 69.254,
+                    subscriptionTier: "DOCTOR_PRO",
+                    subscriptionStatus: "ACTIVE",
+                    subscriptionExpiresAt: new Date(Date.now() + 30 * 86400000),
+                },
+            });
+            await prisma.user.updateMany({
+                where: { id: "usr-family-namangan", experienceYears: null },
+                data: {
+                    expertiseArea: "Oilaviy tibbiyot, sepsis skriningi va chaqaloqlar parvarishi",
+                    experienceYears: 6,
+                    bioSummary: "Namangan Davlatobod tumani 3-sonli poliklinika oilaviy shifokori.",
+                    latitude: 41.0085,
+                    longitude: 71.6083,
+                    subscriptionTier: "FREE",
+                    subscriptionStatus: "NONE",
+                },
+            });
+            await prisma.user.updateMany({
+                where: { id: "usr-patient-1", latitude: null },
+                data: {
+                    latitude: 41.2753,
+                    longitude: 69.2036,
+                    subscriptionTier: "CARE_PLUS",
+                    subscriptionStatus: "ACTIVE",
+                    subscriptionExpiresAt: new Date(Date.now() + 30 * 86400000),
+                },
+            });
+            await prisma.patient.updateMany({
+                where: { id: "pat-zulfiya", latitude: null },
+                data: {
+                    latitude: 41.2753,
+                    longitude: 69.2036,
+                    subscriptionTier: "CARE_PLUS",
+                    subscriptionStatus: "ACTIVE",
+                    subscriptionExpiresAt: new Date(Date.now() + 30 * 86400000),
+                },
+            });
+            await prisma.patient.updateMany({
+                where: { id: "pat-malika", latitude: null },
+                data: { latitude: 41.3667, longitude: 69.2869 },
+            });
+            await prisma.patient.updateMany({
+                where: { id: "pat-dilfuza", latitude: null },
+                data: { latitude: 41.012, longitude: 71.612 },
+            });
+            const existingComplaints = await prisma.complaint.count();
+            if (existingComplaints === 0) {
+                const patZulfiya = await prisma.patient.findUnique({ where: { id: "pat-zulfiya" } });
+                const docTashkent = await prisma.user.findUnique({ where: { id: "usr-family-tashkent" } });
+                if (patZulfiya && docTashkent) {
+                    const comp = await prisma.complaint.create({
+                        data: {
+                            id: "cmp-zulfiya-1",
+                            patientId: patZulfiya.id,
+                            assignedDoctorId: docTashkent.id,
+                            title: "Bosh aylanishi va holsizlik (turganimda ko'z oldi qorong'ilashyapti)",
+                            description: "Ertalab o'rnimdan turganimda kuchli bosh aylanishi bo'ldi, qon bosimim 95/60 chiqdi. Sorbifer ichdim, uyga shifokor kelib ko'rsa yaxshi bo'lardi.",
+                            category: "POSTPARTUM",
+                            severity: "SEVERE",
+                            status: "DOCTOR_RESPONDED",
+                            visitDestination: "HOME",
+                            visitAddress: "Chilonzor, Qatortol 7-mavze, 18-uy, 45-xonadon",
+                            latitude: 41.2753,
+                            longitude: 69.2036,
+                            distanceKm: 7.5,
+                            preferredTimeWindow: "Bugun 14:00 – 17:00",
+                            sourceChannel: "TELEGRAM",
+                            doctorResponse: "Salom Zulfiya! Yotgan joyingizdan keskin turmang va ko'proq iliq suv iching. Men bugun ko'rikka boraman va qon bosimingizni o'lchayman.",
+                            doctorRespondedAt: new Date(Date.now() - 45 * 60000),
+                            visitOtpCode: "7392",
+                        },
+                    });
+                    await prisma.directMessage.createMany({
+                        data: [
+                            {
+                                complaintId: comp.id,
+                                patientId: patZulfiya.id,
+                                senderUserId: "usr-patient-1",
+                                senderName: patZulfiya.fullName,
+                                senderRole: "PATIENT",
+                                recipientUserId: docTashkent.id,
+                                body: "Assalomu alaykum doktor! Bugun ertalab turganimda boshim aylandi, Sorbiferni ovqatdan keyin ichsam bo'ladimi?",
+                                channel: "TELEGRAM",
+                                createdAt: new Date(Date.now() - 55 * 60000),
+                            },
+                            {
+                                complaintId: comp.id,
+                                patientId: patZulfiya.id,
+                                senderUserId: docTashkent.id,
+                                senderName: docTashkent.fullName,
+                                senderRole: "FAMILY_MD",
+                                recipientUserId: "usr-patient-1",
+                                body: "Vaalaykum assalom Zulfiya! Sorbiferni choy yoki sutsiz, oddiy suv bilan iching. Ko'rigimda gemoglobin va ortostatik bosimni tekshiramiz.",
+                                channel: "WEB",
+                                createdAt: new Date(Date.now() - 40 * 60000),
+                            },
+                        ],
+                    });
+                }
+            }
         }
         return;
     }
@@ -266,6 +491,10 @@ export async function resetDemoDatabase() {
     backfillChecked = true;
     slaMemoryQueue.clear();
     await prisma.$transaction([
+        prisma.directMessage.deleteMany(),
+        prisma.complaint.deleteMany(),
+        prisma.subscriptionRecord.deleteMany(),
+        prisma.telegramSession.deleteMany(),
         prisma.auditLog.deleteMany(),
         prisma.invoice.deleteMany(),
         prisma.activeCall.deleteMany(),
@@ -302,8 +531,16 @@ async function seedDemoData() {
             polyclinicName: "Respublika Ona va Bola Salomatligi Markazi (OvaBMU)",
             district: "Toshkent shahri",
             specialty: "Oliy toifali akusher-ginekolog, reanimatsiya bo'limi",
+            expertiseArea: "Akusherlik, og'ir preeklampsiya va tug'ruqdan keyingi reanimatsiya",
+            experienceYears: 12,
+            bioSummary: "Respublika Ona va Bola Markazi yetakchi akusher-ginekologi.",
+            latitude: 41.3266,
+            longitude: 69.3422,
             phone: "+998 90 311-45-10",
             telegramHandle: "@dr_aziza_ovabmu",
+            subscriptionTier: "DOCTOR_PRO",
+            subscriptionStatus: "ACTIVE",
+            subscriptionExpiresAt: new Date(now.getTime() + 30 * 86400000),
             scheduleSlotsJson: "[]",
         },
     });
@@ -320,8 +557,16 @@ async function seedDemoData() {
             polyclinicName: "14-sonli Oilaviy Poliklinika (Yunusobod / Chilonzor)",
             district: "Yunusobod, Chilonzor",
             specialty: "Hududiy oilaviy shifokor (Patronaj guruhi)",
+            expertiseArea: "Hududiy oilaviy shifokor, tug'ruqdan keyingi patronaj va anemiya nazorati",
+            experienceYears: 8,
+            bioSummary: "14-sonli Oilaviy Poliklinika patronaj shifokori, uyda tashriflar mutaxassisi.",
+            latitude: 41.331,
+            longitude: 69.254,
             phone: "+998 90 772-18-44",
             telegramHandle: "@dr_dilnoza_op14",
+            subscriptionTier: "DOCTOR_PRO",
+            subscriptionStatus: "ACTIVE",
+            subscriptionExpiresAt: new Date(now.getTime() + 30 * 86400000),
             scheduleSlotsJson: JSON.stringify([
                 { slotId: "slot-1", startHourOffset: 2, endHourOffset: 4, bookedPatientId: "pat-zulfiya" },
                 { slotId: "slot-2", startHourOffset: 5, endHourOffset: 7, bookedPatientId: null },
@@ -342,8 +587,15 @@ async function seedDemoData() {
             polyclinicName: "3-sonli Oilaviy Poliklinika (Davlatobod, Namangan)",
             district: "Davlatobod, Namangan",
             specialty: "Hududiy oilaviy shifokor",
+            expertiseArea: "Oilaviy tibbiyot, sepsis skriningi va chaqaloqlar parvarishi",
+            experienceYears: 6,
+            bioSummary: "Namangan Davlatobod tumani 3-sonli poliklinika oilaviy shifokori.",
+            latitude: 41.0085,
+            longitude: 71.6083,
             phone: "+998 93 412-90-12",
             telegramHandle: "@dr_sardor_namangan",
+            subscriptionTier: "FREE",
+            subscriptionStatus: "NONE",
             scheduleSlotsJson: JSON.stringify([
                 { slotId: "slot-n1", startHourOffset: 14, endHourOffset: 16, bookedPatientId: "pat-dilfuza" },
                 { slotId: "slot-n2", startHourOffset: 18, endHourOffset: 20, bookedPatientId: null },
@@ -363,8 +615,13 @@ async function seedDemoData() {
             polyclinicName: "14-sonli Oilaviy Poliklinika",
             district: "Chilonzor",
             specialty: "Bemor",
+            latitude: 41.2753,
+            longitude: 69.2036,
             phone: "+998 90 554-21-09",
             telegramHandle: "@zulfiya_r",
+            subscriptionTier: "CARE_PLUS",
+            subscriptionStatus: "ACTIVE",
+            subscriptionExpiresAt: new Date(now.getTime() + 30 * 86400000),
         },
     });
     const adminUser = await prisma.user.create({
@@ -526,6 +783,8 @@ async function seedDemoData() {
             district: "Chilonzor",
             mahalla: "Qatortol MFY",
             address: "Qatortol 7-mavze, 18-uy, 45-xonadon",
+            latitude: 41.2753,
+            longitude: 69.2036,
             bloodType: "O(I) Rh-",
             allergiesJson: JSON.stringify(["Allergiya aniqlanmagan"]),
             polyclinicId: "OP-14-YUNUSOBOD",
@@ -534,6 +793,9 @@ async function seedDemoData() {
             emergencyContact: "Rustamov Bobur (Turmush o'rtog'i) • +998 90 554-21-10",
             status: "PATRONAGE_ACTIVE",
             bedNumber: null,
+            subscriptionTier: "CARE_PLUS",
+            subscriptionStatus: "ACTIVE",
+            subscriptionExpiresAt: new Date(now.getTime() + 30 * 86400000),
             admittedAt: hoursAgo(120),
             dischargedAt: zulfiyaDischargeTime,
         },
@@ -1130,6 +1392,80 @@ async function seedDemoData() {
                 ipAddress: "10.14.22.50",
                 detailsJson: JSON.stringify({ note: "Clinical notes redacted for ADMIN_RECEPTION role" }),
                 createdAt: hoursAgo(0.5),
+            },
+        ],
+    });
+    const seededComplaint = await prisma.complaint.create({
+        data: {
+            id: "cmp-zulfiya-1",
+            patientId: zulfiya.id,
+            assignedDoctorId: familyDocTashkent.id,
+            title: "Bosh aylanishi va holsizlik (turganimda ko'z oldi qorong'ilashyapti)",
+            description: "Ertalab o'rnimdan turganimda kuchli bosh aylanishi bo'ldi, qon bosimim 95/60 chiqdi. Sorbifer ichdim, uyga shifokor kelib ko'rsa yaxshi bo'lardi.",
+            category: "POSTPARTUM",
+            severity: "SEVERE",
+            status: "DOCTOR_RESPONDED",
+            visitDestination: "HOME",
+            visitAddress: "Chilonzor, Qatortol 7-mavze, 18-uy, 45-xonadon",
+            latitude: 41.2753,
+            longitude: 69.2036,
+            distanceKm: 7.5,
+            preferredTimeWindow: "Bugun 14:00 – 17:00",
+            sourceChannel: "TELEGRAM",
+            doctorResponse: "Salom Zulfiya! Yotgan joyingizdan keskin turmang va ko'proq iliq suv iching. Men bugun ko'rikka boraman va qon bosimingizni o'lchayman.",
+            doctorRespondedAt: hoursAgo(0.8),
+            visitOtpCode: "7392",
+        },
+    });
+    await prisma.directMessage.createMany({
+        data: [
+            {
+                complaintId: seededComplaint.id,
+                patientId: zulfiya.id,
+                senderUserId: patientUser.id,
+                senderName: zulfiya.fullName,
+                senderRole: "PATIENT",
+                recipientUserId: familyDocTashkent.id,
+                body: "Assalomu alaykum doktor! Bugun ertalab turganimda boshim aylandi, Sorbiferni ovqatdan keyin ichsam bo'ladimi?",
+                channel: "TELEGRAM",
+                createdAt: hoursAgo(0.9),
+            },
+            {
+                complaintId: seededComplaint.id,
+                patientId: zulfiya.id,
+                senderUserId: familyDocTashkent.id,
+                senderName: familyDocTashkent.fullName,
+                senderRole: "FAMILY_MD",
+                recipientUserId: patientUser.id,
+                body: "Vaalaykum assalom Zulfiya! Sorbiferni choy yoki sutsiz, oddiy suv bilan iching. Ko'rigimda gemoglobin va ortostatik bosimni tekshiramiz.",
+                channel: "WEB",
+                createdAt: hoursAgo(0.7),
+            },
+        ],
+    });
+    await prisma.subscriptionRecord.createMany({
+        data: [
+            {
+                userId: patientUser.id,
+                targetRole: "PATIENT",
+                planCode: "CARE_PLUS",
+                planName: "OnaCare Plus (49,000 so'm / oy)",
+                priceUzs: 49000,
+                paymentMethod: "PAYME",
+                status: "ACTIVE",
+                startsAt: hoursAgo(48),
+                expiresAt: new Date(now.getTime() + 28 * 86400000),
+            },
+            {
+                userId: familyDocTashkent.id,
+                targetRole: "DOCTOR",
+                planCode: "DOCTOR_PRO",
+                planName: "Shifokor GPS Radar PRO (149,000 so'm / oy)",
+                priceUzs: 149000,
+                paymentMethod: "CLICK",
+                status: "ACTIVE",
+                startsAt: hoursAgo(72),
+                expiresAt: new Date(now.getTime() + 27 * 86400000),
             },
         ],
     });

@@ -1,4 +1,5 @@
 import { BLOOD_TYPE_OPTIONS, UZ_REGIONS } from "@/lib/uz-locations";
+import { resolveCoordinatesForLocation } from "@/lib/geo";
 export function createInitialDraft(persona, presetRole) {
     if (persona === "PATIENT") {
         return {
@@ -13,6 +14,10 @@ export function createInitialDraft(persona, presetRole) {
             mahalla: "",
             bloodType: "",
             specialty: "",
+            expertiseArea: "",
+            experienceYears: "",
+            latitude: null,
+            longitude: null,
             email: "",
             password: "",
         };
@@ -30,6 +35,10 @@ export function createInitialDraft(persona, presetRole) {
             mahalla: "",
             bloodType: "",
             specialty: "",
+            expertiseArea: "",
+            experienceYears: "",
+            latitude: null,
+            longitude: null,
             email: "",
             password: "",
         };
@@ -47,6 +56,10 @@ export function createInitialDraft(persona, presetRole) {
             mahalla: "",
             bloodType: "",
             specialty: "",
+            expertiseArea: "",
+            experienceYears: "",
+            latitude: null,
+            longitude: null,
             email: "",
             password: "",
         };
@@ -64,6 +77,10 @@ export function createInitialDraft(persona, presetRole) {
         mahalla: "",
         bloodType: "",
         specialty: "",
+        expertiseArea: "",
+        experienceYears: "",
+        latitude: null,
+        longitude: null,
         email: "",
         password: "",
     };
@@ -78,6 +95,14 @@ export function getNextStep(draft) {
         return "dateOfBirth";
     if (!draft.phone.trim())
         return "phone";
+    if (draft.persona === "DOCTOR" || draft.persona === "NURSE") {
+        if (!draft.specialty.trim())
+            return "specialty";
+        if (!draft.expertiseArea.trim())
+            return "expertiseArea";
+        if (draft.experienceYears === "" || draft.experienceYears === null || draft.experienceYears === undefined)
+            return "experienceYears";
+    }
     if (!draft.district.trim())
         return "location";
     if (draft.persona === "PATIENT") {
@@ -85,10 +110,6 @@ export function getNextStep(draft) {
             return "mahalla";
         if (!draft.bloodType.trim())
             return "bloodType";
-    }
-    else if (draft.persona === "DOCTOR" || draft.persona === "NURSE") {
-        if (!draft.specialty.trim())
-            return "specialty";
     }
     if (!draft.email.trim())
         return "email";
@@ -106,10 +127,10 @@ export function getProgressPercent(draft) {
         Boolean(draft.password && draft.password.length >= 6),
     ];
     if (draft.persona === "DOCTOR") {
-        requiredFields.push(draft.doctorTypePicked, Boolean(draft.specialty.trim()));
+        requiredFields.push(draft.doctorTypePicked, Boolean(draft.specialty.trim()), Boolean(draft.expertiseArea.trim()), draft.experienceYears !== "" && draft.experienceYears !== null && draft.experienceYears !== undefined);
     }
     else if (draft.persona === "NURSE") {
-        requiredFields.push(Boolean(draft.specialty.trim()));
+        requiredFields.push(Boolean(draft.specialty.trim()), Boolean(draft.expertiseArea.trim()), draft.experienceYears !== "" && draft.experienceYears !== null && draft.experienceYears !== undefined);
     }
     else if (draft.persona === "PATIENT") {
         requiredFields.push(Boolean(draft.mahalla.trim()), Boolean(draft.bloodType.trim()));
@@ -570,6 +591,66 @@ export function getStepPrompt(draft, lang) {
             chips,
         };
     }
+    if (step === "expertiseArea") {
+        return {
+            step,
+            inputType: "text",
+            message: lang === "ru"
+                ? "Какая ваша ключевая клиническая экспертиза или направление помощи?"
+                : lang === "en"
+                    ? "What is your primary clinical expertise focus?"
+                    : "Asosiy ekspertizangiz va qaysi holatlarda yordam ko'rsatishingizni yozing:",
+            placeholder: lang === "ru"
+                ? "Например: Послеродовое наблюдение и давление"
+                : lang === "en"
+                    ? "e.g. High-risk postpartum care & blood pressure"
+                    : "Masalan: Tug'ruqdan keyingi nazorat va qon bosimi",
+            chips: [
+                {
+                    label: lang === "ru"
+                        ? "Послеродовое наблюдение и уход"
+                        : lang === "en"
+                            ? "Postpartum & maternal monitoring"
+                            : "Tug'ruqdan keyingi ona va bola nazorati",
+                    value: "Tug'ruqdan keyingi ona va bola nazorati",
+                },
+                {
+                    label: lang === "ru"
+                        ? "Гипертония, диабет и давление"
+                        : lang === "en"
+                            ? "Blood pressure & preeclampsia risk"
+                            : "Qon bosimi, preeklampsiya va xavf nazorati",
+                    value: "Qon bosimi, preeklampsiya va xavf nazorati",
+                },
+                {
+                    label: lang === "ru"
+                        ? "Неонатальный и домашний патронаж"
+                        : lang === "en"
+                            ? "Newborn & pediatric home check-ups"
+                            : "Chaqaloq va uyda shoshilinch patronaj ko'rigi",
+                    value: "Chaqaloq va uyda shoshilinch patronaj ko'rigi",
+                },
+            ],
+        };
+    }
+    if (step === "experienceYears") {
+        return {
+            step,
+            inputType: "text",
+            message: lang === "ru"
+                ? "Сколько лет у вас клинического стажа (опыта работы)?"
+                : lang === "en"
+                    ? "How many years of medical experience do you have?"
+                    : "Tibbiy tajribangiz necha yil?",
+            placeholder: lang === "ru" ? "Например: 5" : lang === "en" ? "e.g. 5" : "Masalan: 5",
+            chips: [
+                { label: lang === "ru" ? "1-2 года" : lang === "en" ? "2 years" : "2 yil", value: "2" },
+                { label: lang === "ru" ? "5 лет" : lang === "en" ? "5 years" : "5 yil", value: "5" },
+                { label: lang === "ru" ? "8 лет" : lang === "en" ? "8 years" : "8 yil", value: "8" },
+                { label: lang === "ru" ? "12+ лет" : lang === "en" ? "12+ years" : "12+ yil", value: "12" },
+            ],
+        };
+    }
     if (step === "email") {
         return {
             step,
@@ -760,6 +841,11 @@ export function processAiAnswer(draft, rawInput, lang) {
             next.region = loc.region;
         if (loc.district)
             next.district = loc.district;
+        if (next.district && (next.latitude === null || next.longitude === null)) {
+            const coords = resolveCoordinatesForLocation(next.district, next.region);
+            next.latitude = coords.latitude;
+            next.longitude = coords.longitude;
+        }
     }
     else if (step === "mahalla") {
         next.mahalla = input;
@@ -780,6 +866,24 @@ export function processAiAnswer(draft, rawInput, lang) {
     }
     else if (step === "specialty") {
         next.specialty = input;
+    }
+    else if (step === "expertiseArea") {
+        next.expertiseArea = input;
+    }
+    else if (step === "experienceYears") {
+        const numMatch = input.match(/\d+/);
+        const yrs = numMatch ? Math.min(65, Math.max(0, parseInt(numMatch[0], 10))) : NaN;
+        if (Number.isNaN(yrs)) {
+            return {
+                nextDraft: next,
+                reply: lang === "ru"
+                    ? "Укажите количество лет стажа числом (например: 5)."
+                    : lang === "en"
+                        ? "Please enter years of experience as a number (e.g. 5)."
+                        : "Iltimos, ish tajribangizni yil hisobida raqam bilan kiriting (masalan: 5).",
+            };
+        }
+        next.experienceYears = String(yrs);
     }
     else if (step === "email") {
         const email = parseEmailAddress(input);

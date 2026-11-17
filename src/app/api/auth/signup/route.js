@@ -4,6 +4,8 @@ import { ensureSeeded } from "@/lib/seed-data";
 import { clearSessionCookie, getPortalPathForRole, hashPassword, setSessionCookie, VALID_ROLES, } from "@/lib/auth";
 import { encryptField, maskJshshir } from "@/lib/crypto";
 import { resolvePolyclinicForLocation } from "@/lib/uz-locations";
+import { resolveCoordinatesForLocation } from "@/lib/geo";
+import { notifyAdminsViaTelegram } from "@/lib/telegram-bot";
 function isDbError(error) {
     const msg = error instanceof Error ? error.message : String(error);
     return (msg.includes("Environment variable not found: DATABASE_URL") ||
@@ -57,6 +59,9 @@ export async function POST(req) {
                 ? `${rawDistrict}, ${region}`
                 : rawDistrict
             : region || "Yunusobod";
+        const fallbackCoords = resolveCoordinatesForLocation(rawDistrict, region);
+        const latitude = typeof body.latitude === "number" && Number.isFinite(body.latitude) ? body.latitude : fallbackCoords.latitude;
+        const longitude = typeof body.longitude === "number" && Number.isFinite(body.longitude) ? body.longitude : fallbackCoords.longitude;
         const polyclinicId = role === "OVABMU_MD"
             ? "OVABMU-TSH-01"
             : role === "ADMIN_RECEPTION"
@@ -80,6 +85,13 @@ export async function POST(req) {
         const dateOfBirth = (body.dateOfBirth || "").trim();
         const bloodType = (body.bloodType || "").trim() || "I don't know";
         const customSpecialty = (body.specialty || "").trim().slice(0, 120);
+        const expertiseArea = (body.expertiseArea || customSpecialty || "").trim().slice(0, 160);
+        const expRaw = body.experienceYears !== undefined && body.experienceYears !== null && body.experienceYears !== ""
+            ? parseInt(String(body.experienceYears), 10)
+            : null;
+        const experienceYears = Number.isFinite(expRaw) && expRaw >= 0 ? Math.min(expRaw, 65) : null;
+        const bioSummary = (body.bioSummary || "").trim().slice(0, 400) || null;
+        const telegramHandle = (body.telegramHandle || "").trim().slice(0, 64) || null;
         // Patients and Doctors/Physicians must be verified by an Administrator before entering the portal
         const requiresAdminVerification = role === "PATIENT" || role === "OVABMU_MD" || role === "FAMILY_MD";
         const initialVerificationStatus = requiresAdminVerification
@@ -105,7 +117,13 @@ export async function POST(req) {
                                 : role === "ADMIN_RECEPTION"
                                     ? "Qabulxona & SLA koordinatori"
                                     : "Bemor"),
+                    expertiseArea: expertiseArea || null,
+                    experienceYears,
+                    bioSummary,
+                    latitude,
+                    longitude,
                     phone,
+                    telegramHandle,
                     scheduleSlotsJson: JSON.stringify(defaultSlots),
                 },
             });
@@ -134,6 +152,8 @@ export async function POST(req) {
                         district,
                         mahalla,
                         address: (body.address || `${district}${mahalla ? `, ${mahalla}` : ""}`).trim(),
+                        latitude,
+                        longitude,
                         bloodType,
                         allergiesJson: JSON.stringify(["Ma'lumot kiritilmagan"]),
                         polyclinicId,
@@ -147,6 +167,7 @@ export async function POST(req) {
             return user;
         });
         if (requiresAdminVerification) {
+            await notifyAdminsViaTelegram(`🆕 <b>Yangi ro'yxatdan o'tish:</b> ${createdUser.fullName} (${createdUser.role}) — 📍 ${createdUser.district}`);
             const res = NextResponse.json({
                 success: true,
                 pendingVerification: true,

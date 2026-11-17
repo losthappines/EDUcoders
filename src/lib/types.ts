@@ -43,6 +43,14 @@ export interface PatientGuide {
   emergencySignsEn: string[];
 }
 
+export type ConditionSeverity = "MILD" | "MODERATE" | "SEVERE" | "CRITICAL";
+
+export interface CustomConditionEntry {
+  id: string;
+  name: string;
+  severity: ConditionSeverity;
+}
+
 export interface SymptomCheckin {
   id: string;
   createdAt: string;
@@ -50,6 +58,8 @@ export interface SymptomCheckin {
   severeHeadache: boolean;
   bleeding: boolean;
   swelling: boolean;
+  additionalSymptoms?: string[];
+  customConditions?: CustomConditionEntry[];
   bpReading: string;
   notes: string;
   aiTriageLevel: "GREEN" | "YELLOW" | "RED_EMERGENCY";

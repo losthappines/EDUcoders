@@ -1,24 +1,36 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   IconAlertOctagon,
   IconCheck,
+  IconChevronDown,
+  IconChevronUp,
   IconCircleCheck,
   IconFlask,
   IconHeartbeat,
   IconKey,
   IconPhoneCall,
   IconPill,
+  IconPlus,
   IconSend,
   IconShieldCheck,
   IconUser,
+  IconX,
 } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage, type AppLang } from "@/context/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import {
+  CONDITION_SEVERITY_OPTIONS,
+  EXTENDED_SYMPTOMS_CATALOG,
+  getSeverityMeta,
+  getSymptomLabel,
+  PRIMARY_RED_FLAG_SYMPTOMS,
+} from "@/lib/symptoms-catalog";
+import type { ConditionSeverity, CustomConditionEntry } from "@/lib/types";
 
 const COPY: Record<
   AppLang,
@@ -39,6 +51,19 @@ const COPY: Record<
     bpTip: string;
     notesLabel: string;
     notesPlaceholder: string;
+    moreConditionsTitle: string;
+    moreConditionsToggleShow: string;
+    moreConditionsToggleHide: string;
+    physicalGroupTitle: string;
+    illnessGroupTitle: string;
+    selectedCountLabel: string;
+    customSectionTitle: string;
+    customNameLabel: string;
+    customNamePlaceholder: string;
+    customSeverityLabel: string;
+    customAddBtn: string;
+    customRemoveAria: string;
+    reportedConditionsLabel: string;
     checkinSending: string;
     checkinBtn: string;
     statusNormal: string;
@@ -78,6 +103,19 @@ const COPY: Record<
     bpTip: "Yuqori va pastki qon bosimi ko'rsatkichi (masalan, 120/80).",
     notesLabel: "Izoh",
     notesPlaceholder: "Holatingiz haqida yozing...",
+    moreConditionsTitle: "Qo'shimcha belgilar va kasalliklar ro'yxati",
+    moreConditionsToggleShow: "Ro'yxatni ochish",
+    moreConditionsToggleHide: "Yopish",
+    physicalGroupTitle: "Tug'ruqdan keyingi va jismoniy belgilar",
+    illnessGroupTitle: "Kasalliklar va boshqa holatlar",
+    selectedCountLabel: "tanlangan",
+    customSectionTitle: "O'zingizdagi boshqa holat yoki kasallikni yozing",
+    customNameLabel: "Holat yoki kasallik nomi",
+    customNamePlaceholder: "Masalan: Allergiya, migren, astma, bel og'rig'i...",
+    customSeverityLabel: "Qanchalik jiddiy?",
+    customAddBtn: "Qo'shish",
+    customRemoveAria: "Ro'yxatdan o'chirish",
+    reportedConditionsLabel: "Belgilangan holatlar:",
     checkinSending: "Yuborilmoqda...",
     checkinBtn: "Holatimni yuborish",
     statusNormal: "Yaxshi",
@@ -117,6 +155,19 @@ const COPY: Record<
     bpTip: "Верхнее и нижнее давление, например 120/80.",
     notesLabel: "Комментарий",
     notesPlaceholder: "Опишите ваше самочувствие...",
+    moreConditionsTitle: "Дополнительные симптомы и заболевания",
+    moreConditionsToggleShow: "Развернуть список",
+    moreConditionsToggleHide: "Свернуть",
+    physicalGroupTitle: "Физические и послеродовые симптомы",
+    illnessGroupTitle: "Заболевания и другие состояния",
+    selectedCountLabel: "выбрано",
+    customSectionTitle: "Указать свое состояние или болезнь",
+    customNameLabel: "Название состояния или болезни",
+    customNamePlaceholder: "Например: Аллергия, мигрень, астма, боль в спине...",
+    customSeverityLabel: "Насколько это серьезно?",
+    customAddBtn: "Добавить",
+    customRemoveAria: "Удалить из списка",
+    reportedConditionsLabel: "Отмеченные состояния:",
     checkinSending: "Отправка...",
     checkinBtn: "Отправить самочувствие",
     statusNormal: "В норме",
@@ -156,6 +207,19 @@ const COPY: Record<
     bpTip: "Your blood pressure reading (top/bottom number), e.g. 120/80.",
     notesLabel: "Notes",
     notesPlaceholder: "Tell us how you are feeling today...",
+    moreConditionsTitle: "More symptoms, illnesses & conditions",
+    moreConditionsToggleShow: "Show list",
+    moreConditionsToggleHide: "Collapse",
+    physicalGroupTitle: "Physical & recovery symptoms",
+    illnessGroupTitle: "Illnesses & other health conditions",
+    selectedCountLabel: "selected",
+    customSectionTitle: "Write your own condition or illness",
+    customNameLabel: "Condition or illness name",
+    customNamePlaceholder: "e.g. Allergy rash, migraine, asthma, back pain...",
+    customSeverityLabel: "How serious is it?",
+    customAddBtn: "Add",
+    customRemoveAria: "Remove condition",
+    reportedConditionsLabel: "Reported conditions:",
     checkinSending: "Sending...",
     checkinBtn: "Send Daily Check-in",
     statusNormal: "Looking good",
@@ -214,6 +278,17 @@ export default function PatientPortalPage() {
   const [severeHeadache, setSevereHeadache] = useState(false);
   const [bleeding, setBleeding] = useState(false);
   const [swelling, setSwelling] = useState(false);
+  const [additionalSymptoms, setAdditionalSymptoms] = useState<string[]>([]);
+  const [customConditions, setCustomConditions] = useState<CustomConditionEntry[]>([]);
+  const [customConditionName, setCustomConditionName] = useState("");
+  const [customConditionSeverity, setCustomConditionSeverity] =
+    useState<ConditionSeverity>("MODERATE");
+  const [extendedOpen, setExtendedOpen] = useState(false);
+  const [physicalGroupOpen, setPhysicalGroupOpen] = useState(true);
+  const [illnessGroupOpen, setIllnessGroupOpen] = useState(true);
+  const [customSectionOpen, setCustomSectionOpen] = useState(true);
+  const customSeqRef = useRef(1);
+
   const [bpReading, setBpReading] = useState("124/80");
   const [notes, setNotes] = useState("");
   const [submittingSym, setSubmittingSym] = useState(false);
@@ -226,9 +301,56 @@ export default function PatientPortalPage() {
   const ownPatient = data?.patients?.[0];
   const t = COPY[lang];
 
+  const physicalSymptoms = useMemo(
+    () => EXTENDED_SYMPTOMS_CATALOG.filter((s) => s.category === "physical"),
+    []
+  );
+  const illnessConditions = useMemo(
+    () => EXTENDED_SYMPTOMS_CATALOG.filter((s) => s.category === "conditions"),
+    []
+  );
+
+  const toggleAdditionalSymptom = (id: string) => {
+    setAdditionalSymptoms((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleAddCustomCondition = () => {
+    const trimmed = customConditionName.trim();
+    if (!trimmed) return;
+    const nextId = `custom-${customSeqRef.current}`;
+    customSeqRef.current += 1;
+    setCustomConditions((prev) => [
+      ...prev,
+      { id: nextId, name: trimmed, severity: customConditionSeverity },
+    ]);
+    setCustomConditionName("");
+  };
+
+  const handleRemoveCustomCondition = (id: string) => {
+    setCustomConditions((prev) => prev.filter((c) => c.id !== id));
+  };
+
   const handleSymptomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!call) return;
+
+    const pendingCustomName = customConditionName.trim();
+    const finalCustomConditions = pendingCustomName
+      ? [
+          ...customConditions,
+          {
+            id: `custom-${customSeqRef.current}`,
+            name: pendingCustomName,
+            severity: customConditionSeverity,
+          },
+        ]
+      : customConditions;
+    if (pendingCustomName) {
+      customSeqRef.current += 1;
+    }
+
     setSubmittingSym(true);
     try {
       const res = await fetchWithAuth("/api/patient/symptom-checkin", {
@@ -239,6 +361,8 @@ export default function PatientPortalPage() {
           severeHeadache,
           bleeding,
           swelling,
+          additionalSymptoms,
+          customConditions: finalCustomConditions,
           bpReading,
           notes,
         }),
@@ -256,6 +380,9 @@ export default function PatientPortalPage() {
               : json.checkin.aiAdviceUz
         );
         setNotes("");
+        setCustomConditionName("");
+        setCustomConditions([]);
+        setAdditionalSymptoms([]);
       }
     } finally {
       setSubmittingSym(false);
@@ -444,54 +571,280 @@ export default function PatientPortalPage() {
               {t.checkinTitle}
             </h2>
             <form onSubmit={handleSymptomSubmit} className="space-y-3">
+              {/* Primary 4 Red-Flag Checkboxes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[
-                  {
-                    checked: fever,
-                    set: setFever,
-                    uz: "Isitma > 38.0°C",
-                    ru: "Температура > 38.0°C",
-                    en: "Fever > 38.0°C",
-                  },
-                  {
-                    checked: severeHeadache,
-                    set: setSevereHeadache,
-                    uz: "Kuchli bosh og'rig'i / ko'z xiralashishi",
-                    ru: "Сильная головная боль / туман",
-                    en: "Severe headache / blurred vision",
-                  },
-                  {
-                    checked: bleeding,
-                    set: setBleeding,
-                    uz: "Kuchli qon ketishi",
-                    ru: "Обильное кровотечение",
-                    en: "Heavy bleeding",
-                  },
-                  {
-                    checked: swelling,
-                    set: setSwelling,
-                    uz: "Yuz / qo'l / oyoqda kuchli shish",
-                    ru: "Сильные отеки лица / ног",
-                    en: "Severe face or leg swelling",
-                  },
-                ].map((sym, i) => (
-                  <label
-                    key={i}
-                    className={`flex items-center gap-2.5 rounded-xl border p-3 text-xs font-medium cursor-pointer transition ${
-                      sym.checked
-                        ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
-                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={sym.checked}
-                      onChange={(e) => sym.set(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-rose-600"
-                    />
-                    <span>{lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}</span>
-                  </label>
-                ))}
+                {PRIMARY_RED_FLAG_SYMPTOMS.map((sym) => {
+                  const stateMap = {
+                    fever: { checked: fever, set: setFever },
+                    severeHeadache: { checked: severeHeadache, set: setSevereHeadache },
+                    bleeding: { checked: bleeding, set: setBleeding },
+                    swelling: { checked: swelling, set: setSwelling },
+                  } as const;
+                  const ctrl = stateMap[sym.key];
+                  return (
+                    <label
+                      key={sym.key}
+                      className={`flex items-center gap-2.5 rounded-xl border p-3 text-xs font-medium cursor-pointer transition ${
+                        ctrl.checked
+                          ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
+                          : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={ctrl.checked}
+                        onChange={(e) => ctrl.set(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-rose-600"
+                      />
+                      <span>{lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}</span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Collapsible Extended Illnesses & Symptoms List */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 overflow-hidden">
+                <button
+                  type="button"
+                  aria-expanded={extendedOpen}
+                  onClick={() => setExtendedOpen((v) => !v)}
+                  className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-left text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-900/60 transition"
+                >
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span>
+                      {t.moreConditionsTitle} ({EXTENDED_SYMPTOMS_CATALOG.length})
+                    </span>
+                    {additionalSymptoms.length > 0 && (
+                      <span className="rounded-full bg-teal-100 dark:bg-teal-950/80 border border-teal-300 dark:border-teal-800 px-2 py-0.5 text-[10px] font-bold text-teal-800 dark:text-teal-300">
+                        {additionalSymptoms.length} {t.selectedCountLabel}
+                      </span>
+                    )}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 dark:text-teal-400 shrink-0">
+                    {extendedOpen ? t.moreConditionsToggleHide : t.moreConditionsToggleShow}
+                    {extendedOpen ? (
+                      <IconChevronUp className="h-4 w-4" />
+                    ) : (
+                      <IconChevronDown className="h-4 w-4" />
+                    )}
+                  </span>
+                </button>
+
+                {extendedOpen && (
+                  <div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-3">
+                    {/* Sub-group 1: Physical & Postpartum Symptoms */}
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        aria-expanded={physicalGroupOpen}
+                        onClick={() => setPhysicalGroupOpen((v) => !v)}
+                        className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                      >
+                        <span>
+                          {t.physicalGroupTitle} ({physicalSymptoms.length})
+                        </span>
+                        {physicalGroupOpen ? (
+                          <IconChevronUp className="h-3.5 w-3.5" />
+                        ) : (
+                          <IconChevronDown className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                      {physicalGroupOpen && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {physicalSymptoms.map((sym) => {
+                            const checked = additionalSymptoms.includes(sym.id);
+                            return (
+                              <label
+                                key={sym.id}
+                                className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-xs font-medium cursor-pointer transition ${
+                                  checked
+                                    ? sym.triage === "CRITICAL"
+                                      ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
+                                      : "border-teal-400 dark:border-teal-700 bg-teal-50/70 dark:bg-teal-950/50 text-teal-900 dark:text-teal-200"
+                                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleAdditionalSymptom(sym.id)}
+                                  className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600"
+                                />
+                                <span>
+                                  {lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sub-group 2: Illnesses & Other Health Conditions */}
+                    <div className="space-y-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
+                      <button
+                        type="button"
+                        aria-expanded={illnessGroupOpen}
+                        onClick={() => setIllnessGroupOpen((v) => !v)}
+                        className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                      >
+                        <span>
+                          {t.illnessGroupTitle} ({illnessConditions.length})
+                        </span>
+                        {illnessGroupOpen ? (
+                          <IconChevronUp className="h-3.5 w-3.5" />
+                        ) : (
+                          <IconChevronDown className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                      {illnessGroupOpen && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {illnessConditions.map((sym) => {
+                            const checked = additionalSymptoms.includes(sym.id);
+                            return (
+                              <label
+                                key={sym.id}
+                                className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-xs font-medium cursor-pointer transition ${
+                                  checked
+                                    ? "border-teal-400 dark:border-teal-700 bg-teal-50/70 dark:bg-teal-950/50 text-teal-900 dark:text-teal-200"
+                                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleAdditionalSymptom(sym.id)}
+                                  className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600"
+                                />
+                                <span>
+                                  {lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Collapsible Write-Your-Own Condition / Illness + Seriousness Rating */}
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 overflow-hidden">
+                <button
+                  type="button"
+                  aria-expanded={customSectionOpen}
+                  onClick={() => setCustomSectionOpen((v) => !v)}
+                  className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-left text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-900/60 transition"
+                >
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span>{t.customSectionTitle}</span>
+                    {customConditions.length > 0 && (
+                      <span className="rounded-full bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-800 px-2 py-0.5 text-[10px] font-bold text-indigo-800 dark:text-indigo-300">
+                        {customConditions.length}
+                      </span>
+                    )}
+                  </span>
+                  {customSectionOpen ? (
+                    <IconChevronUp className="h-4 w-4 text-slate-500 shrink-0" />
+                  ) : (
+                    <IconChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                  )}
+                </button>
+
+                {customSectionOpen && (
+                  <div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-2.5">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex-1">
+                        <label htmlFor="custom-condition-name" className="sr-only">
+                          {t.customNameLabel}
+                        </label>
+                        <input
+                          id="custom-condition-name"
+                          name="customConditionName"
+                          type="text"
+                          value={customConditionName}
+                          onChange={(e) => setCustomConditionName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddCustomCondition();
+                            }
+                          }}
+                          placeholder={t.customNamePlaceholder}
+                          className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        disabled={!customConditionName.trim()}
+                        onClick={handleAddCustomCondition}
+                        className="inline-flex items-center justify-center gap-1 rounded-xl border border-teal-600 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/60 px-3.5 py-2 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/60 disabled:opacity-40 transition shrink-0"
+                      >
+                        <IconPlus className="h-3.5 w-3.5" />
+                        {t.customAddBtn}
+                      </button>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <span className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                        {t.customSeverityLabel}
+                      </span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                        {CONDITION_SEVERITY_OPTIONS.map((opt) => {
+                          const active = customConditionSeverity === opt.value;
+                          const label = lang === "ru" ? opt.ru : lang === "en" ? opt.en : opt.uz;
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              aria-pressed={active}
+                              onClick={() => setCustomConditionSeverity(opt.value)}
+                              className={`rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold text-center transition ${
+                                active
+                                  ? `${opt.badgeClass} ring-2 ring-teal-500/40`
+                                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {customConditions.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {customConditions.map((entry) => {
+                          const sevMeta = getSeverityMeta(entry.severity);
+                          const sevLabel =
+                            lang === "ru"
+                              ? sevMeta.ru
+                              : lang === "en"
+                                ? sevMeta.en
+                                : sevMeta.uz;
+                          return (
+                            <span
+                              key={entry.id}
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${sevMeta.badgeClass}`}
+                            >
+                              <span>{entry.name}</span>
+                              <span className="opacity-75">({sevLabel})</span>
+                              <button
+                                type="button"
+                                aria-label={`${t.customRemoveAria}: ${entry.name}`}
+                                onClick={() => handleRemoveCustomCondition(entry.id)}
+                                className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+                              >
+                                <IconX className="h-3 w-3" />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -537,43 +890,75 @@ export default function PatientPortalPage() {
 
             {call.symptomCheckins.length > 0 && (
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                {call.symptomCheckins.map((sc) => (
-                  <div
-                    key={sc.id}
-                    className={`rounded-xl border p-3 text-xs ${
-                      sc.aiTriageLevel === "RED_EMERGENCY"
-                        ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
-                        : sc.aiTriageLevel === "YELLOW"
-                          ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
-                          : "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between font-bold mb-1">
-                      <span className="inline-flex items-center gap-1">
-                        <IconAlertOctagon className="h-3.5 w-3.5" />
-                        {sc.aiTriageLevel === "RED_EMERGENCY"
-                          ? t.statusUrgent
+                {call.symptomCheckins.map((sc) => {
+                  const extraList = sc.additionalSymptoms ?? [];
+                  const customList = sc.customConditions ?? [];
+                  return (
+                    <div
+                      key={sc.id}
+                      className={`rounded-xl border p-3 text-xs space-y-1.5 ${
+                        sc.aiTriageLevel === "RED_EMERGENCY"
+                          ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
                           : sc.aiTriageLevel === "YELLOW"
-                            ? t.statusAttention
-                            : t.statusNormal}{" "}
-                        ({sc.bpReading})
-                      </span>
-                      <span className="font-mono text-[10px]">
-                        {new Date(sc.createdAt).toLocaleTimeString("en-GB", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
+                            ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
+                            : "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between font-bold">
+                        <span className="inline-flex items-center gap-1">
+                          <IconAlertOctagon className="h-3.5 w-3.5" />
+                          {sc.aiTriageLevel === "RED_EMERGENCY"
+                            ? t.statusUrgent
+                            : sc.aiTriageLevel === "YELLOW"
+                              ? t.statusAttention
+                              : t.statusNormal}{" "}
+                          ({sc.bpReading})
+                        </span>
+                        <span className="font-mono text-[10px]">
+                          {new Date(sc.createdAt).toLocaleTimeString("en-GB", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                      <p>
+                        {lang === "ru"
+                          ? sc.aiAdviceRu
+                          : lang === "en"
+                            ? sc.aiAdviceEn
+                            : sc.aiAdviceUz}
+                      </p>
+                      {(extraList.length > 0 || customList.length > 0) && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {extraList.map((id) => (
+                            <span
+                              key={id}
+                              className="rounded-full bg-white/80 dark:bg-slate-900/70 border border-current/20 px-2 py-0.5 text-[10px] font-semibold"
+                            >
+                              {getSymptomLabel(id, lang)}
+                            </span>
+                          ))}
+                          {customList.map((c) => {
+                            const sev = getSeverityMeta(c.severity);
+                            const sevLabel =
+                              lang === "ru" ? sev.ru : lang === "en" ? sev.en : sev.uz;
+                            return (
+                              <span
+                                key={c.id}
+                                className="rounded-full bg-white/90 dark:bg-slate-900/80 border border-current/25 px-2 py-0.5 text-[10px] font-semibold"
+                              >
+                                {c.name} • {sevLabel}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {sc.notes && (
+                        <p className="text-[11px] opacity-85 italic">{sc.notes}</p>
+                      )}
                     </div>
-                    <p>
-                      {lang === "ru"
-                        ? sc.aiAdviceRu
-                        : lang === "en"
-                          ? sc.aiAdviceEn
-                          : sc.aiAdviceUz}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>

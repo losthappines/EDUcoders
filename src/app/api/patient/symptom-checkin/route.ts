@@ -4,7 +4,21 @@ import { ensureSeeded } from "@/lib/seed-data";
 import { recordAuditLog, resolveActorContext } from "@/lib/rbac";
 import { evaluateSymptomCheckinTriage } from "@/lib/agentic-coordinator";
 import { getSimulatedNow } from "@/lib/sla-queue";
-import type { NotificationLogEntry, SymptomCheckin } from "@/lib/types";
+import {
+  CONDITION_SEVERITY_OPTIONS,
+  getSymptomLabel,
+  VALID_SYMPTOM_IDS,
+} from "@/lib/symptoms-catalog";
+import type {
+  ConditionSeverity,
+  CustomConditionEntry,
+  NotificationLogEntry,
+  SymptomCheckin,
+} from "@/lib/types";
+
+const VALID_SEVERITIES = new Set<ConditionSeverity>(
+  CONDITION_SEVERITY_OPTIONS.map((o) => o.value)
+);
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,6 +35,12 @@ export async function POST(req: NextRequest) {
       severeHeadache: boolean;
       bleeding: boolean;
       swelling: boolean;
+      additionalSymptoms?: string[];
+      customConditions?: Array<{
+        id?: string;
+        name?: string;
+        severity?: string;
+      }>;
       bpReading: string;
       notes: string;
     };
@@ -37,11 +57,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "RBAC Denied" }, { status: 403 });
     }
 
+    const additionalSymptoms = Array.isArray(body.additionalSymptoms)
+      ? Array.from(
+          new Set(
+            body.additionalSymptoms.filter(
+              (id): id is string => typeof id === "string" && VALID_SYMPTOM_IDS.has(id)
+            )
+          )
+        ).slice(0, 30)
+      : [];
+
+    const customConditions: CustomConditionEntry[] = Array.isArray(body.customConditions)
+      ? body.customConditions
+          .map((item, idx) => {
+            const name = typeof item?.name === "string" ? item.name.trim().slice(0, 120) : "";
+            const rawSev = typeof item?.severity === "string" ? (item.severity as ConditionSeverity) : "MODERATE";
+            const severity: ConditionSeverity = VALID_SEVERITIES.has(rawSev) ? rawSev : "MODERATE";
+            return {
+              id: typeof item?.id === "string" && item.id ? item.id.slice(0, 40) : `custom-${Date.now()}-${idx}`,
+              name,
+              severity,
+            };
+          })
+          .filter((item) => item.name.length > 0)
+          .slice(0, 20)
+      : [];
+
     const triage = evaluateSymptomCheckinTriage({
       fever: Boolean(body.fever),
       severeHeadache: Boolean(body.severeHeadache),
       bleeding: Boolean(body.bleeding),
       swelling: Boolean(body.swelling),
+      additionalSymptoms,
+      customConditions,
       bpReading: body.bpReading || "120/80",
     });
 
@@ -52,8 +100,10 @@ export async function POST(req: NextRequest) {
       severeHeadache: Boolean(body.severeHeadache),
       bleeding: Boolean(body.bleeding),
       swelling: Boolean(body.swelling),
+      additionalSymptoms,
+      customConditions,
       bpReading: body.bpReading || "120/80",
-      notes: body.notes || "",
+      notes: (body.notes || "").trim().slice(0, 500),
       aiTriageLevel: triage.aiTriageLevel,
       aiAdviceUz: triage.aiAdviceUz,
       aiAdviceRu: triage.aiAdviceRu,
@@ -67,6 +117,12 @@ export async function POST(req: NextRequest) {
       call.notificationLogJson || "[]"
     );
 
+    const extraSummaryParts = [
+      ...additionalSymptoms.map((id) => getSymptomLabel(id, "uz")),
+      ...customConditions.map((c) => `${c.name} [${c.severity}]`),
+    ];
+    const extraSummary = extraSummaryParts.length > 0 ? ` • Belgilar: ${extraSummaryParts.join(", ")}` : "";
+
     const addedNotifs: NotificationLogEntry[] = [];
     let nextPriority = call.priority;
 
@@ -78,7 +134,7 @@ export async function POST(req: NextRequest) {
         recipientName: call.assignedDoctor.fullName,
         recipientRole: "FAMILY_MD",
         recipientHandle: call.assignedDoctor.telegramHandle || "@family_md",
-        message: `🚨 [AI BEMOR XAVF SIGNALI] ${call.patient.fullName} (AQB: ${checkin.bpReading}) shoshilinch simptomlar belgiladi! Zudlik bilan bog'laning!`,
+        message: `🚨 [BEMOR XAVF SIGNALI] ${call.patient.fullName} (AQB: ${checkin.bpReading}) shoshilinch simptomlar belgiladi!${extraSummary}`,
         severity: "CRITICAL",
         sentAt: simulatedNow.toISOString(),
       });
@@ -90,7 +146,7 @@ export async function POST(req: NextRequest) {
         recipientName: call.assignedDoctor.fullName,
         recipientRole: "FAMILY_MD",
         recipientHandle: call.assignedDoctor.telegramHandle || "@family_md",
-        message: `⚠️ [BEMOR SIMPTOM OGOHLANTIRISHI] ${call.patient.fullName}: AQB ${checkin.bpReading}, ko'rsatkichlar me'yordan yuqori.`,
+        message: `⚠️ [BEMOR SIMPTOM OGOHLANTIRISHI] ${call.patient.fullName}: AQB ${checkin.bpReading}.${extraSummary}`,
         severity: "WARNING",
         sentAt: simulatedNow.toISOString(),
       });
@@ -115,6 +171,8 @@ export async function POST(req: NextRequest) {
           patientName: call.patient.fullName,
           aiTriageLevel: triage.aiTriageLevel,
           bpReading: checkin.bpReading,
+          additionalSymptomsCount: additionalSymptoms.length,
+          customConditionsCount: customConditions.length,
           priorityUpgradedTo: nextPriority,
         },
       });

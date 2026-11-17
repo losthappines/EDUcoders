@@ -9,6 +9,7 @@ import {
   IconExternalLink,
   IconFileCode,
   IconFlask,
+  IconHeartbeat,
   IconLock,
   IconPill,
   IconPlus,
@@ -23,6 +24,11 @@ import { VitalsTrendChart } from "@/components/VitalsTrendChart";
 import { FhirBundleModal } from "@/components/FhirBundleModal";
 import { AgentTraceModal } from "@/components/AgentTraceModal";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import {
+  getSeverityMeta,
+  getSymptomLabel,
+  PRIMARY_RED_FLAG_SYMPTOMS,
+} from "@/lib/symptoms-catalog";
 import type { AgentTraceStep } from "@/lib/types";
 
 const CLINICAL_COPY: Record<
@@ -87,6 +93,7 @@ const CLINICAL_COPY: Record<
     verifySavingBtn: string;
     verifySubmitBtn: string;
     alertsTitle: string;
+    patientCheckinsTitle: string;
     dischargeErr: string;
     dischargeOk: string;
     checklistErr: string;
@@ -158,6 +165,7 @@ const CLINICAL_COPY: Record<
     verifySavingBtn: "Saqlanmoqda...",
     verifySubmitBtn: "Ko'rsatkichlarni saqlash va tasdiqlash",
     alertsTitle: "Avtomatik Telegram / SMS xabarnomalar",
+    patientCheckinsTitle: "Bemor yuborgan kunlik holat tekshiruvlari",
     dischargeErr: "Chiqarishda xatolik yuz berdi.",
     dischargeOk: "Uyga chiqarish va 24 soatlik patronaj boshlandi!",
     checklistErr: "Ro'yxatni yangilash uchun shifokor ruxsati kerak.",
@@ -228,6 +236,7 @@ const CLINICAL_COPY: Record<
     verifySavingBtn: "Сохранение...",
     verifySubmitBtn: "Сохранить показатели и подтвердить визит",
     alertsTitle: "Журнал уведомлений Telegram / SMS",
+    patientCheckinsTitle: "Ежедневные отчеты о самочувствии пациентки",
     dischargeErr: "Ошибка при выписке.",
     dischargeOk: "Выписка оформлена, 24-часовой визит назначен!",
     checklistErr: "Для обновления чек-листа нужны права врача.",
@@ -298,6 +307,7 @@ const CLINICAL_COPY: Record<
     verifySavingBtn: "Saving...",
     verifySubmitBtn: "Save Vitals & Confirm Home Visit",
     alertsTitle: "Telegram / SMS Notification Log",
+    patientCheckinsTitle: "Patient Daily Symptom Check-ins",
     dischargeErr: "Could not complete discharge handoff.",
     dischargeOk: "Discharge summary ready and 24-hour home visit scheduled!",
     checklistErr: "Doctor permissions required to update checklist.",
@@ -1169,6 +1179,90 @@ export default function ClinicalDashboardPage() {
                         : t.verifySubmitBtn}
                   </button>
                 </form>
+
+                {selectedCall.symptomCheckins.length > 0 && (
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                      <IconHeartbeat className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+                      {t.patientCheckinsTitle} ({selectedCall.symptomCheckins.length})
+                    </h3>
+                    {selectedCall.symptomCheckins.map((sc) => {
+                      const activePrimary = PRIMARY_RED_FLAG_SYMPTOMS.filter((sym) =>
+                        sym.key === "fever"
+                          ? sc.fever
+                          : sym.key === "severeHeadache"
+                            ? sc.severeHeadache
+                            : sym.key === "bleeding"
+                              ? sc.bleeding
+                              : sc.swelling
+                      );
+                      const extraList = sc.additionalSymptoms ?? [];
+                      const customList = sc.customConditions ?? [];
+                      return (
+                        <div
+                          key={sc.id}
+                          className={`rounded-xl border p-3 text-xs space-y-1.5 ${
+                            sc.aiTriageLevel === "RED_EMERGENCY"
+                              ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
+                              : sc.aiTriageLevel === "YELLOW"
+                                ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
+                                : "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between font-bold">
+                            <span>
+                              {sc.aiTriageLevel} • BP {sc.bpReading}
+                            </span>
+                            <span className="font-mono text-[10px] opacity-75">
+                              {new Date(sc.createdAt).toLocaleTimeString("en-GB", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                          {(activePrimary.length > 0 ||
+                            extraList.length > 0 ||
+                            customList.length > 0) && (
+                            <div className="flex flex-wrap gap-1">
+                              {activePrimary.map((sym) => (
+                                <span
+                                  key={sym.key}
+                                  className="rounded-full bg-white/85 dark:bg-slate-900/75 border border-current/25 px-2 py-0.5 text-[10px] font-semibold"
+                                >
+                                  {lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}
+                                </span>
+                              ))}
+                              {extraList.map((id) => (
+                                <span
+                                  key={id}
+                                  className="rounded-full bg-white/85 dark:bg-slate-900/75 border border-current/25 px-2 py-0.5 text-[10px] font-semibold"
+                                >
+                                  {getSymptomLabel(id, lang)}
+                                </span>
+                              ))}
+                              {customList.map((c) => {
+                                const sev = getSeverityMeta(c.severity);
+                                const sevLabel =
+                                  lang === "ru" ? sev.ru : lang === "en" ? sev.en : sev.uz;
+                                return (
+                                  <span
+                                    key={c.id}
+                                    className="rounded-full bg-white/95 dark:bg-slate-900/85 border border-current/30 px-2 py-0.5 text-[10px] font-semibold"
+                                  >
+                                    {c.name} • {sevLabel}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {sc.notes && (
+                            <p className="text-[11px] opacity-90">{sc.notes}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
                   <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">

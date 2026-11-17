@@ -9,9 +9,11 @@ import {
   buildEpikrizDocumentHtml,
   putStorageObject,
 } from "./storage";
+import { EXTENDED_SYMPTOMS_CATALOG } from "./symptoms-catalog";
 import type {
   AgentTraceStep,
   ChecklistItem,
+  CustomConditionEntry,
   LabResultItem,
   NotificationLogEntry,
   PatientGuide,
@@ -656,6 +658,8 @@ export function evaluateSymptomCheckinTriage(input: {
   severeHeadache: boolean;
   bleeding: boolean;
   swelling: boolean;
+  additionalSymptoms?: string[];
+  customConditions?: CustomConditionEntry[];
   bpReading: string;
 }) {
   let systolic = 120;
@@ -666,24 +670,46 @@ export function evaluateSymptomCheckinTriage(input: {
     diastolic = Number(match[2]);
   }
 
+  const extraIds = new Set(input.additionalSymptoms ?? []);
+  const extraItems = EXTENDED_SYMPTOMS_CATALOG.filter((s) => extraIds.has(s.id));
+  const customList = input.customConditions ?? [];
+
+  const hasCriticalExtra = extraItems.some((s) => s.triage === "CRITICAL");
+  const hasWarningExtra = extraItems.some((s) => s.triage === "WARNING");
+  const mildExtraCount = extraItems.filter((s) => s.triage === "MILD").length;
+
+  const hasCriticalCustom = customList.some((c) => c.severity === "CRITICAL");
+  const hasElevatedCustom = customList.some(
+    (c) => c.severity === "MODERATE" || c.severity === "SEVERE"
+  );
+
   const isEmergency =
     input.bleeding ||
     input.severeHeadache ||
+    hasCriticalExtra ||
+    hasCriticalCustom ||
     systolic >= 160 ||
     diastolic >= 105;
+
   const isWarning =
     !isEmergency &&
-    (input.fever || input.swelling || systolic >= 140 || diastolic >= 90);
+    (input.fever ||
+      input.swelling ||
+      hasWarningExtra ||
+      hasElevatedCustom ||
+      mildExtraCount >= 3 ||
+      systolic >= 140 ||
+      diastolic >= 90);
 
   if (isEmergency) {
     return {
       aiTriageLevel: "RED_EMERGENCY" as const,
       aiAdviceUz:
-        "🚨 ZUDLIK BILAN TEZ YORDAM (103) CHAQIRING! AI tizimi xavfli simptomlarni aniqladi va hududiy oilaviy shifokoringiz hamda Bosh shifokorga favqulodda signal yubordi.",
+        "🚨 ZUDLIK BILAN TEZ YORDAM (103) CHAQIRING! Xavfli simptomlar yoki o'ta jiddiy holat aniqlandi — hududiy oilaviy shifokoringiz va Bosh shifokorga favqulodda signal yuborildi.",
       aiAdviceRu:
-        "🚨 СРОЧНО ВЫЗОВИТЕ СКОРУЮ (103)! ИИ выявил опасные симптомы и отправил экстренный сигнал семейному врачу и главврачу.",
+        "🚨 СРОЧНО ВЫЗОВИТЕ СКОРУЮ (103)! Выявлены опасные симптомы или критическое состояние — экстренный сигнал отправлен семейному врачу и главврачу.",
       aiAdviceEn:
-        "🚨 CALL EMERGENCY (103) IMMEDIATELY! AI detected critical postpartum warning signs and alerted your Family Doctor and Chief Doctor.",
+        "🚨 CALL EMERGENCY (103) IMMEDIATELY! Critical symptoms or a very serious condition were reported, and your Family Doctor and Chief Doctor have been alerted.",
     };
   }
 
@@ -691,11 +717,11 @@ export function evaluateSymptomCheckinTriage(input: {
     return {
       aiTriageLevel: "YELLOW" as const,
       aiAdviceUz:
-        "⚠️ Ogohlantirish: Ko'rsatkichlaringiz me'yordan chetga chiqqan. Oilaviy shifokoringizga navbatdan tashqari tezkor xabar yuborildi.",
+        "⚠️ Diqqat: Ko'rsatkichlar yoki belgilangan holatlar shifokor ko'rigini talab qiladi. Oilaviy shifokoringizga tezkor ogohlantirish yuborildi.",
       aiAdviceRu:
-        "⚠️ Предупреждение: Показатели выше нормы. Вашему семейному врачу отправлено приоритетное уведомление.",
+        "⚠️ Внимание: Указанные симптомы или состояния требуют осмотра врача. Семейному врачу отправлено приоритетное уведомление.",
       aiAdviceEn:
-        "⚠️ Warning: Elevated readings detected. A priority alert was sent to your Regional Family Doctor.",
+        "⚠️ Attention: Your reported readings or conditions need prompt doctor review. A priority alert was sent to your Family Doctor.",
     };
   }
 

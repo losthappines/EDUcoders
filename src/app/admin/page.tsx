@@ -365,7 +365,8 @@ export default function AdminPanelPage() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredCalls.map((call) => {
-                const latestEhr = call.patient.ehrRecords[call.patient.ehrRecords.length - 1];
+                const ehrList = call.patient?.ehrRecords ?? [];
+                const latestEhr = ehrList[ehrList.length - 1];
                 return (
                   <tr key={call.id}>
                     <td className="py-3 pr-3">

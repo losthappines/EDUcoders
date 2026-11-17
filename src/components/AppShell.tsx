@@ -5,13 +5,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   IconBuildingHospital,
-  IconClock,
   IconHeartHandshake,
   IconLock,
   IconLogout,
   IconMenu2,
-  IconPlayerTrackNext,
-  IconRotateClockwise,
   IconShieldCheck,
   IconStethoscope,
   IconUserCheck,
@@ -56,9 +53,6 @@ function isRoleAllowedOnPath(role: UserRole, pathname: string): boolean {
 const SHELL_COPY: Record<
   AppLang,
   {
-    simBadge: string;
-    simDesc: string;
-    resetBtn: string;
     privateBadge: string;
     privateTooltip: string;
     languageLabel: string;
@@ -76,9 +70,6 @@ const SHELL_COPY: Record<
   }
 > = {
   uz: {
-    simBadge: "VAQT SIMULYATORI",
-    simDesc: "24 soatlik tashrif muddatini sinash",
-    resetBtn: "Tiklash",
     privateBadge: "Shaxsiy va himoyalangan",
     privateTooltip:
       "Barcha tibbiy ma'lumotlar shifrlangan va faqat siz hamda shifokoringizga ko'rinadi.",
@@ -96,9 +87,6 @@ const SHELL_COPY: Record<
     adminVerificationsNav: "Hisoblarni tasdiqlash",
   },
   ru: {
-    simBadge: "СИМУЛЯТОР ВРЕМЕНИ",
-    simDesc: "Проверка 24-часового окна визита",
-    resetBtn: "Сброс",
     privateBadge: "Приватно и зашифровано",
     privateTooltip:
       "Ваши медицинские данные зашифрованы и доступны только вам и вашей команде врачей.",
@@ -116,9 +104,6 @@ const SHELL_COPY: Record<
     adminVerificationsNav: "Проверка аккаунтов",
   },
   en: {
-    simBadge: "TIME SIMULATOR",
-    simDesc: "Test 24-hour home visit reminders",
-    resetBtn: "Reset",
     privateBadge: "Encrypted & private",
     privateTooltip:
       "Your health data is encrypted and visible only to you and your care team.",
@@ -142,16 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { lang } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const {
-    authUser,
-    authChecked,
-    data,
-    simBusy,
-    toast,
-    logout,
-    fastForwardTime,
-    resetDemo,
-  } = usePlatform();
+  const { authUser, authChecked, data, toast, logout } = usePlatform();
 
   const isProtected = isProtectedPortalPath(pathname);
   const t = SHELL_COPY[lang];
@@ -235,21 +211,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     ? "You can only open the portal assigned to your role."
                     : "Siz faqat o'zingizning rolingizga tegishli kabinetni ko'rishingiz mumkin."}
           </p>
+          {authChecked && (
+            <div className="pt-1">
+              <Link
+                href={!authUser ? "/login" : getPortalForRole(authUser.role)}
+                className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition"
+              >
+                {!authUser
+                  ? lang === "ru"
+                    ? "Перейти ко входу"
+                    : lang === "en"
+                      ? "Go to Sign In"
+                      : "Kirish sahifasiga o'tish"
+                  : lang === "ru"
+                    ? "Открыть мой кабинет"
+                    : lang === "en"
+                      ? "Open My Portal"
+                      : "Kabinetimga o'tish"}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );
   }
-
-  const isStaff = authUser.role !== "PATIENT";
-  const simOffset = data?.simState.timeOffsetHours ?? 0;
-  const simTimeFormatted = data?.simState.simulatedNow
-    ? new Date(data.simState.simulatedNow).toLocaleString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "--:--";
 
   const portalMeta =
     authUser.role === "PATIENT"
@@ -278,71 +263,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
-      {/* Staff-Only Demo Time Simulator Utility Bar (Hidden from Patients) */}
-      {isStaff && (
-        <div className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900 dark:bg-slate-950 text-white shadow-md">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2">
-            <div className="flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-teal-500/20 px-2 py-0.5 text-[11px] font-bold tracking-wide text-teal-300 border border-teal-500/30">
-                {t.simBadge}
-              </span>
-              <span className="text-slate-300 hidden sm:inline">
-                {t.simDesc}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1.5">
-              <div className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-200 border border-slate-700">
-                <IconClock className="h-3.5 w-3.5 text-teal-400" />
-                <span className="font-mono tabular-nums">{simTimeFormatted}</span>
-                {simOffset > 0 && (
-                  <span className="rounded bg-amber-500/20 px-1.5 py-0.2 text-[10px] font-bold text-amber-300">
-                    +{simOffset}h
-                  </span>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => fastForwardTime(6)}
-                disabled={simBusy}
-                className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2 py-1 text-xs font-semibold text-amber-300 hover:bg-slate-700 border border-slate-700 disabled:opacity-50"
-              >
-                <IconPlayerTrackNext className="h-3.5 w-3.5" />
-                +6h
-              </button>
-              <button
-                type="button"
-                onClick={() => fastForwardTime(12)}
-                disabled={simBusy}
-                className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-500 disabled:opacity-50"
-              >
-                <IconPlayerTrackNext className="h-3.5 w-3.5" />
-                +12h
-              </button>
-              <button
-                type="button"
-                onClick={() => fastForwardTime(23)}
-                disabled={simBusy}
-                className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-500 disabled:opacity-50"
-              >
-                <IconPlayerTrackNext className="h-3.5 w-3.5" />
-                +23h
-              </button>
-              <button
-                type="button"
-                onClick={resetDemo}
-                disabled={simBusy}
-                className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2 py-1 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 disabled:opacity-50"
-                title={t.resetBtn}
-              >
-                <IconRotateClockwise className="h-3.5 w-3.5" />
-                {t.resetBtn}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Strictly Role-Isolated Portal Header (Responsive at 375px) */}
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors duration-200">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3">

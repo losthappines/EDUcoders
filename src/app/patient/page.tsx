@@ -584,7 +584,7 @@ export default function PatientPortalPage() {
               <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               {t.rxTitle}
             </h2>
-            {call.patient.prescriptions.map((rx) => (
+            {(call.patient?.prescriptions ?? []).map((rx) => (
               <div
                 key={rx.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 p-3"
@@ -602,7 +602,7 @@ export default function PatientPortalPage() {
                         : rx.instructionsUz}
                   </p>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
-                    {t.loggedDoses} {rx.adherenceLogs.length}
+                    {t.loggedDoses} {(rx.adherenceLogs ?? []).length}
                   </p>
                 </div>
                 <button
@@ -622,10 +622,10 @@ export default function PatientPortalPage() {
               <IconFlask className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               <InfoTooltip label={t.labsTitle} explanation={t.labsTip} />
             </h2>
-            {call.patient.labReports.map((lab) => (
+            {(call.patient?.labReports ?? []).map((lab) => (
               <div key={lab.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-1.5">
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{lab.panelName}</p>
-                {lab.results.map((r, idx) => {
+                {(lab.results ?? []).map((r, idx) => {
                   const labTip = getLabTooltip(r.testName, lang);
                   return (
                     <div

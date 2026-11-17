@@ -154,9 +154,13 @@ export async function GET(req: NextRequest) {
       }));
 
     const scopedPatientIds = new Set(scopedPatients.map((p) => p.id));
+    const scopedPatientById = new Map(scopedPatients.map((p) => [p.id, p]));
 
     const scopedCalls = rawCalls
       .filter((c) => {
+        if (!scopedPatientById.has(c.patientId)) {
+          return false;
+        }
         if (actor.role === "PATIENT") {
           return scopedPatientIds.has(c.patientId);
         }
@@ -177,6 +181,7 @@ export async function GET(req: NextRequest) {
         );
         return {
           ...c,
+          patient: scopedPatientById.get(c.patientId)!,
           assignedDoctor: sanitizeUser(c.assignedDoctor),
           dischargedBy: sanitizeUser(c.dischargedBy),
           redFlags:

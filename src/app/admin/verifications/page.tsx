@@ -314,6 +314,7 @@ export default function AdminVerificationsPage() {
         a.email.toLowerCase().includes(q) ||
         (a.phone || "").toLowerCase().includes(q) ||
         (a.district || "").toLowerCase().includes(q) ||
+        (a.specialty || "").toLowerCase().includes(q) ||
         (a.polyclinicName || "").toLowerCase().includes(q)
       );
     });
@@ -495,6 +496,11 @@ export default function AdminVerificationsPage() {
                           >
                             {roleMeta.label}
                           </span>
+                          {acc.role !== "PATIENT" && acc.specialty && (
+                            <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                              {acc.specialty}
+                            </span>
+                          )}
                           {acc.verificationStatus === "PENDING" ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
                               <IconClock className="h-3 w-3" />

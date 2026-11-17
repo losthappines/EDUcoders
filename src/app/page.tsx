@@ -418,7 +418,7 @@ export default function LandingPage() {
                   ) : (
                     <>
                       <Link
-                        href="/signup?role=PATIENT"
+                        href="/signup"
                         className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 transition"
                       >
                         <IconUserPlus className="h-4 w-4" />

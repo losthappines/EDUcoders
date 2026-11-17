@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
     email?: string;
     password?: string;
     role?: UserRole;
+    specialty?: string;
     phone?: string;
     region?: string;
     district?: string;
@@ -138,6 +139,7 @@ export async function POST(req: NextRequest) {
     const mahalla = (body.mahalla || "").trim();
     const dateOfBirth = (body.dateOfBirth || "").trim();
     const bloodType = (body.bloodType || "").trim() || "I don't know";
+    const customSpecialty = (body.specialty || "").trim().slice(0, 120);
 
     // Patients and Doctors/Physicians must be verified by an Administrator before entering the portal
     const requiresAdminVerification =
@@ -159,13 +161,14 @@ export async function POST(req: NextRequest) {
           polyclinicName,
           district,
           specialty:
-            role === "OVABMU_MD"
+            customSpecialty ||
+            (role === "OVABMU_MD"
               ? "Akusher-ginekolog (OvaBMU)"
               : role === "FAMILY_MD"
                 ? "Hududiy oilaviy shifokor"
                 : role === "ADMIN_RECEPTION"
                   ? "Qabulxona & SLA koordinatori"
-                  : "Bemor",
+                  : "Bemor"),
           phone,
           scheduleSlotsJson: JSON.stringify(defaultSlots),
         },

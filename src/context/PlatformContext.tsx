@@ -201,6 +201,7 @@ export interface SignupInput {
   email: string;
   password: string;
   role: UserRole;
+  specialty?: string;
   phone?: string;
   region?: string;
   district?: string;

@@ -7,10 +7,13 @@ import {
   IconAlertTriangle,
   IconBuildingHospital,
   IconCircleCheck,
+  IconClipboardText,
   IconClock,
   IconEye,
   IconEyeOff,
+  IconNurse,
   IconShieldCheck,
+  IconSparkles,
   IconStethoscope,
   IconUser,
   IconUserPlus,
@@ -20,98 +23,80 @@ import { useLanguage, type AppLang } from "@/context/LanguageContext";
 import { PublicHeader } from "@/components/PublicHeader";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { AiSignupAssistant } from "@/components/AiSignupAssistant";
+import {
+  createInitialDraft,
+  type AiSignupDraft,
+  type SignupPersona,
+} from "@/lib/ai-signup-helper";
 import { BLOOD_TYPE_OPTIONS, UZ_REGIONS } from "@/lib/uz-locations";
 import type { UserRole } from "@/lib/types";
 
-const VALID_ROLES: UserRole[] = [
-  "PATIENT",
-  "OVABMU_MD",
-  "FAMILY_MD",
-  "ADMIN_RECEPTION",
-];
+type SignupMethod = "traditional" | "ai";
 
-const ROLE_OPTIONS: Array<{
-  role: UserRole;
+const PERSONA_CARDS: Array<{
+  persona: Exclude<SignupPersona, "ADMIN_RECEPTION">;
   title: Record<AppLang, string>;
   desc: Record<AppLang, string>;
   tag: Record<AppLang, string>;
   icon: React.ReactNode;
 }> = [
   {
-    role: "PATIENT",
+    persona: "PATIENT",
     title: {
       uz: "Bemor / Ona",
-      ru: "Мама / Пациент",
-      en: "Mother / Patient",
+      ru: "Пациент / Мама",
+      en: "Patient / Mother",
     },
     desc: {
-      uz: "Shaxsiy parvarish rejasi, kunlik holat tekshiruvi va tashrif kodi",
-      ru: "Личный план восстановления, проверка самочувствия и код визита",
-      en: "Your personal recovery plan, daily check-ins & visit confirmation",
+      uz: "Shaxsiy parvarish rejasi, kunlik holat tekshiruvi va 24 soatlik uy tashrifi",
+      ru: "Личный план восстановления, проверка самочувствия и визит врача на дом за 24ч",
+      en: "Personal recovery plan, daily check-ins & 24-hour family doctor visit",
     },
     tag: {
-      uz: "Shaxsiy kabinet",
-      ru: "Личный кабинет",
-      en: "Personal portal",
+      uz: "Bemor kabineti",
+      ru: "Кабинет пациента",
+      en: "Patient portal",
     },
-    icon: <IconUser className="h-4 w-4 text-teal-700 dark:text-teal-400" />,
+    icon: <IconUser className="h-5 w-5 text-teal-700 dark:text-teal-400" />,
   },
   {
-    role: "OVABMU_MD",
+    persona: "DOCTOR",
     title: {
-      uz: "Tug'ruqxona shifokori",
-      ru: "Врач роддома",
-      en: "Hospital Doctor",
+      uz: "Shifokor",
+      ru: "Врач",
+      en: "Doctor",
     },
     desc: {
-      uz: "Chiqarish xulosasini tayyorlash va poliklinikaga yuborish",
-      ru: "Оформление выписки и передача пациентки в поликлинику",
-      en: "Prepare hospital discharge summaries & arrange home care",
+      uz: "Tug'ruqxona yoki oilaviy poliklinika shifokorlari uchun klinik ish maydoni",
+      ru: "Рабочий кабинет для врачей роддома и семейных поликлиник",
+      en: "Clinical workspace for Maternity Hospital and Local Family Doctors",
     },
     tag: {
       uz: "Shifokor kabineti",
       ru: "Кабинет врача",
-      en: "Doctor workspace",
+      en: "Doctor portal",
     },
-    icon: <IconBuildingHospital className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />,
+    icon: <IconStethoscope className="h-5 w-5 text-indigo-700 dark:text-indigo-400" />,
   },
   {
-    role: "FAMILY_MD",
+    persona: "NURSE",
     title: {
-      uz: "Hududiy oilaviy shifokor",
-      ru: "Семейный врач",
-      en: "Local Family Doctor",
+      uz: "Kuzatuv hamshirasi",
+      ru: "Медсестра наблюдения",
+      en: "Monitoring Nurse",
     },
     desc: {
-      uz: "24 soatlik uy tashrifi ko'rik ro'yxati va natijalarni kiritish",
-      ru: "Домашний осмотр за 24 часа и запись показателей здоровья",
-      en: "24-hour home visit check-ups & health verification",
+      uz: "24 soatlik uy ko'rigi, qon bosimi/holat nazorati va bemorlarni kuzatish",
+      ru: "Домашние визиты за 24 часа, контроль показателей и наблюдение мам",
+      en: "24-hour home check-ups, vitals monitoring & postpartum follow-ups",
     },
     tag: {
-      uz: "Shifokor kabineti",
-      ru: "Кабинет врача",
-      en: "Doctor workspace",
+      uz: "Hamshira nazorati",
+      ru: "Наблюдение и уход",
+      en: "Monitoring team",
     },
-    icon: <IconStethoscope className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />,
-  },
-  {
-    role: "ADMIN_RECEPTION",
-    title: {
-      uz: "Poliklinika koordinatori",
-      ru: "Координатор клиники",
-      en: "Clinic Coordinator",
-    },
-    desc: {
-      uz: "Qabulxona, 24 soatlik tashriflar va dorixona hisobotini kuzatish",
-      ru: "Контроль визитов за 24 часа, регистратура и отчетность",
-      en: "Reception, 24-hour visit monitoring & clinic summaries",
-    },
-    tag: {
-      uz: "Klinika boshqaruvi",
-      ru: "Координация клиники",
-      en: "Coordinator view",
-    },
-    icon: <IconShieldCheck className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
+    icon: <IconNurse className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />,
   },
 ];
 
@@ -120,7 +105,20 @@ const COPY: Record<
   {
     title: string;
     subtitle: string;
-    roleLabel: string;
+    step1Title: string;
+    step2Title: string;
+    aiCardTitle: string;
+    aiCardBadge: string;
+    aiCardDesc: string;
+    tradCardTitle: string;
+    tradCardDesc: string;
+    adminToggle: string;
+    adminBadge: string;
+    doctorTypeLabel: string;
+    doctorHospital: string;
+    doctorFamily: string;
+    specialtyLabel: string;
+    specialtyPlaceholder: string;
     fullName: string;
     fullNamePlaceholder: string;
     email: string;
@@ -159,8 +157,23 @@ const COPY: Record<
   uz: {
     title: "OnaCare hisobini yaratish",
     subtitle:
-      "Quyida rolingizni tanlang. Hisobingiz faqat o'zingizga tegishli kabinetga kirish huquqiga ega bo'ladi.",
-    roleLabel: "Sizning rolingiz",
+      "Avval kim ekanligingizni tanlang, so'ngra odatiy shakl yoki AI yordamchisi orqali tez ro'yxatdan o'ting.",
+    step1Title: "1-qadam: Siz kimsiz?",
+    step2Title: "2-qadam: Ro'yxatdan o'tish usulini tanlang",
+    aiCardTitle: "AI yordamchisi bilan ro'yxatdan o'tish",
+    aiCardBadge: "Tavsiya etiladi",
+    aiCardDesc:
+      "AI sizdan ismingiz, tug'ilgan sanangiz va kerakli ma'lumotlarni so'rab, shaklni o'zi to'ldirib beradi.",
+    tradCardTitle: "An'anaviy ro'yxatdan o'tish",
+    tradCardDesc:
+      "Standart ro'yxatdan o'tish maydonlarini o'zingiz qo'lda to'ldiring.",
+    adminToggle: "Poliklinika koordinatori / administrator sifatida ro'yxatdan o'tish",
+    adminBadge: "Poliklinika koordinatori",
+    doctorTypeLabel: "Shifokor ish joyi",
+    doctorHospital: "Tug'ruqxona shifokori (OvaBMU)",
+    doctorFamily: "Hududiy oilaviy shifokor",
+    specialtyLabel: "Mutaxassislik / Bo'lim",
+    specialtyPlaceholder: "Masalan: Patronaj hamshirasi yoki Akusher-ginekolog",
     fullName: "F.I.O. (To'liq ism-familiya)",
     fullNamePlaceholder: "Masalan: Malika Karimova",
     email: "Elektron pochta",
@@ -189,10 +202,10 @@ const COPY: Record<
     signInHere: "Bu yerda kiring",
     loadingForm: "Ro'yxatdan o'tish shakli yuklanmoqda...",
     verifyNotice:
-      "Bemorlar va shifokorlar ro'yxatdan o'tgandan so'ng tizimga kirishdan oldin administrator tomonidan tasdiqlanadi.",
+      "Bemorlar, shifokorlar va kuzatuv hamshiralari ro'yxatdan o'tgandan so'ng tizimga kirishdan oldin administrator tomonidan tasdiqlanadi.",
     pendingTitle: "Arizangiz qabul qilindi — tasdiqlash kutilmoqda",
     pendingDesc:
-      "Xavfsizlik va bemorlar ma'lumotlarini himoyalash uchun barcha bemor va shifokor hisoblari poliklinika administratori tomonidan tasdiqlanadi. Tasdiqlangandan so'ng elektron pochtangiz va parolingiz bilan tizimga kirishingiz mumkin.",
+      "Xavfsizlik va bemorlar ma'lumotlarini himoyalash uchun barcha bemor, shifokor va hamshira hisoblari poliklinika administratori tomonidan tasdiqlanadi. Tasdiqlangandan so'ng elektron pochtangiz va parolingiz bilan tizimga kirishingiz mumkin.",
     pendingStatusBadge: "Administrator tasdig'ini kutmoqda",
     pendingGoLogin: "Kirish sahifasiga o'tish",
     pendingBackHome: "Bosh sahifaga qaytish",
@@ -200,8 +213,23 @@ const COPY: Record<
   ru: {
     title: "Создать аккаунт OnaCare",
     subtitle:
-      "Выберите вашу роль ниже. Аккаунт откроет доступ только к вашему личному кабинету.",
-    roleLabel: "Ваша роль",
+      "Сначала выберите вашу роль, а затем — удобный способ регистрации: с AI-помощником или через обычную форму.",
+    step1Title: "Шаг 1: Кем вы являетесь?",
+    step2Title: "Шаг 2: Выберите способ регистрации",
+    aiCardTitle: "Регистрация с AI-помощником",
+    aiCardBadge: "Быстро и просто",
+    aiCardDesc:
+      "AI задаст вопросы об имени, дате рождения и нужных данных и сам заполнит анкету за вас.",
+    tradCardTitle: "Традиционная форма",
+    tradCardDesc:
+      "Заполните все поля стандартной регистрационной анкеты вручную.",
+    adminToggle: "Регистрация для координатора клиники / администратора",
+    adminBadge: "Координатор клиники",
+    doctorTypeLabel: "Место работы врача",
+    doctorHospital: "Врач роддома (стационар)",
+    doctorFamily: "Участковый семейный врач",
+    specialtyLabel: "Специальность / Направление",
+    specialtyPlaceholder: "Например: Патронажная медсестра или Акушер-гинеколог",
     fullName: "ФИО (Полное имя)",
     fullNamePlaceholder: "Например: Малика Каримова",
     email: "Электронная почта",
@@ -224,16 +252,16 @@ const COPY: Record<
     bloodPlaceholder: "Выберите группу крови...",
     districtError: "Пожалуйста, выберите ваш район или город из списка.",
     submitError: "Не удалось создать аккаунт.",
-    submit: "Создать аккаунт и войти",
+    submit: "Создать аккаунт и продолжить",
     submitting: "Создание аккаунта...",
     already: "Уже есть аккаунт?",
     signInHere: "Войти здесь",
     loadingForm: "Загрузка формы регистрации...",
     verifyNotice:
-      "После регистрации аккаунты пациентов и врачей проходят проверку администратором перед входом в систему.",
+      "Новые аккаунты пациентов, врачей и медсестер проходят проверку администратором перед входом в систему.",
     pendingTitle: "Заявка отправлена — ожидается проверка",
     pendingDesc:
-      "Для защиты медицинских данных новые аккаунты пациентов и врачей подтверждаются администратором клиники. После подтверждения вы сможете войти с вашим email и паролем.",
+      "Для защиты медицинских данных новые аккаунты пациентов, врачей и медсестер подтверждаются администратором клиники. После подтверждения вы сможете войти с вашим email и паролем.",
     pendingStatusBadge: "Ожидает подтверждения администратором",
     pendingGoLogin: "Перейти ко входу",
     pendingBackHome: "На главную",
@@ -241,8 +269,22 @@ const COPY: Record<
   en: {
     title: "Create Your OnaCare Account",
     subtitle:
-      "Choose your role below. Your account will only open the portal meant for your role.",
-    roleLabel: "Your Role",
+      "First tell us who you are, then choose either the traditional form or our AI Sign-Up Helper.",
+    step1Title: "Step 1: Who are you?",
+    step2Title: "Step 2: Choose how you want to sign up",
+    aiCardTitle: "Sign Up with AI Helper",
+    aiCardBadge: "Easy & Guided",
+    aiCardDesc:
+      "AI asks simple questions about your name, birth date, and details, and fills everything out for you.",
+    tradCardTitle: "Traditional Sign Up",
+    tradCardDesc: "Fill in the standard registration fields manually yourself.",
+    adminToggle: "Registering as a Clinic Coordinator / Admin instead?",
+    adminBadge: "Clinic Coordinator",
+    doctorTypeLabel: "Doctor Practice Type",
+    doctorHospital: "Hospital Doctor (Maternity)",
+    doctorFamily: "Local Family Doctor",
+    specialtyLabel: "Specialty / Focus",
+    specialtyPlaceholder: "e.g. Monitoring Nurse or OB-GYN",
     fullName: "Full Name",
     fullNamePlaceholder: "e.g. Malika Karimova",
     email: "Email Address",
@@ -272,20 +314,31 @@ const COPY: Record<
     signInHere: "Sign In here",
     loadingForm: "Loading registration form...",
     verifyNotice:
-      "Patient and Doctor accounts require verification by a clinic Administrator before you can sign in.",
+      "Patient, Doctor, and Monitoring Nurse accounts require verification by a clinic Administrator before you can sign in.",
     pendingTitle: "Registration Submitted — Verification Pending",
     pendingDesc:
-      "To keep patient records safe, all new patient and doctor registrations are verified by an Administrator. Once approved, you can sign in with your email and password.",
+      "To keep patient records safe, all new patient, doctor, and nurse registrations are verified by an Administrator. Once approved, you can sign in with your email and password.",
     pendingStatusBadge: "Pending Admin Verification",
     pendingGoLogin: "Go to Sign In",
     pendingBackHome: "Back to Home",
   },
 };
 
-function parseInitialRole(param: string | null): UserRole {
-  if (!param) return "PATIENT";
-  const upper = param.trim().toUpperCase() as UserRole;
-  return VALID_ROLES.includes(upper) ? upper : "PATIENT";
+function parseInitialSelection(param: string | null): {
+  persona: SignupPersona | null;
+  presetRole?: UserRole;
+} {
+  if (!param) return { persona: null };
+  const upper = param.trim().toUpperCase();
+  if (upper === "PATIENT") return { persona: "PATIENT", presetRole: "PATIENT" };
+  if (upper === "NURSE") return { persona: "NURSE", presetRole: "FAMILY_MD" };
+  if (upper === "DOCTOR") return { persona: "DOCTOR" };
+  if (upper === "OVABMU_MD") return { persona: "DOCTOR", presetRole: "OVABMU_MD" };
+  if (upper === "FAMILY_MD") return { persona: "DOCTOR", presetRole: "FAMILY_MD" };
+  if (upper === "ADMIN_RECEPTION") {
+    return { persona: "ADMIN_RECEPTION", presetRole: "ADMIN_RECEPTION" };
+  }
+  return { persona: null };
 }
 
 function SignupFormInner() {
@@ -295,10 +348,20 @@ function SignupFormInner() {
   const t = COPY[lang];
 
   const queryRole = searchParams.get("role");
-  const initialRole = parseInitialRole(queryRole);
+  const initialSelection = useMemo(
+    () => parseInitialSelection(queryRole),
+    [queryRole]
+  );
 
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const role = selectedRole ?? initialRole;
+  const [selectedPersona, setSelectedPersona] = useState<SignupPersona | null>(
+    () => initialSelection.persona
+  );
+  const [doctorSubRole, setDoctorSubRole] = useState<"OVABMU_MD" | "FAMILY_MD">(
+    () =>
+      initialSelection.presetRole === "OVABMU_MD" ? "OVABMU_MD" : "FAMILY_MD"
+  );
+  const [signupMethod, setSignupMethod] = useState<SignupMethod>("ai");
+  const [aiSessionKey, setAiSessionKey] = useState(0);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -310,13 +373,24 @@ function SignupFormInner() {
   const [mahalla, setMahalla] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [bloodType, setBloodType] = useState("");
+  const [specialty, setSpecialty] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingInfo, setPendingInfo] = useState<{
     fullName: string;
     email: string;
+    persona: SignupPersona;
     role: UserRole;
   } | null>(null);
+
+  const effectiveRole: UserRole =
+    selectedPersona === "PATIENT"
+      ? "PATIENT"
+      : selectedPersona === "ADMIN_RECEPTION"
+        ? "ADMIN_RECEPTION"
+        : selectedPersona === "NURSE"
+          ? "FAMILY_MD"
+          : doctorSubRole;
 
   const regionNames = useMemo(() => UZ_REGIONS.map((r) => r.name), []);
 
@@ -342,6 +416,31 @@ function SignupFormInner() {
     return [];
   }, [region, district]);
 
+  const handleSelectPersona = (nextPersona: SignupPersona) => {
+    setError(null);
+    if (nextPersona !== selectedPersona) {
+      setSpecialty("");
+    }
+    setSelectedPersona(nextPersona);
+    setAiSessionKey((k) => k + 1);
+  };
+
+  const applyDraftToForm = (draft: AiSignupDraft) => {
+    if (draft.persona === "DOCTOR") {
+      setDoctorSubRole(draft.role === "OVABMU_MD" ? "OVABMU_MD" : "FAMILY_MD");
+    }
+    if (draft.fullName) setFullName(draft.fullName);
+    if (draft.dateOfBirth) setDateOfBirth(draft.dateOfBirth);
+    if (draft.phone) setPhone(draft.phone);
+    if (draft.region) setRegion(draft.region);
+    if (draft.district) setDistrict(draft.district);
+    if (draft.mahalla) setMahalla(draft.mahalla);
+    if (draft.bloodType) setBloodType(draft.bloodType);
+    if (draft.specialty) setSpecialty(draft.specialty);
+    if (draft.email) setEmail(draft.email);
+    if (draft.password) setPassword(draft.password);
+  };
+
   const handleRegionChange = (nextRegion: string) => {
     setRegion(nextRegion);
     setDistrict("");
@@ -361,36 +460,44 @@ function SignupFormInner() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performSignup = async (payload: {
+    fullName: string;
+    email: string;
+    password: string;
+    role: UserRole;
+    specialty?: string;
+    phone?: string;
+    region?: string;
+    district?: string;
+    mahalla?: string;
+    dateOfBirth?: string;
+    bloodType?: string;
+    persona: SignupPersona;
+  }) => {
     setError(null);
-
-    if (!district.trim()) {
-      setError(t.districtError);
-      return;
-    }
-
     setBusy(true);
     try {
       const res = await signup({
-        fullName,
-        email,
-        password,
-        role,
-        phone: phone.trim(),
-        region: region.trim(),
-        district: district.trim(),
-        mahalla: role === "PATIENT" ? mahalla.trim() : undefined,
-        dateOfBirth: role === "PATIENT" ? dateOfBirth : undefined,
-        bloodType: role === "PATIENT" ? bloodType : undefined,
+        fullName: payload.fullName,
+        email: payload.email,
+        password: payload.password,
+        role: payload.role,
+        specialty: payload.specialty,
+        phone: payload.phone,
+        region: payload.region,
+        district: payload.district,
+        mahalla: payload.mahalla,
+        dateOfBirth: payload.dateOfBirth,
+        bloodType: payload.bloodType,
       });
       if (!res.ok) {
         setError(res.error || t.submitError);
       } else if (res.pendingVerification) {
         setPendingInfo({
-          fullName: fullName.trim(),
-          email: email.trim().toLowerCase(),
-          role,
+          fullName: payload.fullName.trim(),
+          email: payload.email.trim().toLowerCase(),
+          persona: payload.persona,
+          role: payload.role,
         });
       }
     } finally {
@@ -398,8 +505,91 @@ function SignupFormInner() {
     }
   };
 
+  const handleTraditionalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPersona) return;
+
+    if (!district.trim()) {
+      setError(t.districtError);
+      return;
+    }
+
+    await performSignup({
+      persona: selectedPersona,
+      fullName,
+      email,
+      password,
+      role: effectiveRole,
+      specialty:
+        selectedPersona === "NURSE"
+          ? specialty.trim() || "Patronaj hamshirasi (Monitoring Nurse)"
+          : selectedPersona === "DOCTOR"
+            ? specialty.trim() || undefined
+            : undefined,
+      phone: phone.trim(),
+      region: region.trim(),
+      district: district.trim(),
+      mahalla: selectedPersona === "PATIENT" ? mahalla.trim() : undefined,
+      dateOfBirth: selectedPersona === "PATIENT" ? dateOfBirth : undefined,
+      bloodType: selectedPersona === "PATIENT" ? bloodType : undefined,
+    });
+  };
+
+  const handleAiCreateAccount = async (draft: AiSignupDraft) => {
+    applyDraftToForm(draft);
+    await performSignup({
+      persona: draft.persona,
+      fullName: draft.fullName,
+      email: draft.email,
+      password: draft.password,
+      role: draft.role,
+      specialty:
+        draft.persona === "NURSE"
+          ? draft.specialty.trim() || "Patronaj hamshirasi (Monitoring Nurse)"
+          : draft.persona === "DOCTOR"
+            ? draft.specialty.trim() || undefined
+            : undefined,
+      phone: draft.phone.trim(),
+      region: draft.region.trim(),
+      district: draft.district.trim(),
+      mahalla: draft.persona === "PATIENT" ? draft.mahalla.trim() : undefined,
+      dateOfBirth: draft.persona === "PATIENT" ? draft.dateOfBirth : undefined,
+      bloodType: draft.persona === "PATIENT" ? draft.bloodType : undefined,
+    });
+  };
+
+  const aiInitialDraft = useMemo(() => {
+    const base = createInitialDraft(
+      selectedPersona ?? "PATIENT",
+      initialSelection.presetRole
+    );
+    return {
+      ...base,
+      role:
+        selectedPersona === "DOCTOR"
+          ? doctorSubRole
+          : base.role,
+      doctorTypePicked:
+        selectedPersona === "DOCTOR"
+          ? Boolean(initialSelection.presetRole)
+          : true,
+      fullName: fullName || base.fullName,
+      dateOfBirth: dateOfBirth || base.dateOfBirth,
+      phone: phone || base.phone,
+      region: region || base.region,
+      district: district || base.district,
+      mahalla: mahalla || base.mahalla,
+      bloodType: bloodType || base.bloodType,
+      specialty: specialty || base.specialty,
+      email: email || base.email,
+      password: password || base.password,
+    };
+    // Intentionally keyed by selectedPersona + aiSessionKey so live typing doesn't reset chat state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPersona, aiSessionKey]);
+
   if (pendingInfo) {
-    const selectedOpt = ROLE_OPTIONS.find((o) => o.role === pendingInfo.role);
+    const personaCard = PERSONA_CARDS.find((c) => c.persona === pendingInfo.persona);
     return (
       <div className="w-full max-w-xl rounded-2xl border border-amber-200 dark:border-amber-800/70 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-5 text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
@@ -425,9 +615,9 @@ function SignupFormInner() {
           <p className="text-slate-600 dark:text-slate-300 font-mono">
             {pendingInfo.email}
           </p>
-          {selectedOpt && (
+          {personaCard && (
             <p className="text-teal-700 dark:text-teal-400 font-semibold">
-              {selectedOpt.title[lang]}
+              {personaCard.title[lang]}
             </p>
           )}
         </div>
@@ -451,274 +641,434 @@ function SignupFormInner() {
   }
 
   return (
-    <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-6">
+    <div className="w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
           {t.title}
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
           {t.subtitle}
         </p>
       </div>
 
-      {role !== "ADMIN_RECEPTION" && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 dark:border-amber-800/70 bg-amber-50/70 dark:bg-amber-950/40 px-3.5 py-2.5 text-xs text-amber-900 dark:text-amber-200">
-          <IconClock className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-          <span>{t.verifyNotice}</span>
-        </div>
-      )}
-
-      {error && (
-        <div
-          role="alert"
-          className="flex items-center gap-2 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 px-3.5 py-2.5 text-xs font-semibold text-rose-800 dark:text-rose-200"
-        >
-          <IconAlertTriangle className="h-4 w-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <fieldset>
-          <legend className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-            {t.roleLabel}
-          </legend>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {ROLE_OPTIONS.map((opt) => {
-              const active = role === opt.role;
-              return (
-                <button
-                  key={opt.role}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setSelectedRole(opt.role)}
-                  className={`flex items-start gap-2.5 rounded-xl border p-3 text-left transition ${
-                    active
-                      ? "border-teal-600 bg-teal-50/70 dark:bg-teal-950/50 ring-1 ring-teal-600"
-                      : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:border-slate-300 dark:hover:border-slate-700"
-                  }`}
-                >
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                    {opt.icon}
+      {/* Step 1: Who are you? (Patient / Doctor / Monitoring Nurse) */}
+      <fieldset className="space-y-3">
+        <legend className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+          {t.step1Title}
+        </legend>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {PERSONA_CARDS.map((card) => {
+            const active = selectedPersona === card.persona;
+            return (
+              <button
+                key={card.persona}
+                type="button"
+                aria-pressed={active}
+                onClick={() => handleSelectPersona(card.persona)}
+                className={`flex flex-col justify-between gap-3 rounded-2xl border p-4 text-left transition ${
+                  active
+                    ? "border-teal-600 bg-teal-50/70 dark:bg-teal-950/50 ring-2 ring-teal-600/40"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:border-slate-300 dark:hover:border-slate-700"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    {card.icon}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                      {opt.title[lang]}
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {card.title[lang]}
                     </p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
-                      {opt.desc[lang]}
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                      {card.desc[lang]}
                     </p>
-                    <span className="mt-1 inline-block rounded bg-white dark:bg-slate-900 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700 dark:text-teal-400 border border-slate-200 dark:border-slate-700">
-                      {opt.tag[lang]}
-                    </span>
                   </div>
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div>
-            <label
-              htmlFor="signup-fullname"
-              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-            >
-              {t.fullName}
-            </label>
-            <input
-              id="signup-fullname"
-              name="name"
-              type="text"
-              autoComplete="name"
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder={t.fullNamePlaceholder}
-              className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="signup-email"
-              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-            >
-              {t.email}
-            </label>
-            <input
-              id="signup-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t.emailPlaceholder}
-              className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="signup-password"
-              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-            >
-              {t.password}
-            </label>
-            <div className="relative">
-              <input
-                id="signup-password"
-                name="password"
-                type={showPw ? "text" : "password"}
-                autoComplete="new-password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t.passwordPlaceholder}
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                aria-label={t.togglePw}
-              >
-                {showPw ? (
-                  <IconEyeOff className="h-4 w-4" />
-                ) : (
-                  <IconEye className="h-4 w-4" />
-                )}
+                </div>
+                <span className="self-start rounded-full bg-white dark:bg-slate-900 px-2.5 py-0.5 text-[10px] font-semibold text-teal-700 dark:text-teal-400 border border-slate-200 dark:border-slate-700">
+                  {card.tag[lang]}
+                </span>
               </button>
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="signup-phone"
-              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-            >
-              {t.phone}
-            </label>
-            <input
-              id="signup-phone"
-              name="tel"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+998 90 123 45 67"
-              className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
-            />
-          </div>
-
-          <SearchableCombobox
-            id="signup-region"
-            name="address-level1"
-            label={t.region}
-            value={region}
-            onChange={handleRegionChange}
-            options={regionNames}
-            placeholder={t.regionPlaceholder}
-            autoComplete="address-level1"
-            emptyText={t.emptySearch}
-            customHint={t.customHint}
-          />
-
-          <SearchableCombobox
-            id="signup-district"
-            name="address-level2"
-            label={t.district}
-            value={district}
-            onChange={handleDistrictChange}
-            options={districtNames}
-            placeholder={t.districtPlaceholder}
-            autoComplete="address-level2"
-            emptyText={t.emptySearch}
-            customHint={t.customHint}
-            required
-          />
-
-          {role === "PATIENT" && (
-            <>
-              <div>
-                <SearchableCombobox
-                  id="signup-mahalla"
-                  name="address-line1"
-                  label={t.mahalla}
-                  value={mahalla}
-                  onChange={setMahalla}
-                  options={mahallaSuggestions}
-                  placeholder={t.mahallaPlaceholder}
-                  autoComplete="street-address"
-                  emptyText={t.emptySearch}
-                  customHint={t.customHint}
-                  allowCustom
-                />
-                <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-                  <InfoTooltip label="MFY" explanation={t.mahallaTooltip} />
-                </p>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="signup-dob"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  {t.dob}
-                </label>
-                <input
-                  id="signup-dob"
-                  name="bday"
-                  type="date"
-                  autoComplete="bday"
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="signup-blood-type"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  {t.bloodType}
-                </label>
-                <select
-                  id="signup-blood-type"
-                  name="bloodType"
-                  value={bloodType}
-                  onChange={(e) => setBloodType(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"
-                >
-                  <option value="">{t.bloodPlaceholder}</option>
-                  {BLOOD_TYPE_OPTIONS.map((bt) => (
-                    <option key={bt.value} value={bt.value}>
-                      {lang === "ru"
-                        ? bt.labelRu
-                        : lang === "en"
-                          ? bt.labelEn
-                          : bt.labelUz}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </>
-          )}
+            );
+          })}
         </div>
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50 transition"
-        >
-          <IconUserPlus className="h-4 w-4" />
-          {busy ? t.submitting : t.submit}
-        </button>
-      </form>
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => handleSelectPersona("ADMIN_RECEPTION")}
+            className={`inline-flex items-center gap-1.5 text-[11px] font-semibold transition ${
+              selectedPersona === "ADMIN_RECEPTION"
+                ? "text-teal-700 dark:text-teal-400 underline"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+            }`}
+          >
+            <IconShieldCheck className="h-3.5 w-3.5" />
+            {selectedPersona === "ADMIN_RECEPTION" ? t.adminBadge : t.adminToggle}
+          </button>
+        </div>
+      </fieldset>
+
+      {/* Step 2 & 3 appear once a role is chosen */}
+      {selectedPersona && (
+        <>
+          {selectedPersona !== "ADMIN_RECEPTION" && (
+            <div className="flex items-start gap-2 rounded-xl border border-amber-200 dark:border-amber-800/70 bg-amber-50/70 dark:bg-amber-950/40 px-3.5 py-2.5 text-xs text-amber-900 dark:text-amber-200">
+              <IconClock className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+              <span>{t.verifyNotice}</span>
+            </div>
+          )}
+
+          <fieldset className="space-y-3 pt-1 border-t border-slate-100 dark:border-slate-800">
+            <legend className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 pt-2">
+              {t.step2Title}
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                aria-pressed={signupMethod === "ai"}
+                onClick={() => {
+                  setError(null);
+                  setSignupMethod("ai");
+                }}
+                className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition ${
+                  signupMethod === "ai"
+                    ? "border-teal-600 bg-teal-50/70 dark:bg-teal-950/50 ring-2 ring-teal-600/40"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:border-slate-300 dark:hover:border-slate-700"
+                }`}
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white">
+                  <IconSparkles className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {t.aiCardTitle}
+                    </p>
+                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      {t.aiCardBadge}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
+                    {t.aiCardDesc}
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                aria-pressed={signupMethod === "traditional"}
+                onClick={() => {
+                  setError(null);
+                  setSignupMethod("traditional");
+                }}
+                className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition ${
+                  signupMethod === "traditional"
+                    ? "border-teal-600 bg-teal-50/70 dark:bg-teal-950/50 ring-2 ring-teal-600/40"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:border-slate-300 dark:hover:border-slate-700"
+                }`}
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                  <IconClipboardText className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    {t.tradCardTitle}
+                  </p>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
+                    {t.tradCardDesc}
+                  </p>
+                </div>
+              </button>
+            </div>
+          </fieldset>
+
+          {signupMethod === "ai" ? (
+            <AiSignupAssistant
+              key={`${selectedPersona}-${aiSessionKey}`}
+              persona={selectedPersona}
+              initialDraft={aiInitialDraft}
+              lang={lang}
+              busy={busy}
+              error={error}
+              onDraftChange={applyDraftToForm}
+              onSwitchToForm={(draft) => {
+                applyDraftToForm(draft);
+                setError(null);
+                setSignupMethod("traditional");
+              }}
+              onCreateAccount={handleAiCreateAccount}
+              onClearError={() => setError(null)}
+            />
+          ) : (
+            <form onSubmit={handleTraditionalSubmit} className="space-y-5">
+              {error && (
+                <div
+                  role="alert"
+                  className="flex items-center gap-2 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 px-3.5 py-2.5 text-xs font-semibold text-rose-800 dark:text-rose-200"
+                >
+                  <IconAlertTriangle className="h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {selectedPersona === "DOCTOR" && (
+                <div>
+                  <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    {t.doctorTypeLabel}
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setDoctorSubRole("OVABMU_MD")}
+                      className={`flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition ${
+                        doctorSubRole === "OVABMU_MD"
+                          ? "border-teal-600 bg-teal-50 dark:bg-teal-950/50 text-teal-800 dark:text-teal-300"
+                          : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      <IconBuildingHospital className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                      {t.doctorHospital}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDoctorSubRole("FAMILY_MD")}
+                      className={`flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition ${
+                        doctorSubRole === "FAMILY_MD"
+                          ? "border-teal-600 bg-teal-50 dark:bg-teal-950/50 text-teal-800 dark:text-teal-300"
+                          : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      <IconStethoscope className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      {t.doctorFamily}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label
+                    htmlFor="signup-fullname"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    {t.fullName}
+                  </label>
+                  <input
+                    id="signup-fullname"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder={t.fullNamePlaceholder}
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="signup-dob"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    {t.dob}
+                  </label>
+                  <input
+                    id="signup-dob"
+                    name="bday"
+                    type="date"
+                    autoComplete="bday"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="signup-email"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    {t.email}
+                  </label>
+                  <input
+                    id="signup-email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t.emailPlaceholder}
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="signup-password"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    {t.password}
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="signup-password"
+                      name="password"
+                      type={showPw ? "text" : "password"}
+                      autoComplete="new-password"
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={t.passwordPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      aria-label={t.togglePw}
+                    >
+                      {showPw ? (
+                        <IconEyeOff className="h-4 w-4" />
+                      ) : (
+                        <IconEye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="signup-phone"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    {t.phone}
+                  </label>
+                  <input
+                    id="signup-phone"
+                    name="tel"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+998 90 123 45 67"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
+                  />
+                </div>
+
+                {(selectedPersona === "DOCTOR" || selectedPersona === "NURSE") && (
+                  <div>
+                    <label
+                      htmlFor="signup-specialty"
+                      className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                    >
+                      {t.specialtyLabel}
+                    </label>
+                    <input
+                      id="signup-specialty"
+                      name="specialty"
+                      type="text"
+                      value={specialty}
+                      onChange={(e) => setSpecialty(e.target.value)}
+                      placeholder={t.specialtyPlaceholder}
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                <SearchableCombobox
+                  id="signup-region"
+                  name="address-level1"
+                  label={t.region}
+                  value={region}
+                  onChange={handleRegionChange}
+                  options={regionNames}
+                  placeholder={t.regionPlaceholder}
+                  autoComplete="address-level1"
+                  emptyText={t.emptySearch}
+                  customHint={t.customHint}
+                />
+
+                <SearchableCombobox
+                  id="signup-district"
+                  name="address-level2"
+                  label={t.district}
+                  value={district}
+                  onChange={handleDistrictChange}
+                  options={districtNames}
+                  placeholder={t.districtPlaceholder}
+                  autoComplete="address-level2"
+                  emptyText={t.emptySearch}
+                  customHint={t.customHint}
+                  required
+                />
+
+                {selectedPersona === "PATIENT" && (
+                  <>
+                    <div>
+                      <SearchableCombobox
+                        id="signup-mahalla"
+                        name="address-line1"
+                        label={t.mahalla}
+                        value={mahalla}
+                        onChange={setMahalla}
+                        options={mahallaSuggestions}
+                        placeholder={t.mahallaPlaceholder}
+                        autoComplete="street-address"
+                        emptyText={t.emptySearch}
+                        customHint={t.customHint}
+                        allowCustom
+                      />
+                      <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                        <InfoTooltip label="MFY" explanation={t.mahallaTooltip} />
+                      </p>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="signup-blood-type"
+                        className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                      >
+                        {t.bloodType}
+                      </label>
+                      <select
+                        id="signup-blood-type"
+                        name="bloodType"
+                        value={bloodType}
+                        onChange={(e) => setBloodType(e.target.value)}
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"
+                      >
+                        <option value="">{t.bloodPlaceholder}</option>
+                        {BLOOD_TYPE_OPTIONS.map((bt) => (
+                          <option key={bt.value} value={bt.value}>
+                            {lang === "ru"
+                              ? bt.labelRu
+                              : lang === "en"
+                                ? bt.labelEn
+                                : bt.labelUz}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50 transition"
+              >
+                <IconUserPlus className="h-4 w-4" />
+                {busy ? t.submitting : t.submit}
+              </button>
+            </form>
+          )}
+        </>
+      )}
 
       <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
         {t.already}{" "}
@@ -733,7 +1083,7 @@ function SignupFormInner() {
 function SignupFallback() {
   const { lang } = useLanguage();
   return (
-    <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+    <div className="w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-xs text-slate-500 dark:text-slate-400">
       {COPY[lang].loadingForm}
     </div>
   );

@@ -20,14 +20,25 @@ National AI Hackathon **Task #11** solution: An AI-driven hospital-to-polyclinic
    - **RBAC Enforcement**: `OVABMU_MD`, `FAMILY_MD`, `PATIENT`, `ADMIN_RECEPTION` (clinical notes redacted for Reception/Admin; Family Doctors scoped to their polyclinic).
    - **AES-256-GCM Field Encryption & JSHSHIR Masking**: Sensitive clinical notes and national IDs encrypted at rest.
    - **HL7 FHIR R4 Bundle Export (`/api/fhir/[activeCallId]`)**: Generates valid `Bundle` containing `Patient`, `Encounter`, `CarePlan`, `Task`, and `MedicationRequest`.
-   - **Object Storage Abstraction (`/api/storage/[...key]`)**: S3/MinIO-compatible storage for discharge epikriz documents and ultrasound imaging.
+   - **Object Storage Abstraction (`/api/storage/[...key]`)**: Epikriz HTML and ultrasound SVG archive with serverless cold-start reconstruction from PostgreSQL.
 
-## Quick Start
+## Deploy to Vercel (Recommended)
+
+1. Import `losthappines/EDUcoders` in [vercel.com](https://vercel.com) → **Add New → Project**.
+2. Add a hosted **PostgreSQL** database from the Vercel Marketplace (e.g., **Neon** or **Supabase**) — this sets `DATABASE_URL` automatically.
+3. Add `ENCRYPTION_KEY` in **Project Settings → Environment Variables** (e.g., `ovabmu-patronaj-aes256-hackathon-key-32b`).
+4. Push the Prisma schema to your hosted Postgres database once (from your local terminal with `DATABASE_URL` set, or in Vercel's Build Command for the first deploy):
+   ```bash
+   npx prisma db push
+   ```
+5. Deploy — on the first request, `ensureSeeded()` automatically populates the 3 pre-seeded Uzbek OvaBMU clinical cases.
+
+## Local Development (PostgreSQL)
 
 ```bash
+cp .env.example .env
+# Set DATABASE_URL in .env to your local or cloud PostgreSQL URL
 npm install
 npx prisma db push
 npm run dev
 ```
-
-Open `http://localhost:3000` and use the sticky **Hackathon Judge Demo Bar** at the top to switch between roles and fast-forward simulated time (`+6h`, `+12h`, `+23h`, `Reset`).

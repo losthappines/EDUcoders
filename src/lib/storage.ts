@@ -1,7 +1,10 @@
 import fs from "fs/promises";
+import os from "os";
 import path from "path";
 
-const STORAGE_ROOT = path.join(process.cwd(), "storage", "objects");
+const STORAGE_ROOT = process.env.VERCEL
+  ? path.join(/*turbopackIgnore: true*/ os.tmpdir(), "patronaj-storage")
+  : path.join(process.cwd(), "storage", "objects");
 
 export interface StoredObjectMeta {
   key: string;

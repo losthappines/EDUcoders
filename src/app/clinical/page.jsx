@@ -1,0 +1,898 @@
+"use client";
+import React, { useMemo, useState } from "react";
+import { IconAlertTriangle, IconBell, IconBuildingHospital, IconCircleCheck, IconExternalLink, IconFileCode, IconFlask, IconHeartbeat, IconLock, IconPill, IconPlus, IconRobot, IconSend, IconStethoscope, } from "@tabler/icons-react";
+import { usePlatform } from "@/context/PlatformContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
+import { VitalsTrendChart } from "@/components/VitalsTrendChart";
+import { FhirBundleModal } from "@/components/FhirBundleModal";
+import { AgentTraceModal } from "@/components/AgentTraceModal";
+import { InfoTooltip } from "@/components/InfoTooltip";
+import { getSeverityMeta, getSymptomLabel, PRIMARY_RED_FLAG_SYMPTOMS, } from "@/lib/symptoms-catalog";
+const CLINICAL_COPY = {
+    uz: {
+        ovabmuTitle: "Tug'ruqxona shifokori — Chiqarish va patronaj boshqaruvi",
+        ovabmuSub: "Bemorlarning chiqarish xulosasini tayyorlang va 24 soatlik uy tashrifini boshlang",
+        familyTitle: "Hududiy oilaviy shifokor — 24 soatlik uy tashriflari",
+        familySub: "Uy tashrifi tekshiruv ro'yxatini bajaring, ko'rsatkichlarni kiriting va tashrifni tasdiqlang",
+        ovabmuBadge: "Tug'ruqxona shifokori",
+        familyBadge: "Oilaviy shifokor",
+        patientsWord: "bemor",
+        pendingWord: "kutilmoqda",
+        rosterTitle: "Bemorlar ro'yxati",
+        loadingEhr: "Bemor ma'lumotlari yuklanmoqda...",
+        inpatientTag: "SHIFOXONADA",
+        verifiedTag: "TASDIQLANGAN",
+        patronageTag: "24h PATRONAJ",
+        allergiesLabel: "Allergiyalar:",
+        polyclinicLabel: "Biriktirilgan poliklinika:",
+        dischargeBtn: "Uyga chiqarish va patronajni boshlash",
+        dischargingBtn: "Yuborilmoqda...",
+        dischargedActive: "Uyga chiqarildi • 24 soatlik nazorat faol",
+        aiTraceBtn: "Jarayon tarixi",
+        fhirBtn: "FHIR",
+        encryptedLabel: "Shifrlangan yozuv",
+        encryptedTip: "Klinik yozuvlar bazada AES-256-GCM algoritmi bilan shifrlangan.",
+        icdTip: "ICD-10 — kasalliklarning xalqaro tasnif kodi.",
+        jshshirTip: "JSHSHIR — bemorning shaxsiy identifikatsiya raqami (maxfiy ko'rinishda).",
+        archiveDoc: "Chiqarish xulosasi (Hujjat)",
+        vitalsVisitLabel: "Uy tashrifi",
+        vitalsDischargeLabel: "Chiqarish vaqti",
+        labsTitle: "Tahlil natijalari",
+        orderLabBtn: "Qayta tahlil",
+        rxTitle: "Yozilgan dorilar (E-retsept)",
+        addRxBtn: "Dori qo'shish",
+        rxMedPlaceholder: "Dori nomi",
+        rxDosePlaceholder: "Miqdori (doza)",
+        rxFreqPlaceholder: "Ichish tartibi",
+        saveRxBtn: "Saqlash",
+        daysWord: "kun",
+        queueTitle: "Faol uy tashriflari navbati",
+        riskWord: "Xavf",
+        emergencyBanner: "BEMOR XAVFLI BELGILAR HAQIDA XABAR BERDI",
+        noCalls: "Hozircha hududingizda faol uy tashriflari yo'q.",
+        addressLabel: "Manzil:",
+        windowLabel: "Tashrif oynasi:",
+        viewFhirBtn: "FHIR paketini ko'rish",
+        redFlagsTitle: "Muhim e'tibor talab belgilari (Xavf darajasi:",
+        checklistTitle: "24 soatlik uy ko'rigi tekshiruv ro'yxati",
+        oneClickLabBtn: "Qayta tahlil buyurtmasi",
+        vitalsTitle: "Uy ko'rigi ko'rsatkichlari va tashrifni tasdiqlash",
+        verifiedLabel: "Tasdiqlangan",
+        sbpLabel: "Yuqori bosim",
+        dbpLabel: "Pastki bosim",
+        hrLabel: "Puls",
+        tempLabel: "Harorat (°C)",
+        spo2Label: "SpO2 (%)",
+        spo2Tip: "Qondagi kislorod bilan to'yinish darajasi (pulsoksimetr ko'rsatkichi).",
+        visitNotesLabel: "Uy ko'rigi xulosasi",
+        verifyDoneBtn: "Tashrif allaqachon tasdiqlangan",
+        verifySavingBtn: "Saqlanmoqda...",
+        verifySubmitBtn: "Ko'rsatkichlarni saqlash va tasdiqlash",
+        alertsTitle: "Avtomatik Telegram / SMS xabarnomalar",
+        patientCheckinsTitle: "Bemor yuborgan kunlik holat tekshiruvlari",
+        dischargeErr: "Chiqarishda xatolik yuz berdi.",
+        dischargeOk: "Uyga chiqarish va 24 soatlik patronaj boshlandi!",
+        checklistErr: "Ro'yxatni yangilash uchun shifokor ruxsati kerak.",
+        verifyErr: "Tashrifni tasdiqlashda xatolik.",
+        verifyOk: "Uy tashrifi muvaffaqiyatli tasdiqlandi!",
+        labOk: "Qayta tahlil buyurtmasi yuborildi:",
+        labErr: "Tahlil buyurtmasi uchun shifokor huquqi zarur.",
+        rxOk: "Dori qo'shildi:",
+        rxErr: "Retsept yozish uchun shifokor huquqi zarur.",
+    },
+    ru: {
+        ovabmuTitle: "Врач роддома — Выписка и передача на патронаж",
+        ovabmuSub: "Оформляйте выписные заключения и запускайте 24-часовой домашний визит",
+        familyTitle: "Семейный врач — 24-часовые визиты на дом",
+        familySub: "Выполняйте чек-лист домашнего осмотра, вносите показатели и подтверждайте визит",
+        ovabmuBadge: "Врач роддома",
+        familyBadge: "Семейный врач",
+        patientsWord: "пац.",
+        pendingWord: "ожидает",
+        rosterTitle: "Список пациенток",
+        loadingEhr: "Загрузка карты пациентки...",
+        inpatientTag: "В СТАЦИОНАРЕ",
+        verifiedTag: "ПОДТВЕРЖДЕН",
+        patronageTag: "24ч ПАТРОНАЖ",
+        allergiesLabel: "Аллергии:",
+        polyclinicLabel: "Поликлиника:",
+        dischargeBtn: "Выписать и назначить визит на дом",
+        dischargingBtn: "Оформление...",
+        dischargedActive: "Выписана • 24ч патронаж активен",
+        aiTraceBtn: "Шаги координации",
+        fhirBtn: "FHIR",
+        encryptedLabel: "Зашифровано",
+        encryptedTip: "Клинические заметки зашифрованы в базе по стандарту AES-256-GCM.",
+        icdTip: "ICD-10 (МКБ-10) — международный код диагноза.",
+        jshshirTip: "ПИНФЛ — персональный идентификационный номер пациентки (скрыт).",
+        archiveDoc: "Выписной эпикриз",
+        vitalsVisitLabel: "Визит на дом",
+        vitalsDischargeLabel: "При выписке",
+        labsTitle: "Лабораторные анализы",
+        orderLabBtn: "Повторный анализ",
+        rxTitle: "Назначения (Е-рецепты)",
+        addRxBtn: "Добавить",
+        rxMedPlaceholder: "Название препарата",
+        rxDosePlaceholder: "Дозировка",
+        rxFreqPlaceholder: "Кратность приема",
+        saveRxBtn: "Сохранить рецепт",
+        daysWord: "дн.",
+        queueTitle: "Очередь активных визитов",
+        riskWord: "Риск",
+        emergencyBanner: "ПАЦИЕНТКА СООБЩИЛА О ТРЕВОЖНЫХ СИМПТОМАХ",
+        noCalls: "В вашей поликлинике пока нет активных вызовов.",
+        addressLabel: "Адрес:",
+        windowLabel: "Окно визита:",
+        viewFhirBtn: "Открыть HL7 FHIR",
+        redFlagsTitle: "Ключевые факторы риска (Оценка:",
+        checklistTitle: "Чек-лист домашнего осмотра",
+        oneClickLabBtn: "Назначить повторный анализ",
+        vitalsTitle: "Показатели осмотра и подтверждение визита",
+        verifiedLabel: "Подтвержден",
+        sbpLabel: "Сист. АД",
+        dbpLabel: "Диаст. АД",
+        hrLabel: "Пульс",
+        tempLabel: "Темп. (°C)",
+        spo2Label: "SpO2 (%)",
+        spo2Tip: "Насыщение крови кислородом (сатурация).",
+        visitNotesLabel: "Заключение домашнего осмотра",
+        verifyDoneBtn: "Визит уже подтвержден",
+        verifySavingBtn: "Сохранение...",
+        verifySubmitBtn: "Сохранить показатели и подтвердить визит",
+        alertsTitle: "Журнал уведомлений Telegram / SMS",
+        patientCheckinsTitle: "Ежедневные отчеты о самочувствии пациентки",
+        dischargeErr: "Ошибка при выписке.",
+        dischargeOk: "Выписка оформлена, 24-часовой визит назначен!",
+        checklistErr: "Для обновления чек-листа нужны права врача.",
+        verifyErr: "Ошибка подтверждения визита.",
+        verifyOk: "Домашний визит успешно подтвержден!",
+        labOk: "Назначен повторный анализ:",
+        labErr: "Для назначения анализа нужны права врача.",
+        rxOk: "Рецепт добавлен:",
+        rxErr: "Для выписки рецепта нужны права врача.",
+    },
+    en: {
+        ovabmuTitle: "Hospital Doctor — Discharge & Home Care Handoff",
+        ovabmuSub: "Review inpatient records, prepare discharge summaries, and arrange 24-hour home visits",
+        familyTitle: "Family Doctor — 24h Home Visit Workspace",
+        familySub: "Complete home-visit check-ups, record vitals, and confirm completed visits",
+        ovabmuBadge: "Hospital Doctor",
+        familyBadge: "Family Doctor",
+        patientsWord: "patients",
+        pendingWord: "pending",
+        rosterTitle: "Patient Roster",
+        loadingEhr: "Loading patient records...",
+        inpatientTag: "INPATIENT",
+        verifiedTag: "VERIFIED",
+        patronageTag: "24h HOME CARE",
+        allergiesLabel: "Allergies:",
+        polyclinicLabel: "Assigned Clinic:",
+        dischargeBtn: "Discharge & Schedule Home Visit",
+        dischargingBtn: "Preparing handoff...",
+        dischargedActive: "Discharged • 24h Home Care Active",
+        aiTraceBtn: "Handoff Steps",
+        fhirBtn: "FHIR",
+        encryptedLabel: "Encrypted Record",
+        encryptedTip: "Clinical notes are encrypted at rest using AES-256-GCM.",
+        icdTip: "ICD-10 — International standard diagnosis code.",
+        jshshirTip: "JSHSHIR — masked national personal identifier.",
+        archiveDoc: "Discharge Summary",
+        vitalsVisitLabel: "Home visit",
+        vitalsDischargeLabel: "At discharge",
+        labsTitle: "Lab Results",
+        orderLabBtn: "Order Follow-Up",
+        rxTitle: "Prescriptions",
+        addRxBtn: "Add Medicine",
+        rxMedPlaceholder: "Medication name",
+        rxDosePlaceholder: "Dosage",
+        rxFreqPlaceholder: "Frequency",
+        saveRxBtn: "Save Prescription",
+        daysWord: "days",
+        queueTitle: "Active Home Visit Queue",
+        riskWord: "Risk",
+        emergencyBanner: "PATIENT REPORTED URGENT SYMPTOMS",
+        noCalls: "No active home visits assigned to your clinic yet.",
+        addressLabel: "Address:",
+        windowLabel: "Visit Window:",
+        viewFhirBtn: "View HL7 FHIR Bundle",
+        redFlagsTitle: "Priority Clinical Alerts (Risk Score:",
+        checklistTitle: "24-Hour Home Visit Checklist",
+        oneClickLabBtn: "1-Click Follow-Up Lab",
+        vitalsTitle: "Home Visit Vitals & Verification",
+        verifiedLabel: "Verified",
+        sbpLabel: "Systolic BP",
+        dbpLabel: "Diastolic BP",
+        hrLabel: "Heart Rate",
+        tempLabel: "Temp (°C)",
+        spo2Label: "SpO2 (%)",
+        spo2Tip: "Blood oxygen saturation measured by pulse oximeter.",
+        visitNotesLabel: "Home Visit Notes",
+        verifyDoneBtn: "Visit Already Verified",
+        verifySavingBtn: "Saving...",
+        verifySubmitBtn: "Save Vitals & Confirm Home Visit",
+        alertsTitle: "Telegram / SMS Notification Log",
+        patientCheckinsTitle: "Patient Daily Symptom Check-ins",
+        dischargeErr: "Could not complete discharge handoff.",
+        dischargeOk: "Discharge summary ready and 24-hour home visit scheduled!",
+        checklistErr: "Doctor permissions required to update checklist.",
+        verifyErr: "Could not verify home visit.",
+        verifyOk: "Home visit verified successfully!",
+        labOk: "Follow-up lab ordered:",
+        labErr: "Doctor permissions required to order labs.",
+        rxOk: "Prescription added:",
+        rxErr: "Doctor permissions required to prescribe.",
+    },
+};
+export default function ClinicalDashboardPage() {
+    const { role, data, loading, fetchWithAuth, refreshData, showToast, dataLoadedAtMs, } = usePlatform();
+    const { lang } = useLanguage();
+    const t = CLINICAL_COPY[lang];
+    const [selectedPatientId, setSelectedPatientId] = useState("pat-malika");
+    const [selectedCallId, setSelectedCallId] = useState("");
+    const [discharging, setDischarging] = useState(false);
+    const [verifying, setVerifying] = useState(false);
+    const [orderingLab, setOrderingLab] = useState(false);
+    const [fhirCallId, setFhirCallId] = useState(null);
+    const [traceModal, setTraceModal] = useState(null);
+    const [rxFormOpen, setRxFormOpen] = useState(false);
+    const [rxMed, setRxMed] = useState("Magne B6 Forte");
+    const [rxDose, setRxDose] = useState("100 mg");
+    const [rxFreq, setRxFreq] = useState("2x daily");
+    const [sbp, setSbp] = useState("128");
+    const [dbp, setDbp] = useState("82");
+    const [hr, setHr] = useState("84");
+    const [temp, setTemp] = useState("36.6");
+    const [spo2, setSpo2] = useState("98");
+    const [visitNotes, setVisitNotes] = useState("Uy sharoitida ko'rik o'tkazildi. Bemorning umumiy ahvoli qoniqarli, dorilarni o'z vaqtida ichmoqda.");
+    const patients = data?.patients ?? [];
+    const activeCalls = useMemo(() => data?.activeCalls ?? [], [data?.activeCalls]);
+    const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? patients[0];
+    const selectedCall = activeCalls.find((c) => c.id === selectedCallId) ?? activeCalls[0];
+    const selectedPatientCall = selectedPatient
+        ? activeCalls.find((c) => c.patientId === selectedPatient.id)
+        : undefined;
+    const isOvabmu = role === "OVABMU_MD";
+    const handleTriggerDischarge = async (patientId) => {
+        setDischarging(true);
+        try {
+            const res = await fetchWithAuth("/api/agent/discharge-handoff", {
+                method: "POST",
+                body: JSON.stringify({ patientId }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || t.dischargeErr);
+                return;
+            }
+            await refreshData();
+            showToast("success", t.dischargeOk);
+            setTraceModal({
+                patientName: selectedPatient?.fullName ?? "",
+                trace: json.agentTrace,
+            });
+            setSelectedCallId(json.activeCallId);
+        }
+        finally {
+            setDischarging(false);
+        }
+    };
+    const handleToggleChecklist = async (callId, itemId, checked) => {
+        const res = await fetchWithAuth(`/api/active-calls/${callId}/verify`, {
+            method: "PATCH",
+            body: JSON.stringify({ checklistItemId: itemId, checked }),
+        });
+        if (res.ok) {
+            await refreshData();
+        }
+        else {
+            showToast("error", t.checklistErr);
+        }
+    };
+    const handleVerifyVisit = async (e) => {
+        e.preventDefault();
+        if (!selectedCall)
+            return;
+        setVerifying(true);
+        try {
+            const res = await fetchWithAuth(`/api/active-calls/${selectedCall.id}/verify`, {
+                method: "POST",
+                body: JSON.stringify({
+                    systolicBp: Number(sbp),
+                    diastolicBp: Number(dbp),
+                    heartRate: Number(hr),
+                    tempC: Number(temp),
+                    spo2: Number(spo2),
+                    visitNotes,
+                }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || t.verifyErr);
+                return;
+            }
+            await refreshData();
+            showToast("success", t.verifyOk);
+        }
+        finally {
+            setVerifying(false);
+        }
+    };
+    const handleOrderFollowupLab = async (patientId, panelName) => {
+        setOrderingLab(true);
+        try {
+            const res = await fetchWithAuth("/api/clinical/orders", {
+                method: "POST",
+                body: JSON.stringify({ type: "FOLLOWUP_LAB", patientId, panelName }),
+            });
+            if (res.ok) {
+                await refreshData();
+                showToast("success", `${t.labOk} ${panelName}`);
+            }
+            else {
+                showToast("error", t.labErr);
+            }
+        }
+        finally {
+            setOrderingLab(false);
+        }
+    };
+    const handleAddRx = async (e) => {
+        e.preventDefault();
+        if (!selectedPatient)
+            return;
+        const res = await fetchWithAuth("/api/clinical/orders", {
+            method: "POST",
+            body: JSON.stringify({
+                type: "ADD_PRESCRIPTION",
+                patientId: selectedPatient.id,
+                medicationName: rxMed,
+                dosage: rxDose,
+                frequency: rxFreq,
+            }),
+        });
+        if (res.ok) {
+            setRxFormOpen(false);
+            await refreshData();
+            showToast("success", `${t.rxOk} ${rxMed} ${rxDose}`);
+        }
+        else {
+            showToast("error", t.rxErr);
+        }
+    };
+    return (<div className="space-y-5">
+      {/* Role-Specific Clinical Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+        <div>
+          <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            {isOvabmu ? t.ovabmuTitle : t.familyTitle}
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {isOvabmu ? t.ovabmuSub : t.familySub}
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 px-3.5 py-2 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+          {isOvabmu ? (<>
+              <IconBuildingHospital className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+              {t.ovabmuBadge} ({patients.length} {t.patientsWord})
+            </>) : (<>
+              <IconStethoscope className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+              {t.familyBadge} ({activeCalls.filter((c) => c.status !== "COMPLETED").length} {t.pendingWord})
+            </>)}
+        </div>
+      </div>
+
+      {/* VIEW 1: HOSPITAL DOCTOR */}
+      {isOvabmu && (<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="lg:col-span-4 space-y-2.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
+              {t.rosterTitle} ({patients.length})
+            </h2>
+            {patients.map((p) => {
+                const selected = p.id === selectedPatient?.id;
+                const isInpatient = p.status === "INPATIENT";
+                const latestEhr = p.ehrRecords[p.ehrRecords.length - 1];
+                return (<button key={p.id} onClick={() => setSelectedPatientId(p.id)} className={`w-full text-left rounded-xl border p-4 transition ${selected
+                        ? "border-teal-500 bg-teal-50/40 dark:bg-teal-950/40 ring-1 ring-teal-500"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{p.fullName}</p>
+                      <p className="font-mono text-[11px] text-slate-500 dark:text-slate-400">{p.jshshirMasked}</p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isInpatient
+                        ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-300"
+                        : p.status === "VISIT_COMPLETED"
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                      {isInpatient
+                        ? t.inpatientTag
+                        : p.status === "VISIT_COMPLETED"
+                            ? t.verifiedTag
+                            : t.patronageTag}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                    {latestEhr?.diagnosisIcd10} — {latestEhr?.diagnosisText.slice(0, 62)}...
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                    {p.district}{p.mahalla ? `, ${p.mahalla}` : ""} {p.bedNumber ? `• ${p.bedNumber}` : ""}
+                  </p>
+                </button>);
+            })}
+          </div>
+
+          <div className="lg:col-span-8">
+            {loading || !selectedPatient ? (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                {t.loadingEhr}
+              </div>) : (<div className="space-y-4">
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                          {selectedPatient.fullName}
+                        </h2>
+                        <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-xs text-slate-700 dark:text-slate-300">
+                          <InfoTooltip label="JSHSHIR" explanation={t.jshshirTip}/>:{" "}
+                          {selectedPatient.jshshirMasked}
+                        </span>
+                        <span className="rounded bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 text-xs font-semibold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                          {selectedPatient.bloodType}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 dark:text-slate-300">
+                        {selectedPatient.district}
+                        {selectedPatient.mahalla ? `, ${selectedPatient.mahalla}` : ""}, {selectedPatient.address} •{" "}
+                        {selectedPatient.phone}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {t.allergiesLabel}{" "}
+                        <span className="font-semibold text-rose-700 dark:text-rose-400">
+                          {selectedPatient.allergies.join(", ")}
+                        </span>{" "}
+                        • {t.polyclinicLabel}{" "}
+                        <strong className="text-slate-700 dark:text-slate-200">
+                          {selectedPatient.polyclinicName}
+                        </strong>
+                      </p>
+                    </div>
+
+                    {selectedPatient.status === "INPATIENT" ? (<button onClick={() => handleTriggerDischarge(selectedPatient.id)} disabled={discharging || role !== "OVABMU_MD"} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-xs font-bold text-white hover:bg-teal-700 shadow-sm disabled:opacity-50 shrink-0">
+                        <IconRobot className="h-4 w-4"/>
+                        {discharging ? t.dischargingBtn : t.dischargeBtn}
+                      </button>) : (<div className="flex flex-wrap items-center gap-2">
+                        <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 px-3 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                          <IconCircleCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400"/>
+                          {t.dischargedActive}
+                        </div>
+                        {selectedPatientCall && (<>
+                            <button onClick={() => setTraceModal({
+                            patientName: selectedPatient.fullName,
+                            trace: selectedPatientCall.aiAgentTrace,
+                        })} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                              <IconRobot className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                              {t.aiTraceBtn}
+                            </button>
+                            <button onClick={() => setFhirCallId(selectedPatientCall.id)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                              <IconFileCode className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400"/>
+                              {t.fhirBtn}
+                            </button>
+                          </>)}
+                      </div>)}
+                  </div>
+
+                  {selectedPatient.ehrRecords.map((ehr) => (<div key={ehr.id} className="mt-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-slate-900 dark:bg-teal-600 px-2 py-0.5 font-mono text-xs font-bold text-white">
+                            <InfoTooltip label={ehr.diagnosisIcd10} explanation={t.icdTip}/>
+                          </span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                            {ehr.recordType} ({ehr.severity})
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[10px] font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                            <IconLock className="h-3 w-3"/>
+                            <InfoTooltip label={t.encryptedLabel} explanation={t.encryptedTip}/>
+                          </span>
+                          {ehr.dischargeDocumentKey && (<a href={`/api/storage/${ehr.dischargeDocumentKey}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-teal-700 dark:text-teal-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                              <IconExternalLink className="h-3 w-3"/>
+                              {t.archiveDoc}
+                            </a>)}
+                        </div>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">{ehr.diagnosisText}</p>
+                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{ehr.clinicalNotes}</p>
+                      {ehr.procedures.length > 0 && (<div className="flex flex-wrap gap-1.5 pt-1">
+                          {ehr.procedures.map((proc, idx) => (<span key={idx} className="rounded-md bg-white dark:bg-slate-900 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              {proc}
+                            </span>))}
+                        </div>)}
+                    </div>))}
+                </div>
+
+                <VitalsTrendChart records={selectedPatient.ehrRecords.map((ehr) => ({
+                    label: ehr.recordType === "POST_DISCHARGE_VITALS"
+                        ? t.vitalsVisitLabel
+                        : t.vitalsDischargeLabel,
+                    vitals: ehr.vitals,
+                }))}/>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                        <IconFlask className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+                        {t.labsTitle}
+                      </h3>
+                      <button onClick={() => handleOrderFollowupLab(selectedPatient.id, "Qayta Gemoglobin & CRP Nazorati")} disabled={orderingLab} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <IconPlus className="h-3 w-3"/>
+                        {t.orderLabBtn}
+                      </button>
+                    </div>
+                    {selectedPatient.labReports.map((lab) => (<div key={lab.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{lab.panelName}</span>
+                          <span className="text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400">
+                            {lab.status}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          {lab.results.map((r, i) => (<div key={i} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                              <span className="text-slate-700 dark:text-slate-300">{r.testName}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                                  {r.value} {r.unit}
+                                </span>
+                                {r.flag !== "NORMAL" && (<span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${r.flag === "CRITICAL"
+                                ? "bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300"
+                                : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                                    {r.flag}
+                                  </span>)}
+                              </div>
+                            </div>))}
+                        </div>
+                      </div>))}
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                        <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+                        {t.rxTitle}
+                      </h3>
+                      <button onClick={() => setRxFormOpen((v) => !v)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <IconPlus className="h-3 w-3"/>
+                        {t.addRxBtn}
+                      </button>
+                    </div>
+
+                    {rxFormOpen && (<form onSubmit={handleAddRx} className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3 space-y-2">
+                        <label htmlFor="rx-med" className="sr-only">
+                          {t.rxMedPlaceholder}
+                        </label>
+                        <input id="rx-med" name="medicationName" value={rxMed} onChange={(e) => setRxMed(e.target.value)} placeholder={t.rxMedPlaceholder} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
+                        <div className="grid grid-cols-2 gap-2">
+                          <label htmlFor="rx-dose" className="sr-only">
+                            {t.rxDosePlaceholder}
+                          </label>
+                          <input id="rx-dose" name="dosage" value={rxDose} onChange={(e) => setRxDose(e.target.value)} placeholder={t.rxDosePlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
+                          <label htmlFor="rx-freq" className="sr-only">
+                            {t.rxFreqPlaceholder}
+                          </label>
+                          <input id="rx-freq" name="frequency" value={rxFreq} onChange={(e) => setRxFreq(e.target.value)} placeholder={t.rxFreqPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
+                        </div>
+                        <button type="submit" className="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-semibold text-white hover:bg-teal-700">
+                          {t.saveRxBtn}
+                        </button>
+                      </form>)}
+
+                    <div className="space-y-2">
+                      {selectedPatient.prescriptions.map((rx) => (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                              {rx.medicationName} ({rx.dosage})
+                            </span>
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${rx.pharmacyStockStatus === "IN_STOCK"
+                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300"
+                        : rx.pharmacyStockStatus === "RESERVED"
+                            ? "bg-teal-50 text-teal-700 dark:bg-teal-950/70 dark:text-teal-300"
+                            : "bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                              {rx.pharmacyStockStatus}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                            {rx.frequency} • {rx.durationDays} {t.daysWord} • {rx.polyclinicPharmacy}
+                          </p>
+                          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                            {lang === "ru" ? rx.instructionsRu : lang === "en" ? rx.instructionsEn : rx.instructionsUz}
+                          </p>
+                        </div>))}
+                    </div>
+                  </div>
+                </div>
+              </div>)}
+          </div>
+        </div>)}
+
+      {/* VIEW 2: FAMILY DOCTOR */}
+      {!isOvabmu && (<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="lg:col-span-4 space-y-2.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
+              {t.queueTitle}
+            </h2>
+            {activeCalls.map((call) => {
+                const selected = call.id === selectedCall?.id;
+                return (<button key={call.id} onClick={() => setSelectedCallId(call.id)} className={`w-full text-left rounded-xl border p-4 space-y-2 transition ${selected
+                        ? "border-teal-500 bg-teal-50/40 dark:bg-teal-950/40 ring-1 ring-teal-500"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                        {call.patient.fullName}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {call.district}{call.patient.mahalla ? `, ${call.patient.mahalla}` : ""}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${call.riskScore >= 80
+                        ? "bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300"
+                        : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                      {t.riskWord} {call.riskScore}
+                    </span>
+                  </div>
+
+                  {data?.simState && (<SlaCountdownBadge dischargedAt={call.dischargedAt} slaDeadlineAt={call.slaDeadlineAt} simulatedNow={data.simState.simulatedNow} dataLoadedAtMs={dataLoadedAtMs} status={call.status}/>)}
+
+                  {call.symptomCheckins.some((s) => s.aiTriageLevel === "RED_EMERGENCY") && (<div className="rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white flex items-center gap-1.5">
+                      <IconAlertTriangle className="h-3.5 w-3.5"/>
+                      {t.emergencyBanner}
+                    </div>)}
+                </button>);
+            })}
+          </div>
+
+          <div className="lg:col-span-8">
+            {!selectedCall ? (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                {t.noCalls}
+              </div>) : (<div className="space-y-4">
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                          {selectedCall.patient.fullName}
+                        </h2>
+                        <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                          {selectedCall.patient.jshshirMasked}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                        {t.addressLabel}{" "}
+                        <strong className="text-slate-800 dark:text-slate-100">
+                          {selectedCall.patient.address}
+                        </strong>{" "}
+                        {selectedCall.patient.mahalla ? `(${selectedCall.patient.mahalla})` : ""} •{" "}
+                        {selectedCall.patient.phone}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {t.windowLabel}{" "}
+                        <strong className="text-slate-700 dark:text-slate-200">
+                          {new Date(selectedCall.scheduledWindowStart).toLocaleTimeString("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })}
+                          –
+                          {new Date(selectedCall.scheduledWindowEnd).toLocaleTimeString("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })}
+                        </strong>{" "}
+                        • {selectedCall.assignedDoctor.fullName}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      {data?.simState && (<SlaCountdownBadge dischargedAt={selectedCall.dischargedAt} slaDeadlineAt={selectedCall.slaDeadlineAt} simulatedNow={data.simState.simulatedNow} dataLoadedAtMs={dataLoadedAtMs} status={selectedCall.status}/>)}
+                      <button onClick={() => setTraceModal({
+                    patientName: selectedCall.patient.fullName,
+                    trace: selectedCall.aiAgentTrace,
+                })} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                        <IconRobot className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                        {t.aiTraceBtn}
+                      </button>
+                      <button onClick={() => setFhirCallId(selectedCall.id)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
+                        <IconFileCode className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400"/>
+                        {t.viewFhirBtn}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/60 dark:bg-rose-950/40 p-3.5">
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-rose-800 dark:text-rose-300 mb-1.5 flex items-center gap-1.5">
+                      <IconAlertTriangle className="h-3.5 w-3.5"/>
+                      {t.redFlagsTitle} {selectedCall.riskScore}/100)
+                    </h3>
+                    <ul className="space-y-1 text-xs text-rose-900 dark:text-rose-200 list-disc pl-4">
+                      {selectedCall.redFlags.map((flag, i) => (<li key={i}>{flag}</li>))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                        {t.checklistTitle}
+                      </h3>
+                      <button onClick={() => handleOrderFollowupLab(selectedCall.patientId, "Uy sharoitida Qayta Gemoglobin & Siydik Oqsili")} disabled={orderingLab} className="inline-flex items-center gap-1 rounded-lg bg-slate-900 dark:bg-teal-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 dark:hover:bg-teal-500">
+                        <IconFlask className="h-3.5 w-3.5"/>
+                        {t.oneClickLabBtn}
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {selectedCall.checklist.map((item) => (<label key={item.id} className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition ${item.checked
+                        ? "border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/40"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 hover:bg-slate-50 dark:hover:bg-slate-800/70"}`}>
+                          <input type="checkbox" checked={item.checked} onChange={(e) => handleToggleChecklist(selectedCall.id, item.id, e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500"/>
+                          <div className="flex-1">
+                            <p className={`text-xs font-semibold ${item.checked
+                        ? "line-through text-slate-500 dark:text-slate-400"
+                        : "text-slate-900 dark:text-slate-100"}`}>
+                              {lang === "ru" ? item.titleRu : lang === "en" ? item.titleEn : item.titleUz}
+                            </p>
+                          </div>
+                          <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-600 dark:text-slate-300">
+                            {item.category}
+                          </span>
+                        </label>))}
+                    </div>
+                  </div>
+                </div>
+
+                <form onSubmit={handleVerifyVisit} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {t.vitalsTitle}
+                    </h3>
+                    {selectedCall.visitVerifiedAt && (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <IconCircleCheck className="h-3.5 w-3.5"/>
+                        {t.verifiedLabel} ({selectedCall.verificationMethod})
+                      </span>)}
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div>
+                      <label htmlFor="vitals-sbp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        {t.sbpLabel}
+                      </label>
+                      <input id="vitals-sbp" name="systolicBp" type="number" value={sbp} onChange={(e) => setSbp(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                    </div>
+                    <div>
+                      <label htmlFor="vitals-dbp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        {t.dbpLabel}
+                      </label>
+                      <input id="vitals-dbp" name="diastolicBp" type="number" value={dbp} onChange={(e) => setDbp(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                    </div>
+                    <div>
+                      <label htmlFor="vitals-hr" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        {t.hrLabel}
+                      </label>
+                      <input id="vitals-hr" name="heartRate" type="number" value={hr} onChange={(e) => setHr(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                    </div>
+                    <div>
+                      <label htmlFor="vitals-temp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        {t.tempLabel}
+                      </label>
+                      <input id="vitals-temp" name="tempC" type="number" step="0.1" value={temp} onChange={(e) => setTemp(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                    </div>
+                    <div>
+                      <label htmlFor="vitals-spo2" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        <InfoTooltip label={t.spo2Label} explanation={t.spo2Tip}/>
+                      </label>
+                      <input id="vitals-spo2" name="spo2" type="number" value={spo2} onChange={(e) => setSpo2(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="vitals-notes" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      {t.visitNotesLabel}
+                    </label>
+                    <textarea id="vitals-notes" name="visitNotes" rows={2} value={visitNotes} onChange={(e) => setVisitNotes(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100" required/>
+                  </div>
+
+                  <button type="submit" disabled={verifying || selectedCall.status === "COMPLETED"} className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-teal-700 disabled:opacity-50">
+                    <IconSend className="h-3.5 w-3.5"/>
+                    {selectedCall.status === "COMPLETED"
+                    ? t.verifyDoneBtn
+                    : verifying
+                        ? t.verifySavingBtn
+                        : t.verifySubmitBtn}
+                  </button>
+                </form>
+
+                {selectedCall.symptomCheckins.length > 0 && (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                      <IconHeartbeat className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400"/>
+                      {t.patientCheckinsTitle} ({selectedCall.symptomCheckins.length})
+                    </h3>
+                    {selectedCall.symptomCheckins.map((sc) => {
+                        const activePrimary = PRIMARY_RED_FLAG_SYMPTOMS.filter((sym) => sym.key === "fever"
+                            ? sc.fever
+                            : sym.key === "severeHeadache"
+                                ? sc.severeHeadache
+                                : sym.key === "bleeding"
+                                    ? sc.bleeding
+                                    : sc.swelling);
+                        const extraList = sc.additionalSymptoms ?? [];
+                        const customList = sc.customConditions ?? [];
+                        return (<div key={sc.id} className={`rounded-xl border p-3 text-xs space-y-1.5 ${sc.aiTriageLevel === "RED_EMERGENCY"
+                                ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
+                                : sc.aiTriageLevel === "YELLOW"
+                                    ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
+                                    : "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200"}`}>
+                          <div className="flex items-center justify-between font-bold">
+                            <span>
+                              {sc.aiTriageLevel} • BP {sc.bpReading}
+                            </span>
+                            <span className="font-mono text-[10px] opacity-75">
+                              {new Date(sc.createdAt).toLocaleTimeString("en-GB", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                            </span>
+                          </div>
+                          {(activePrimary.length > 0 ||
+                                extraList.length > 0 ||
+                                customList.length > 0) && (<div className="flex flex-wrap gap-1">
+                              {activePrimary.map((sym) => (<span key={sym.key} className="rounded-full bg-white/85 dark:bg-slate-900/75 border border-current/25 px-2 py-0.5 text-[10px] font-semibold">
+                                  {lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}
+                                </span>))}
+                              {extraList.map((id) => (<span key={id} className="rounded-full bg-white/85 dark:bg-slate-900/75 border border-current/25 px-2 py-0.5 text-[10px] font-semibold">
+                                  {getSymptomLabel(id, lang)}
+                                </span>))}
+                              {customList.map((c) => {
+                                    const sev = getSeverityMeta(c.severity);
+                                    const sevLabel = lang === "ru" ? sev.ru : lang === "en" ? sev.en : sev.uz;
+                                    return (<span key={c.id} className="rounded-full bg-white/95 dark:bg-slate-900/85 border border-current/30 px-2 py-0.5 text-[10px] font-semibold">
+                                    {c.name} • {sevLabel}
+                                  </span>);
+                                })}
+                            </div>)}
+                          {sc.notes && (<p className="text-[11px] opacity-90">{sc.notes}</p>)}
+                        </div>);
+                    })}
+                  </div>)}
+
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
+                  <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                    <IconBell className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                    {t.alertsTitle}
+                  </h3>
+                  {selectedCall.notificationLog.map((n) => (<div key={n.id} className={`rounded-lg border p-2.5 text-xs ${n.severity === "CRITICAL"
+                        ? "border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
+                        : n.severity === "WARNING"
+                            ? "border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
+                            : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-800 dark:text-slate-200"}`}>
+                      <div className="flex items-center justify-between font-semibold mb-0.5">
+                        <span>
+                          [{n.channel}] {n.recipientName} ({n.recipientHandle})
+                        </span>
+                        <span className="font-mono text-[10px] opacity-75">
+                          {new Date(n.sentAt).toLocaleTimeString("en-GB", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })}
+                        </span>
+                      </div>
+                      <p>{n.message}</p>
+                    </div>))}
+                </div>
+              </div>)}
+          </div>
+        </div>)}
+
+      <FhirBundleModal activeCallId={fhirCallId} onClose={() => setFhirCallId(null)}/>
+      <AgentTraceModal open={Boolean(traceModal)} patientName={traceModal?.patientName} trace={traceModal?.trace ?? []} onClose={() => setTraceModal(null)}/>
+    </div>);
+}

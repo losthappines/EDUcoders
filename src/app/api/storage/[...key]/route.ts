@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { decryptField } from "@/lib/crypto";
+import { canViewClinicalNotes, resolveActorContext } from "@/lib/rbac";
 import {
   buildEpikrizDocumentHtml,
   buildUltrasoundSvg,
@@ -8,10 +9,18 @@ import {
 } from "@/lib/storage";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ key: string[] }> }
 ) {
   try {
+    const actor = await resolveActorContext(req);
+    if (!actor) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    if (!canViewClinicalNotes(actor.role)) {
+      return NextResponse.json({ error: "RBAC Denied: Clinical access only" }, { status: 403 });
+    }
+
     const { key } = await params;
     const objectKey = key.join("/");
     const result = await getStorageObject(objectKey);

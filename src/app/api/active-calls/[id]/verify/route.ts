@@ -22,6 +22,9 @@ export async function PATCH(
     await ensureSeeded();
     const { id } = await params;
     const actor = await resolveActorContext(req);
+    if (!actor) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
     if (!canVerifyVisitAsDoctor(actor.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -57,6 +60,9 @@ export async function POST(
     await ensureSeeded();
     const { id } = await params;
     const actor = await resolveActorContext(req);
+    if (!actor) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
 
     if (!canVerifyVisitAsDoctor(actor.role)) {
       await recordAuditLog({

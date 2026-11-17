@@ -2,18 +2,19 @@
 
 import React, { useMemo, useState } from "react";
 import {
-  AlertOctagon,
-  Check,
-  CheckCircle2,
-  FlaskConical,
-  Globe,
-  HeartPulse,
-  KeyRound,
-  Pill,
-  PhoneCall,
-  Send,
-  ShieldCheck,
-} from "lucide-react";
+  IconAlertOctagon,
+  IconCheck,
+  IconCircleCheck,
+  IconFlask,
+  IconHeartbeat,
+  IconKey,
+  IconPhoneCall,
+  IconPill,
+  IconSend,
+  IconShieldCheck,
+  IconUser,
+  IconWorld,
+} from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 
@@ -89,10 +90,9 @@ const COPY: Record<
 };
 
 export default function PatientPortalPage() {
-  const { data, loading, fetchWithAuth, refreshData, showToast, dataLoadedAtMs } =
+  const { authUser, data, loading, fetchWithAuth, refreshData, showToast, dataLoadedAtMs } =
     usePlatform();
   const [lang, setLang] = useState<Lang>("uz");
-  const [selectedCallId, setSelectedCallId] = useState<string>("");
 
   // Symptom form
   const [fever, setFever] = useState(false);
@@ -108,8 +108,8 @@ export default function PatientPortalPage() {
   const [confirming, setConfirming] = useState(false);
 
   const activeCalls = useMemo(() => data?.activeCalls ?? [], [data?.activeCalls]);
-
-  const call = activeCalls.find((c) => c.id === selectedCallId) ?? activeCalls[0];
+  const call = activeCalls[0];
+  const ownPatient = data?.patients?.[0];
   const t = COPY[lang];
 
   const handleSymptomSubmit = async (e: React.FormEvent) => {
@@ -193,7 +193,7 @@ export default function PatientPortalPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
-      {/* Top Language & Patient Demo Switcher */}
+      {/* Top Language & Personal Profile Banner */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -201,7 +201,7 @@ export default function PatientPortalPage() {
             <p className="text-xs text-slate-500">{t.subtitle}</p>
           </div>
           <div className="inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1">
-            <Globe className="h-3.5 w-3.5 text-slate-500 ml-1.5" />
+            <IconWorld className="h-3.5 w-3.5 text-slate-500 ml-1.5" />
             {(["uz", "ru", "en"] as Lang[]).map((code) => (
               <button
                 key={code}
@@ -218,31 +218,22 @@ export default function PatientPortalPage() {
           </div>
         </div>
 
-        {activeCalls.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-            <span className="text-[11px] font-semibold text-slate-500">
-              Demo Patient Profile:
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+          <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800">
+            <IconUser className="h-3.5 w-3.5 text-teal-600" />
+            {ownPatient?.fullName ?? authUser?.fullName}
+          </span>
+          {ownPatient && (
+            <span className="text-slate-500">
+              {ownPatient.district}, {ownPatient.mahalla} • {ownPatient.polyclinicName}
             </span>
-            {activeCalls.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedCallId(c.id)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold border transition ${
-                  c.id === call?.id
-                    ? "border-teal-600 bg-teal-50 text-teal-800"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {c.patient.fullName}
-              </button>
-            ))}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {!call ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-          No discharged patients found yet.
+          Sizda hozircha faol uy patronaji tayinlanmagan.
         </div>
       ) : (
         <>
@@ -286,7 +277,7 @@ export default function PatientPortalPage() {
                 </strong>
               </span>
               <span className="inline-flex items-center gap-1.5 font-mono font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200">
-                <KeyRound className="h-3.5 w-3.5" />
+                <IconKey className="h-3.5 w-3.5" />
                 Visit OTP: {call.patientOtpCode}
               </span>
             </div>
@@ -295,7 +286,7 @@ export default function PatientPortalPage() {
           {/* AI Home Care Guide */}
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4 text-teal-600" />
+              <IconShieldCheck className="h-4 w-4 text-teal-600" />
               {t.guideTitle}
             </h2>
             <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 rounded-xl p-3 border border-slate-200">
@@ -319,7 +310,7 @@ export default function PatientPortalPage() {
                     key={idx}
                     className="flex items-start gap-2 text-xs text-slate-700"
                   >
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <IconCircleCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                     <span>{rule}</span>
                   </li>
                 ))}
@@ -328,7 +319,7 @@ export default function PatientPortalPage() {
 
             <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3">
               <h3 className="text-xs font-bold text-rose-800 mb-1.5 flex items-center gap-1.5">
-                <PhoneCall className="h-3.5 w-3.5" />
+                <IconPhoneCall className="h-3.5 w-3.5" />
                 {t.dangerTitle}
               </h3>
               <ul className="space-y-1 text-xs text-rose-900 list-disc pl-4">
@@ -347,7 +338,7 @@ export default function PatientPortalPage() {
           {/* AI Home Symptom Check-in */}
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <HeartPulse className="h-4 w-4 text-rose-600" />
+              <IconHeartbeat className="h-4 w-4 text-rose-600" />
               {t.checkinTitle}
             </h2>
             <form onSubmit={handleSymptomSubmit} className="space-y-3">
@@ -431,7 +422,7 @@ export default function PatientPortalPage() {
                 disabled={submittingSym}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
               >
-                <Send className="h-3.5 w-3.5" />
+                <IconSend className="h-3.5 w-3.5" />
                 {submittingSym ? "AI tahlil qilmoqda..." : t.checkinBtn}
               </button>
             </form>
@@ -451,7 +442,7 @@ export default function PatientPortalPage() {
                   >
                     <div className="flex items-center justify-between font-bold mb-1">
                       <span className="inline-flex items-center gap-1">
-                        <AlertOctagon className="h-3.5 w-3.5" />
+                        <IconAlertOctagon className="h-3.5 w-3.5" />
                         AI Triage: {sc.aiTriageLevel} (BP: {sc.bpReading})
                       </span>
                       <span className="font-mono text-[10px]">
@@ -477,7 +468,7 @@ export default function PatientPortalPage() {
           {/* Active E-Prescriptions & Adherence */}
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <Pill className="h-4 w-4 text-teal-600" />
+              <IconPill className="h-4 w-4 text-teal-600" />
               {t.rxTitle}
             </h2>
             {call.patient.prescriptions.map((rx) => (
@@ -505,7 +496,7 @@ export default function PatientPortalPage() {
                   onClick={() => handleAdherence(rx.id)}
                   className="inline-flex items-center gap-1 rounded-lg bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800 border border-teal-200 hover:bg-teal-100"
                 >
-                  <Check className="h-3.5 w-3.5" />
+                  <IconCheck className="h-3.5 w-3.5" />
                   {t.takenBtn}
                 </button>
               </div>
@@ -515,7 +506,7 @@ export default function PatientPortalPage() {
           {/* Discharge Lab Results */}
           <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <FlaskConical className="h-4 w-4 text-teal-600" />
+              <IconFlask className="h-4 w-4 text-teal-600" />
               {t.labsTitle}
             </h2>
             {call.patient.labReports.map((lab) => (
@@ -544,7 +535,7 @@ export default function PatientPortalPage() {
             <h2 className="text-sm font-bold text-slate-900">{t.confirmTitle}</h2>
             {call.status === "COMPLETED" ? (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <IconCircleCheck className="h-4 w-4 text-emerald-600" />
                 Visit Confirmed ({call.verificationMethod}) at{" "}
                 {call.visitVerifiedAt
                   ? new Date(call.visitVerifiedAt).toLocaleString("en-GB")

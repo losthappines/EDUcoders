@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { IconAlertTriangle, IconCircleCheck, IconClock } from "@tabler/icons-react";
 
 interface SlaCountdownBadgeProps {
   dischargedAt: string;
@@ -32,7 +32,7 @@ export function SlaCountdownBadge({
   if (status === "COMPLETED") {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800 border border-teal-200">
-        <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" />
+        <IconCircleCheck className="h-3.5 w-3.5 text-teal-600" />
         Patronaj tasdiqlandi
       </span>
     );
@@ -76,9 +76,9 @@ export function SlaCountdownBadge({
       className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-semibold ${badgeStyle}`}
     >
       {isRed ? (
-        <AlertTriangle className="h-3.5 w-3.5 shrink-0 animate-pulse" />
+        <IconAlertTriangle className="h-3.5 w-3.5 shrink-0 animate-pulse" />
       ) : (
-        <Clock className="h-3.5 w-3.5 shrink-0" />
+        <IconClock className="h-3.5 w-3.5 shrink-0" />
       )}
       <span className="font-mono tabular-nums tracking-tight">
         {isOverdue ? "00:00:00" : `${hh}:${mm}:${ss}`}

@@ -13,6 +13,7 @@ datasource db {
 model User {
   id                String   @id @default(cuid())
   email             String   @unique
+  passwordHash      String   @default("")
   fullName          String
   role              String   // OVABMU_MD | FAMILY_MD | PATIENT | ADMIN_RECEPTION
   polyclinicId      String?
@@ -24,6 +25,7 @@ model User {
   scheduleSlotsJson String   @default("[]")
   createdAt         DateTime @default(now())
 
+  patientProfile         Patient?       @relation("PatientAccount")
   assignedPatients       Patient[]      @relation("FamilyDoctorPatients")
   authoredEhrs           EhrRecord[]    @relation("EhrAuthor")
   orderedLabs            LabReport[]    @relation("LabOrderer")
@@ -36,6 +38,8 @@ model User {
 
 model Patient {
   id                     String   @id @default(cuid())
+  userId                 String?  @unique
+  user                   User?    @relation("PatientAccount", fields: [userId], references: [id])
   fullName               String
   jshshirEncrypted       String
   jshshirMasked          String

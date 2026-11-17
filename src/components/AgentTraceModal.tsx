@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { Bot, CheckCircle2, Cpu, AlertTriangle, X } from "lucide-react";
+import {
+  IconAlertTriangle,
+  IconCircleCheck,
+  IconCpu,
+  IconRobot,
+  IconX,
+} from "@tabler/icons-react";
 import type { AgentTraceStep } from "@/lib/types";
 
 interface AgentTraceModalProps {
@@ -25,7 +31,7 @@ export function AgentTraceModal({
         <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600 text-white">
-              <Bot className="h-5 w-5" />
+              <IconRobot className="h-5 w-5" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900">
@@ -40,7 +46,7 @@ export function AgentTraceModal({
             onClick={onClose}
             className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-200"
           >
-            <X className="h-5 w-5" />
+            <IconX className="h-5 w-5" />
           </button>
         </div>
 
@@ -61,7 +67,7 @@ export function AgentTraceModal({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-700">
-                    <Cpu className="h-3 w-3 text-teal-600" />
+                    <IconCpu className="h-3 w-3 text-teal-600" />
                     {step.toolCalled}()
                   </span>
                   <span className="font-mono text-[11px] text-slate-500">
@@ -69,11 +75,11 @@ export function AgentTraceModal({
                   </span>
                   {step.status === "ESCALATED" ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200">
-                      <AlertTriangle className="h-3 w-3" /> Escalated
+                      <IconAlertTriangle className="h-3 w-3" /> Escalated
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
-                      <CheckCircle2 className="h-3 w-3" /> Completed
+                      <IconCircleCheck className="h-3 w-3" /> Completed
                     </span>
                   )}
                 </div>

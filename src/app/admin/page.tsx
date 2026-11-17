@@ -2,23 +2,23 @@
 
 import React, { useState } from "react";
 import {
-  AlertTriangle,
-  BedDouble,
-  CheckCircle2,
-  Clock,
-  FileCode2,
-  Lock,
-  MapPin,
-  Package,
-  Receipt,
-  ShieldCheck,
-} from "lucide-react";
+  IconAlertTriangle,
+  IconBed,
+  IconCircleCheck,
+  IconClock,
+  IconFileCode,
+  IconLock,
+  IconMapPin,
+  IconPackage,
+  IconReceipt,
+  IconShieldCheck,
+} from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 import { FhirBundleModal } from "@/components/FhirBundleModal";
 
 export default function AdminPanelPage() {
-  const { role, data, loading, dataLoadedAtMs } = usePlatform();
+  const { data, loading, dataLoadedAtMs } = usePlatform();
   const [fhirCallId, setFhirCallId] = useState<string | null>(null);
   const [slaFilter, setSlaFilter] = useState<"ALL" | "GREEN" | "YELLOW" | "RED" | "COMPLETED">("ALL");
 
@@ -52,10 +52,8 @@ export default function AdminPanelPage() {
           </p>
         </div>
         <div className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white">
-          <Lock className="h-3.5 w-3.5 text-teal-400" />
-          {role === "ADMIN_RECEPTION"
-            ? "RBAC Active: Clinical Notes Redacted for Admin"
-            : `Viewing as ${role} (Switch to District Admin to see redaction)`}
+          <IconLock className="h-3.5 w-3.5 text-teal-400" />
+          RBAC Active: Clinical Notes Redacted for Admin
         </div>
       </div>
 
@@ -63,7 +61,7 @@ export default function AdminPanelPage() {
       <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-teal-600" />
+            <IconClock className="h-4 w-4 text-teal-600" />
             Real-Time 24-Hour SLA Compliance Monitor
           </h2>
           <div className="flex flex-wrap gap-1.5">
@@ -135,13 +133,7 @@ export default function AdminPanelPage() {
                       <p className="text-[11px] text-slate-500">{call.polyclinicName}</p>
                     </td>
                     <td className="py-3 pr-3 max-w-xs">
-                      <span
-                        className={`inline-block rounded px-2 py-0.5 text-[11px] font-mono ${
-                          role === "ADMIN_RECEPTION"
-                            ? "bg-slate-100 text-slate-600"
-                            : "bg-teal-50 text-teal-800"
-                        }`}
-                      >
+                      <span className="inline-block rounded px-2 py-0.5 text-[11px] font-mono bg-slate-100 text-slate-600">
                         {latestEhr?.diagnosisText ?? "—"}
                       </span>
                     </td>
@@ -161,7 +153,7 @@ export default function AdminPanelPage() {
                         onClick={() => setFhirCallId(call.id)}
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
                       >
-                        <FileCode2 className="h-3.5 w-3.5 text-indigo-600" />
+                        <IconFileCode className="h-3.5 w-3.5 text-indigo-600" />
                         FHIR
                       </button>
                     </td>
@@ -185,7 +177,7 @@ export default function AdminPanelPage() {
         {/* Bed Release & Check-Out */}
         <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <BedDouble className="h-4 w-4 text-teal-600" />
+            <IconBed className="h-4 w-4 text-teal-600" />
             OvaBMU Bed Release &amp; Check-out Status
           </h2>
           <div className="space-y-2">
@@ -219,7 +211,7 @@ export default function AdminPanelPage() {
         {/* Territorial Routing Table */}
         <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-teal-600" />
+            <IconMapPin className="h-4 w-4 text-teal-600" />
             Territorial Polyclinic &amp; Family Doctor Routing
           </h2>
           <div className="space-y-2">
@@ -254,7 +246,7 @@ export default function AdminPanelPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Package className="h-4 w-4 text-teal-600" />
+            <IconPackage className="h-4 w-4 text-teal-600" />
             Polyclinic Pharmacy Stock Overview
           </h2>
           <div className="space-y-2">
@@ -292,7 +284,7 @@ export default function AdminPanelPage() {
         <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Receipt className="h-4 w-4 text-teal-600" />
+              <IconReceipt className="h-4 w-4 text-teal-600" />
               State Patronage &amp; Billing Accounting
             </h2>
             <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
@@ -337,7 +329,7 @@ export default function AdminPanelPage() {
       {/* Immutable Security Audit Log Viewer */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
         <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-teal-600" />
+          <IconShieldCheck className="h-4 w-4 text-teal-600" />
           Immutable Security Audit Log (audit_logs)
         </h2>
         <div className="overflow-x-auto max-h-80 overflow-y-auto">
@@ -376,10 +368,10 @@ export default function AdminPanelPage() {
                       }`}
                     >
                       {log.action === "SLA_ESCALATED" && (
-                        <AlertTriangle className="h-3 w-3" />
+                        <IconAlertTriangle className="h-3 w-3" />
                       )}
                       {log.action === "VISIT_VERIFIED" && (
-                        <CheckCircle2 className="h-3 w-3" />
+                        <IconCircleCheck className="h-3 w-3" />
                       )}
                       {log.action}
                     </span>

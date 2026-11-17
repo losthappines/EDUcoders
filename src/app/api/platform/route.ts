@@ -14,13 +14,50 @@ import {
   getSimulatedOffsetHours,
 } from "@/lib/sla-queue";
 
+function sanitizeUser<
+  T extends {
+    id: string;
+    email: string;
+    fullName: string;
+    role: string;
+    polyclinicId: string | null;
+    polyclinicName: string | null;
+    district: string | null;
+    specialty: string | null;
+    phone: string | null;
+    telegramHandle: string | null;
+    scheduleSlotsJson: string;
+  },
+>(u: T) {
+  return {
+    id: u.id,
+    email: u.email,
+    fullName: u.fullName,
+    role: u.role,
+    polyclinicId: u.polyclinicId,
+    polyclinicName: u.polyclinicName,
+    district: u.district,
+    specialty: u.specialty,
+    phone: u.phone,
+    telegramHandle: u.telegramHandle,
+    scheduleSlots: JSON.parse(u.scheduleSlotsJson || "[]"),
+  };
+}
+
 export async function GET(req: NextRequest) {
   await connection();
   try {
     await ensureSeeded();
+    const actor = await resolveActorContext(req);
+    if (!actor) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
     await evaluateAllSlaTimers();
 
-    const actor = await resolveActorContext(req);
     const simulatedNow = await getSimulatedNow();
     const timeOffsetHours = await getSimulatedOffsetHours();
 
@@ -55,34 +92,49 @@ export async function GET(req: NextRequest) {
 
     const allowClinical = canViewClinicalNotes(actor.role);
 
-    // Filter patients and active calls per strict RBAC rules:
-    // - OVABMU_MD & ADMIN_RECEPTION see platform-wide records (ADMIN_RECEPTION has clinical notes redacted)
-    // - FAMILY_MD only accesses patients routed to their polyclinic
-    // - PATIENT only accesses their own profile (or selected demo patient)
+    // Strictly scope data by authenticated role and ownership:
+    // - PATIENT: ONLY sees their own Patient record, ActiveCalls, and Invoices; zero AuditLogs
+    // - FAMILY_MD: ONLY sees patients/calls routed to their polyclinic or assigned to them
+    // - OVABMU_MD: Sees clinical inpatient & discharged patients
+    // - ADMIN_RECEPTION: Sees platform-wide SLA, invoices & audit logs (clinical notes redacted)
     const scopedPatients = rawPatients
       .filter((p) => {
+        if (actor.role === "PATIENT") {
+          return p.userId === actor.userId;
+        }
         if (actor.role === "FAMILY_MD" && actor.polyclinicId) {
-          return p.polyclinicId === actor.polyclinicId;
+          return (
+            p.polyclinicId === actor.polyclinicId ||
+            p.assignedFamilyDoctorId === actor.userId
+          );
         }
         return true;
       })
       .map((p) => ({
         ...p,
+        assignedFamilyDoctor: p.assignedFamilyDoctor
+          ? sanitizeUser(p.assignedFamilyDoctor)
+          : null,
         allergies: JSON.parse(p.allergiesJson || "[]"),
         ehrRecords: p.ehrRecords.map((ehr) => ({
           id: ehr.id,
           patientId: ehr.patientId,
           authorId: ehr.authorId,
           recordType: ehr.recordType,
-          diagnosisIcd10: allowClinical || actor.role === "PATIENT" ? ehr.diagnosisIcd10 : "[REDACTED]",
-          diagnosisText: allowClinical || actor.role === "PATIENT"
-            ? ehr.diagnosisText
-            : "[RBAC REDACTED — CLINICAL ROLE ONLY]",
+          diagnosisIcd10:
+            allowClinical || actor.role === "PATIENT"
+              ? ehr.diagnosisIcd10
+              : "[REDACTED]",
+          diagnosisText:
+            allowClinical || actor.role === "PATIENT"
+              ? ehr.diagnosisText
+              : "[RBAC REDACTED — CLINICAL ROLE ONLY]",
           severity: ehr.severity,
           clinicalNotes: allowClinical
             ? decryptField(ehr.clinicalNotesEncrypted)
             : "[RBAC REDACTED — AES-256 CLINICAL ACCESS ONLY]",
-          encryptionCipherPreview: ehr.clinicalNotesEncrypted.slice(0, 34) + "...",
+          encryptionCipherPreview:
+            ehr.clinicalNotesEncrypted.slice(0, 34) + "...",
           vitals: JSON.parse(ehr.vitalsJson || "{}"),
           procedures: allowClinical ? JSON.parse(ehr.proceduresJson || "[]") : [],
           dischargeDocumentKey: allowClinical ? ehr.dischargeDocumentKey : null,
@@ -98,10 +150,18 @@ export async function GET(req: NextRequest) {
         })),
       }));
 
+    const scopedPatientIds = new Set(scopedPatients.map((p) => p.id));
+
     const scopedCalls = rawCalls
       .filter((c) => {
+        if (actor.role === "PATIENT") {
+          return scopedPatientIds.has(c.patientId);
+        }
         if (actor.role === "FAMILY_MD" && actor.polyclinicId) {
-          return c.patient.polyclinicId === actor.polyclinicId;
+          return (
+            c.patient.polyclinicId === actor.polyclinicId ||
+            c.assignedDoctorId === actor.userId
+          );
         }
         return true;
       })
@@ -114,15 +174,26 @@ export async function GET(req: NextRequest) {
         );
         return {
           ...c,
-          redFlags: allowClinical || actor.role === "PATIENT"
-            ? JSON.parse(c.redFlagsJson || "[]")
-            : ["[RBAC REDACTED — CLINICAL DETAILS PROTECTED]"],
+          assignedDoctor: sanitizeUser(c.assignedDoctor),
+          dischargedBy: sanitizeUser(c.dischargedBy),
+          redFlags:
+            allowClinical || actor.role === "PATIENT"
+              ? JSON.parse(c.redFlagsJson || "[]")
+              : ["[RBAC REDACTED — CLINICAL DETAILS PROTECTED]"],
           checklist: JSON.parse(c.checklistJson || "[]"),
           patientGuide: JSON.parse(c.patientGuideJson || "{}"),
           symptomCheckins: JSON.parse(c.symptomCheckinsJson || "[]"),
-          doctorVitals: c.doctorVitalsJson ? JSON.parse(c.doctorVitalsJson) : null,
-          aiAgentTrace: JSON.parse(c.aiAgentTraceJson || "[]"),
-          notificationLog: JSON.parse(c.notificationLogJson || "[]"),
+          doctorVitals: c.doctorVitalsJson
+            ? JSON.parse(c.doctorVitalsJson)
+            : null,
+          aiAgentTrace:
+            actor.role === "PATIENT"
+              ? []
+              : JSON.parse(c.aiAgentTraceJson || "[]"),
+          notificationLog:
+            actor.role === "PATIENT"
+              ? []
+              : JSON.parse(c.notificationLogJson || "[]"),
           patientOtpCode:
             actor.role === "PATIENT" || actor.role === "FAMILY_MD"
               ? c.patientOtpCode
@@ -130,6 +201,24 @@ export async function GET(req: NextRequest) {
           sla,
         };
       });
+
+    const scopedInvoices =
+      actor.role === "PATIENT"
+        ? invoices.filter((inv) => scopedPatientIds.has(inv.patientId))
+        : invoices;
+
+    const scopedUsers =
+      actor.role === "PATIENT"
+        ? users
+            .filter(
+              (u) =>
+                u.id === actor.userId ||
+                scopedPatients.some((p) => p.assignedFamilyDoctorId === u.id)
+            )
+            .map(sanitizeUser)
+        : users.map(sanitizeUser);
+
+    const scopedAuditLogs = actor.role === "PATIENT" ? [] : auditLogs;
 
     if (req.nextUrl.searchParams.get("auditView") === "1") {
       await recordAuditLog({
@@ -150,14 +239,11 @@ export async function GET(req: NextRequest) {
         timeOffsetHours,
         simulatedNow: simulatedNow.toISOString(),
       },
-      users: users.map((u) => ({
-        ...u,
-        scheduleSlots: JSON.parse(u.scheduleSlotsJson || "[]"),
-      })),
+      users: scopedUsers,
       patients: scopedPatients,
       activeCalls: scopedCalls,
-      invoices,
-      auditLogs,
+      invoices: scopedInvoices,
+      auditLogs: scopedAuditLogs,
     });
   } catch (error) {
     console.error("GET /api/platform error:", error);

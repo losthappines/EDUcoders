@@ -12,6 +12,9 @@ export async function POST(req: NextRequest) {
   try {
     await ensureSeeded();
     const actor = await resolveActorContext(req);
+    if (!actor) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
 
     if (!canTriggerDischarge(actor.role)) {
       await recordAuditLog({

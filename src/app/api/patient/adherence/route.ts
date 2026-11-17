@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveActorContext } from "@/lib/rbac";
 import { ensureSeeded } from "@/lib/seed-data";
 import { getSimulatedNow } from "@/lib/sla-queue";
 import type { AdherenceLog } from "@/lib/types";
@@ -7,14 +8,23 @@ import type { AdherenceLog } from "@/lib/types";
 export async function POST(req: NextRequest) {
   try {
     await ensureSeeded();
+    const actor = await resolveActorContext(req);
+    if (!actor) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const simulatedNow = await getSimulatedNow();
     const body = (await req.json()) as { prescriptionId: string; taken: boolean };
 
     const rx = await prisma.prescription.findUnique({
       where: { id: body.prescriptionId },
+      include: { patient: true },
     });
     if (!rx) {
       return NextResponse.json({ error: "Prescription not found" }, { status: 404 });
+    }
+    if (actor.role !== "PATIENT" || rx.patient.userId !== actor.userId) {
+      return NextResponse.json({ error: "RBAC Denied" }, { status: 403 });
     }
 
     const logs: AdherenceLog[] = JSON.parse(rx.adherenceLogsJson || "[]");

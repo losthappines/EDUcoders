@@ -10,6 +10,9 @@ export async function POST(req: NextRequest) {
   try {
     await ensureSeeded();
     const actor = await resolveActorContext(req);
+    if (!actor) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
     const simulatedNow = await getSimulatedNow();
 
     const body = (await req.json()) as {
@@ -29,6 +32,9 @@ export async function POST(req: NextRequest) {
 
     if (!call) {
       return NextResponse.json({ error: "ActiveCall not found" }, { status: 404 });
+    }
+    if (actor.role !== "PATIENT" || call.patient.userId !== actor.userId) {
+      return NextResponse.json({ error: "RBAC Denied" }, { status: 403 });
     }
 
     const triage = evaluateSymptomCheckinTriage({

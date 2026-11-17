@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import { encryptField, maskJshshir } from "./crypto";
+import { hashPassword } from "./auth";
 import { slaMemoryQueue } from "./sla-queue";
 import {
   buildEpikrizDocumentHtml,
@@ -17,13 +18,34 @@ import type {
 } from "./types";
 
 let seedingPromise: Promise<void> | null = null;
+let backfillChecked = false;
 
 export async function ensureSeeded(): Promise<void> {
   const [userCount, patientCount] = await Promise.all([
     prisma.user.count(),
     prisma.patient.count(),
   ]);
-  if (userCount > 0 && patientCount > 0) return;
+  if (userCount > 0 && patientCount > 0) {
+    if (!backfillChecked) {
+      backfillChecked = true;
+      const missingPassUsers = await prisma.user.findMany({
+        where: { passwordHash: "" },
+        select: { id: true },
+      });
+      if (missingPassUsers.length > 0) {
+        const fallbackHash = hashPassword("Demo1234!");
+        await prisma.user.updateMany({
+          where: { passwordHash: "" },
+          data: { passwordHash: fallbackHash },
+        });
+      }
+      await prisma.patient.updateMany({
+        where: { id: "pat-zulfiya", userId: null },
+        data: { userId: "usr-patient-1" },
+      });
+    }
+    return;
+  }
 
   if (!seedingPromise) {
     seedingPromise = resetDemoDatabase().finally(() => {
@@ -34,6 +56,7 @@ export async function ensureSeeded(): Promise<void> {
 }
 
 export async function resetDemoDatabase(): Promise<void> {
+  backfillChecked = true;
   slaMemoryQueue.clear();
   await prisma.$transaction([
     prisma.auditLog.deleteMany(),
@@ -54,6 +77,7 @@ async function seedDemoData(): Promise<void> {
   const hoursAgo = (h: number) => new Date(now.getTime() - h * 3600 * 1000);
   const hoursFrom = (base: Date, h: number) =>
     new Date(base.getTime() + h * 3600 * 1000);
+  const defaultPasswordHash = hashPassword("Demo1234!");
 
   await prisma.systemSimState.upsert({
     where: { id: "singleton" },
@@ -66,6 +90,7 @@ async function seedDemoData(): Promise<void> {
     data: {
       id: "usr-ovabmu-1",
       email: "a.rahimova@ovabmu.uz",
+      passwordHash: defaultPasswordHash,
       fullName: "Dr. Aziza Rahimova",
       role: "OVABMU_MD",
       polyclinicId: "OVABMU-TSH-01",
@@ -82,6 +107,7 @@ async function seedDemoData(): Promise<void> {
     data: {
       id: "usr-family-tashkent",
       email: "d.toshmatova@op14.uz",
+      passwordHash: defaultPasswordHash,
       fullName: "Dr. Dilnoza Toshmatova",
       role: "FAMILY_MD",
       polyclinicId: "OP-14-YUNUSOBOD",
@@ -102,6 +128,7 @@ async function seedDemoData(): Promise<void> {
     data: {
       id: "usr-family-namangan",
       email: "s.mirzayev@op3-nam.uz",
+      passwordHash: defaultPasswordHash,
       fullName: "Dr. Sardorbek Mirzayev",
       role: "FAMILY_MD",
       polyclinicId: "OP-03-NAMANGAN",
@@ -121,6 +148,7 @@ async function seedDemoData(): Promise<void> {
     data: {
       id: "usr-patient-1",
       email: "zulfiya.rustamova@patient.uz",
+      passwordHash: defaultPasswordHash,
       fullName: "Zulfiya Rustamova",
       role: "PATIENT",
       polyclinicId: "OP-14-YUNUSOBOD",
@@ -136,6 +164,7 @@ async function seedDemoData(): Promise<void> {
     data: {
       id: "usr-admin-1",
       email: "sh.alimov@ssv.uz",
+      passwordHash: defaultPasswordHash,
       fullName: "Sherzod Alimov",
       role: "ADMIN_RECEPTION",
       polyclinicId: "TTB-ADMIN-01",
@@ -297,6 +326,7 @@ async function seedDemoData(): Promise<void> {
   const zulfiya = await prisma.patient.create({
     data: {
       id: "pat-zulfiya",
+      userId: patientUser.id,
       fullName: "Zulfiya Rustamova",
       jshshirEncrypted: encryptField(zulfiyaJshshir),
       jshshirMasked: maskJshshir(zulfiyaJshshir),
@@ -945,6 +975,4 @@ async function seedDemoData(): Promise<void> {
       },
     ],
   });
-
-  void patientUser;
 }

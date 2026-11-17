@@ -36,6 +36,16 @@ export interface PlatformUser {
   scheduleSlots: DoctorScheduleSlot[];
 }
 
+export interface AuthUserSummary {
+  userId: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+  polyclinicId: string | null;
+  polyclinicName: string | null;
+  district: string | null;
+}
+
 export interface PlatformEhrRecord {
   id: string;
   patientId: string;
@@ -172,13 +182,7 @@ export interface PlatformAuditLog {
 }
 
 export interface PlatformStatePayload {
-  actor: {
-    userId: string;
-    fullName: string;
-    role: UserRole;
-    polyclinicId: string | null;
-    district: string | null;
-  };
+  actor: AuthUserSummary;
   simState: {
     timeOffsetHours: number;
     simulatedNow: string;
@@ -190,19 +194,34 @@ export interface PlatformStatePayload {
   auditLogs: PlatformAuditLog[];
 }
 
-interface PlatformContextValue {
+export interface SignupInput {
+  fullName: string;
+  email: string;
+  password: string;
   role: UserRole;
+  phone?: string;
+  district?: string;
+  mahalla?: string;
+  address?: string;
+  dateOfBirth?: string;
+  bloodType?: string;
+}
+
+interface PlatformContextValue {
+  authUser: AuthUserSummary | null;
+  authChecked: boolean;
+  role: UserRole | null;
   userId: string | null;
-  clinicalTab: "ovabmu" | "family";
-  setClinicalTab: (tab: "ovabmu" | "family") => void;
   data: PlatformStatePayload | null;
   loading: boolean;
   simBusy: boolean;
   toast: { type: "success" | "error" | "info"; text: string } | null;
   showToast: (type: "success" | "error" | "info", text: string) => void;
   fetchWithAuth: (url: string, init?: RequestInit) => Promise<Response>;
-  refreshData: (overrideRole?: UserRole, overrideUserId?: string | null) => Promise<void>;
-  switchRole: (nextRole: UserRole, navigate?: boolean) => Promise<void>;
+  refreshData: () => Promise<void>;
+  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signup: (input: SignupInput) => Promise<{ ok: boolean; error?: string }>;
+  logout: () => Promise<void>;
   fastForwardTime: (hours: number) => Promise<void>;
   resetDemo: () => Promise<void>;
   dataLoadedAtMs: number;
@@ -212,9 +231,8 @@ const PlatformContext = createContext<PlatformContextValue | null>(null);
 
 export function PlatformProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [role, setRole] = useState<UserRole>("OVABMU_MD");
-  const [userId, setUserId] = useState<string | null>(null);
-  const [clinicalTab, setClinicalTab] = useState<"ovabmu" | "family">("ovabmu");
+  const [authUser, setAuthUser] = useState<AuthUserSummary | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
   const [data, setData] = useState<PlatformStatePayload | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [simBusy, setSimBusy] = useState<boolean>(false);
@@ -234,105 +252,167 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const fetchWithAuth = useCallback(
-    async (
-      url: string,
-      init?: RequestInit,
-      overrideRole?: UserRole,
-      overrideUserId?: string | null
-    ) => {
-      const effectiveRole = overrideRole ?? role;
-      const effectiveUser = overrideUserId !== undefined ? overrideUserId : userId;
-      const headers = new Headers(init?.headers || {});
-      headers.set("x-demo-role", effectiveRole);
-      if (effectiveUser) {
-        headers.set("x-demo-user-id", effectiveUser);
-      }
-      if (init?.body && !headers.has("Content-Type")) {
-        headers.set("Content-Type", "application/json");
-      }
-      return fetch(url, { ...init, headers, cache: "no-store" });
-    },
-    [role, userId]
-  );
+  const fetchWithAuth = useCallback(async (url: string, init?: RequestInit) => {
+    const headers = new Headers(init?.headers || {});
+    if (init?.body && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    return fetch(url, {
+      ...init,
+      headers,
+      credentials: "include",
+      cache: "no-store",
+    });
+  }, []);
 
-  const refreshData = useCallback(
-    async (overrideRole?: UserRole, overrideUserId?: string | null) => {
-      try {
-        const res = await fetchWithAuth(
-          "/api/platform",
-          undefined,
-          overrideRole,
-          overrideUserId
-        );
-        if (res.ok) {
-          const json = (await res.json()) as PlatformStatePayload;
-          setData(json);
-          setDataLoadedAtMs(Date.now());
-        }
-      } catch (err) {
-        console.error("Failed to refresh platform data:", err);
-      } finally {
-        setLoading(false);
+  const refreshData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchWithAuth("/api/platform");
+      if (res.status === 401) {
+        setAuthUser(null);
+        setData(null);
+        return;
       }
-    },
-    [fetchWithAuth]
-  );
+      if (res.ok) {
+        const json = (await res.json()) as PlatformStatePayload;
+        setAuthUser(json.actor);
+        setData(json);
+        setDataLoadedAtMs(Date.now());
+      }
+    } catch (err) {
+      console.error("Failed to refresh platform data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchWithAuth]);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/platform", {
-      headers: { "x-demo-role": "OVABMU_MD" },
-      cache: "no-store",
-    })
+    fetch("/api/auth/me", { credentials: "include", cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((json: PlatformStatePayload | null) => {
-        if (!cancelled && json) {
-          setData(json);
-          setDataLoadedAtMs(Date.now());
+      .then(
+        async (me: { authenticated: boolean; user: AuthUserSummary | null } | null) => {
+          if (cancelled) return;
+          if (me?.authenticated && me.user) {
+            setAuthUser(me.user);
+            setAuthChecked(true);
+            await refreshData();
+          } else {
+            setAuthUser(null);
+            setData(null);
+            setAuthChecked(true);
+            setLoading(false);
+          }
         }
-      })
-      .catch((err) => console.error("Initial load error:", err))
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      )
+      .catch((err) => {
+        console.error("Initial session check error:", err);
+        if (!cancelled) {
+          setAuthChecked(true);
+          setLoading(false);
+        }
       });
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshData]);
 
-  const switchRole = useCallback(
-    async (nextRole: UserRole, navigate = true) => {
-      setRole(nextRole);
-      const nextUserId =
-        nextRole === "OVABMU_MD"
-          ? "usr-ovabmu-1"
-          : nextRole === "FAMILY_MD"
-            ? "usr-family-tashkent"
-            : nextRole === "PATIENT"
-              ? "usr-patient-1"
-              : "usr-admin-1";
-      setUserId(nextUserId);
-      document.cookie = `patronaj_role=${nextRole}; path=/`;
-      document.cookie = `patronaj_user_id=${nextUserId}; path=/`;
-
-      if (nextRole === "OVABMU_MD") setClinicalTab("ovabmu");
-      if (nextRole === "FAMILY_MD") setClinicalTab("family");
-
-      await refreshData(nextRole, nextUserId);
-
-      if (navigate) {
-        if (nextRole === "OVABMU_MD" || nextRole === "FAMILY_MD") {
-          router.push("/clinical");
-        } else if (nextRole === "PATIENT") {
-          router.push("/patient");
-        } else {
-          router.push("/admin");
-        }
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+      const out = (await res.json()) as {
+        error?: string;
+        redirectTo?: string;
+        user?: {
+          id: string;
+          email: string;
+          fullName: string;
+          role: UserRole;
+          polyclinicId: string | null;
+          polyclinicName: string | null;
+          district: string | null;
+        };
+      };
+      if (!res.ok || !out.user) {
+        return { ok: false, error: out.error || "Sign in failed." };
       }
+      setAuthUser({
+        userId: out.user.id,
+        email: out.user.email,
+        fullName: out.user.fullName,
+        role: out.user.role,
+        polyclinicId: out.user.polyclinicId,
+        polyclinicName: out.user.polyclinicName,
+        district: out.user.district,
+      });
+      setAuthChecked(true);
+      await refreshData();
+      showToast("success", `Xush kelibsiz, ${out.user.fullName}!`);
+      router.push(out.redirectTo || "/");
+      return { ok: true };
     },
-    [refreshData, router]
+    [refreshData, router, showToast]
   );
+
+  const signup = useCallback(
+    async (input: SignupInput) => {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(input),
+      });
+      const out = (await res.json()) as {
+        error?: string;
+        redirectTo?: string;
+        user?: {
+          id: string;
+          email: string;
+          fullName: string;
+          role: UserRole;
+          polyclinicId: string | null;
+          polyclinicName: string | null;
+          district: string | null;
+        };
+      };
+      if (!res.ok || !out.user) {
+        return { ok: false, error: out.error || "Registration failed." };
+      }
+      setAuthUser({
+        userId: out.user.id,
+        email: out.user.email,
+        fullName: out.user.fullName,
+        role: out.user.role,
+        polyclinicId: out.user.polyclinicId,
+        polyclinicName: out.user.polyclinicName,
+        district: out.user.district,
+      });
+      setAuthChecked(true);
+      await refreshData();
+      showToast("success", `Hisob yaratildi: ${out.user.fullName}`);
+      router.push(out.redirectTo || "/");
+      return { ok: true };
+    },
+    [refreshData, router, showToast]
+  );
+
+  const logout = useCallback(async () => {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    setAuthUser(null);
+    setData(null);
+    showToast("info", "Tizimdan muvaffaqiyatli chiqdingiz.");
+    router.push("/");
+  }, [router, showToast]);
 
   const fastForwardTime = useCallback(
     async (hours: number) => {
@@ -373,19 +453,25 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
       });
       if (res.ok) {
         await refreshData();
-        showToast("success", "Demo ma'lumotlari va SLA vaqti boshlang'ich holatga qaytarildi.");
+        showToast(
+          "success",
+          "Demo ma'lumotlari va SLA vaqti boshlang'ich holatga qaytarildi."
+        );
       }
     } finally {
       setSimBusy(false);
     }
   }, [fetchWithAuth, refreshData, showToast]);
 
+  const role = authUser?.role ?? null;
+  const userId = authUser?.userId ?? null;
+
   const value = useMemo<PlatformContextValue>(
     () => ({
+      authUser,
+      authChecked,
       role,
       userId,
-      clinicalTab,
-      setClinicalTab,
       data,
       loading,
       simBusy,
@@ -393,15 +479,18 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
       showToast,
       fetchWithAuth,
       refreshData,
-      switchRole,
+      login,
+      signup,
+      logout,
       fastForwardTime,
       resetDemo,
       dataLoadedAtMs,
     }),
     [
+      authUser,
+      authChecked,
       role,
       userId,
-      clinicalTab,
       data,
       loading,
       simBusy,
@@ -409,7 +498,9 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
       showToast,
       fetchWithAuth,
       refreshData,
-      switchRole,
+      login,
+      signup,
+      logout,
       fastForwardTime,
       resetDemo,
       dataLoadedAtMs,

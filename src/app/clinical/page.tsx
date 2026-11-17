@@ -2,21 +2,20 @@
 
 import React, { useMemo, useState } from "react";
 import {
-  AlertTriangle,
-  Bell,
-  Bot,
-  Building2,
-  CheckCircle2,
-  ExternalLink,
-  FileCode2,
-  FlaskConical,
-  Lock,
-  Pill,
-  Plus,
-  Send,
-  ShieldAlert,
-  Stethoscope,
-} from "lucide-react";
+  IconAlertTriangle,
+  IconBell,
+  IconBuildingHospital,
+  IconCircleCheck,
+  IconExternalLink,
+  IconFileCode,
+  IconFlask,
+  IconLock,
+  IconPill,
+  IconPlus,
+  IconRobot,
+  IconSend,
+  IconStethoscope,
+} from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 import { VitalsTrendChart } from "@/components/VitalsTrendChart";
@@ -27,14 +26,11 @@ import type { AgentTraceStep } from "@/lib/types";
 export default function ClinicalDashboardPage() {
   const {
     role,
-    clinicalTab,
-    setClinicalTab,
     data,
     loading,
     fetchWithAuth,
     refreshData,
     showToast,
-    switchRole,
     dataLoadedAtMs,
   } = usePlatform();
 
@@ -71,6 +67,11 @@ export default function ClinicalDashboardPage() {
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? patients[0];
   const selectedCall = activeCalls.find((c) => c.id === selectedCallId) ?? activeCalls[0];
+  const selectedPatientCall = selectedPatient
+    ? activeCalls.find((c) => c.patientId === selectedPatient.id)
+    : undefined;
+
+  const isOvabmu = role === "OVABMU_MD";
 
   const handleTriggerDischarge = async (patientId: string) => {
     setDischarging(true);
@@ -179,75 +180,39 @@ export default function ClinicalDashboardPage() {
     }
   };
 
-  const isClinicalRestricted = role === "ADMIN_RECEPTION" || role === "PATIENT";
-
   return (
     <div className="space-y-5">
-      {/* Portal Sub-Header & Role Tabs */}
+      {/* Role-Specific Clinical Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4">
         <div>
           <h1 className="text-lg font-bold text-slate-900">
-            Clinical Dashboard &amp; AI Continuity Workspace
+            {isOvabmu
+              ? "OvaBMU Inpatient Discharge & AI Continuity Console"
+              : "Regional Family Doctor — 24h Aktiv Chaqiruv Workspace"}
           </h1>
           <p className="text-xs text-slate-500">
-            OvaBMU Inpatient Discharge (Javob berish) &amp; Regional Family Doctor 24h Aktiv Chaqiruv
+            {isOvabmu
+              ? "Manage inpatient maternal EHRs, trigger AI post-discharge patronage, and track handoffs"
+              : "Execute 24-hour home patronage checklists, record post-discharge vitals, and verify visits"}
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl bg-slate-100 p-1">
-          <button
-            onClick={() => setClinicalTab("ovabmu")}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-              clinicalTab === "ovabmu"
-                ? "bg-white text-slate-900 shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Building2 className="h-3.5 w-3.5 text-teal-600" />
-            OvaBMU Inpatient Doctor
-          </button>
-          <button
-            onClick={() => setClinicalTab("family")}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-              clinicalTab === "family"
-                ? "bg-white text-slate-900 shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Stethoscope className="h-3.5 w-3.5 text-teal-600" />
-            Regional Family Doctor ({activeCalls.filter((c) => c.status !== "COMPLETED").length})
-          </button>
+        <div className="inline-flex items-center gap-2 rounded-xl bg-teal-50 px-3.5 py-2 text-xs font-semibold text-teal-800 border border-teal-200">
+          {isOvabmu ? (
+            <>
+              <IconBuildingHospital className="h-4 w-4 text-teal-600" />
+              OvaBMU Inpatient Doctor ({patients.length} Patients)
+            </>
+          ) : (
+            <>
+              <IconStethoscope className="h-4 w-4 text-teal-600" />
+              Regional Family Doctor ({activeCalls.filter((c) => c.status !== "COMPLETED").length} Pending)
+            </>
+          )}
         </div>
       </div>
 
-      {/* RBAC Guard Warning if Judge visits /clinical while in Admin or Patient role */}
-      {isClinicalRestricted && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-900">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="h-4 w-4 text-amber-700 shrink-0" />
-            <span>
-              <strong>RBAC Active ({role}):</strong> Clinical notes and write actions are protected.
-              Switch to a medical role to discharge patients or verify home visits.
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => switchRole("OVABMU_MD", false)}
-              className="rounded-lg bg-slate-900 px-3 py-1.5 font-semibold text-white hover:bg-slate-800"
-            >
-              Switch to OvaBMU MD
-            </button>
-            <button
-              onClick={() => switchRole("FAMILY_MD", false)}
-              className="rounded-lg bg-teal-600 px-3 py-1.5 font-semibold text-white hover:bg-teal-700"
-            >
-              Switch to Family MD
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== TAB 1: OVABMU INPATIENT DOCTOR VIEW ==================== */}
-      {clinicalTab === "ovabmu" && (
+      {/* ==================== VIEW 1: OVABMU INPATIENT DOCTOR VIEW ==================== */}
+      {isOvabmu && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Left Patient Roster */}
           <div className="lg:col-span-4 space-y-2.5">
@@ -342,15 +307,40 @@ export default function ClinicalDashboardPage() {
                         disabled={discharging || role !== "OVABMU_MD"}
                         className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-xs font-bold text-white hover:bg-teal-700 shadow-sm disabled:opacity-50 shrink-0"
                       >
-                        <Bot className="h-4 w-4" />
+                        <IconRobot className="h-4 w-4" />
                         {discharging
                           ? "AI Agent ishlamoqda..."
                           : "Discharge & Trigger AI Patronage (Javob berish)"}
                       </button>
                     ) : (
-                      <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 border border-emerald-200">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                        Discharged • AI Patronage Active
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                          <IconCircleCheck className="h-4 w-4 text-emerald-600" />
+                          Discharged • AI Patronage Active
+                        </div>
+                        {selectedPatientCall && (
+                          <>
+                            <button
+                              onClick={() =>
+                                setTraceModal({
+                                  patientName: selectedPatient.fullName,
+                                  trace: selectedPatientCall.aiAgentTrace,
+                                })
+                              }
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              <IconRobot className="h-3.5 w-3.5 text-teal-600" />
+                              AI Trace
+                            </button>
+                            <button
+                              onClick={() => setFhirCallId(selectedPatientCall.id)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              <IconFileCode className="h-3.5 w-3.5 text-indigo-600" />
+                              FHIR
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -372,7 +362,7 @@ export default function ClinicalDashboardPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-teal-800 border border-teal-200">
-                            <Lock className="h-3 w-3" />
+                            <IconLock className="h-3 w-3" />
                             AES-256-GCM Encrypted
                           </span>
                           {ehr.dischargeDocumentKey && (
@@ -382,7 +372,7 @@ export default function ClinicalDashboardPage() {
                               rel="noreferrer"
                               className="inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-[11px] font-semibold text-teal-700 border border-slate-300 hover:bg-slate-100"
                             >
-                              <ExternalLink className="h-3 w-3" />
+                              <IconExternalLink className="h-3 w-3" />
                               S3 Archive Artifact
                             </a>
                           )}
@@ -423,7 +413,7 @@ export default function ClinicalDashboardPage() {
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                        <FlaskConical className="h-4 w-4 text-teal-600" />
+                        <IconFlask className="h-4 w-4 text-teal-600" />
                         OvaBMU Lab Panels
                       </h3>
                       <button
@@ -436,7 +426,7 @@ export default function ClinicalDashboardPage() {
                         disabled={orderingLab}
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
                       >
-                        <Plus className="h-3 w-3" />
+                        <IconPlus className="h-3 w-3" />
                         Order Follow-Up
                       </button>
                     </div>
@@ -482,14 +472,14 @@ export default function ClinicalDashboardPage() {
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                        <Pill className="h-4 w-4 text-teal-600" />
+                        <IconPill className="h-4 w-4 text-teal-600" />
                         Discharge E-Prescriptions
                       </h3>
                       <button
                         onClick={() => setRxFormOpen((v) => !v)}
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
                       >
-                        <Plus className="h-3 w-3" />
+                        <IconPlus className="h-3 w-3" />
                         Add Rx
                       </button>
                     </div>
@@ -565,8 +555,8 @@ export default function ClinicalDashboardPage() {
         </div>
       )}
 
-      {/* ==================== TAB 2: REGIONAL FAMILY DOCTOR VIEW ==================== */}
-      {clinicalTab === "family" && (
+      {/* ==================== VIEW 2: REGIONAL FAMILY DOCTOR VIEW ==================== */}
+      {!isOvabmu && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Left Aktiv Chaqiruv Queue */}
           <div className="lg:col-span-4 space-y-2.5">
@@ -617,7 +607,7 @@ export default function ClinicalDashboardPage() {
 
                   {call.symptomCheckins.some((s) => s.aiTriageLevel === "RED_EMERGENCY") && (
                     <div className="rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white flex items-center gap-1.5">
-                      <AlertTriangle className="h-3.5 w-3.5" />
+                      <IconAlertTriangle className="h-3.5 w-3.5" />
                       PATIENT REPORTED EMERGENCY SYMPTOMS
                     </div>
                   )}
@@ -630,7 +620,7 @@ export default function ClinicalDashboardPage() {
           <div className="lg:col-span-8">
             {!selectedCall ? (
               <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-                No Active Calls in your polyclinic scope. Discharge an inpatient in the OvaBMU view first!
+                No Active Calls in your polyclinic scope yet.
               </div>
             ) : (
               <div className="space-y-4">
@@ -686,14 +676,14 @@ export default function ClinicalDashboardPage() {
                         }
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                       >
-                        <Bot className="h-3.5 w-3.5 text-teal-600" />
+                        <IconRobot className="h-3.5 w-3.5 text-teal-600" />
                         AI Agent Trace
                       </button>
                       <button
                         onClick={() => setFhirCallId(selectedCall.id)}
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                       >
-                        <FileCode2 className="h-3.5 w-3.5 text-indigo-600" />
+                        <IconFileCode className="h-3.5 w-3.5 text-indigo-600" />
                         View HL7 FHIR Bundle
                       </button>
                     </div>
@@ -702,7 +692,7 @@ export default function ClinicalDashboardPage() {
                   {/* AI Top 3 Red Flags */}
                   <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-3.5">
                     <h3 className="text-xs font-bold uppercase tracking-wide text-rose-800 mb-1.5 flex items-center gap-1.5">
-                      <AlertTriangle className="h-3.5 w-3.5" />
+                      <IconAlertTriangle className="h-3.5 w-3.5" />
                       AI-Synthesized Clinical Red Flags (Risk Score: {selectedCall.riskScore}/100)
                     </h3>
                     <ul className="space-y-1 text-xs text-rose-900 list-disc pl-4">
@@ -728,7 +718,7 @@ export default function ClinicalDashboardPage() {
                         disabled={orderingLab}
                         className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800"
                       >
-                        <FlaskConical className="h-3.5 w-3.5" />
+                        <IconFlask className="h-3.5 w-3.5" />
                         1-Click Follow-Up Lab Order
                       </button>
                     </div>
@@ -780,7 +770,7 @@ export default function ClinicalDashboardPage() {
                     </h3>
                     {selectedCall.visitVerifiedAt && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <IconCircleCheck className="h-3.5 w-3.5" />
                         Verified ({selectedCall.verificationMethod})
                       </span>
                     )}
@@ -868,7 +858,7 @@ export default function ClinicalDashboardPage() {
                     disabled={verifying || selectedCall.status === "COMPLETED"}
                     className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-teal-700 disabled:opacity-50"
                   >
-                    <Send className="h-3.5 w-3.5" />
+                    <IconSend className="h-3.5 w-3.5" />
                     {selectedCall.status === "COMPLETED"
                       ? "Patronaj allaqachon tasdiqlangan"
                       : verifying
@@ -880,7 +870,7 @@ export default function ClinicalDashboardPage() {
                 {/* Telegram / SMS Notification Dispatch Log */}
                 <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5">
                   <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 flex items-center gap-1.5">
-                    <Bell className="h-3.5 w-3.5 text-teal-600" />
+                    <IconBell className="h-3.5 w-3.5 text-teal-600" />
                     Automated Telegram / SMS Alert Log
                   </h3>
                   {selectedCall.notificationLog.map((n) => (

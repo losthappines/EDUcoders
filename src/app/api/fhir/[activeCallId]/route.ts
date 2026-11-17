@@ -13,6 +13,12 @@ export async function GET(
     await ensureSeeded();
     const { activeCallId } = await params;
     const actor = await resolveActorContext(req);
+    if (!actor) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    if (actor.role === "PATIENT") {
+      return NextResponse.json({ error: "RBAC Denied" }, { status: 403 });
+    }
 
     const call = await prisma.activeCall.findUnique({
       where: { id: activeCallId },

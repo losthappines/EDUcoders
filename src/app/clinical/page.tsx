@@ -489,7 +489,12 @@ export default function ClinicalDashboardPage() {
                         onSubmit={handleAddRx}
                         className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3 space-y-2"
                       >
+                        <label htmlFor="rx-med" className="sr-only">
+                          Medication name
+                        </label>
                         <input
+                          id="rx-med"
+                          name="medicationName"
                           value={rxMed}
                           onChange={(e) => setRxMed(e.target.value)}
                           placeholder="Dori nomi"
@@ -497,14 +502,24 @@ export default function ClinicalDashboardPage() {
                           required
                         />
                         <div className="grid grid-cols-2 gap-2">
+                          <label htmlFor="rx-dose" className="sr-only">
+                            Dosage
+                          </label>
                           <input
+                            id="rx-dose"
+                            name="dosage"
                             value={rxDose}
                             onChange={(e) => setRxDose(e.target.value)}
                             placeholder="Doza"
                             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"
                             required
                           />
+                          <label htmlFor="rx-freq" className="sr-only">
+                            Frequency
+                          </label>
                           <input
+                            id="rx-freq"
+                            name="frequency"
                             value={rxFreq}
                             onChange={(e) => setRxFreq(e.target.value)}
                             placeholder="Davriyligi"
@@ -780,10 +795,12 @@ export default function ClinicalDashboardPage() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-sbp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                         Systolic BP
                       </label>
                       <input
+                        id="vitals-sbp"
+                        name="systolicBp"
                         type="number"
                         value={sbp}
                         onChange={(e) => setSbp(e.target.value)}
@@ -792,10 +809,12 @@ export default function ClinicalDashboardPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-dbp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                         Diastolic BP
                       </label>
                       <input
+                        id="vitals-dbp"
+                        name="diastolicBp"
                         type="number"
                         value={dbp}
                         onChange={(e) => setDbp(e.target.value)}
@@ -804,10 +823,12 @@ export default function ClinicalDashboardPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-hr" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                         Heart Rate
                       </label>
                       <input
+                        id="vitals-hr"
+                        name="heartRate"
                         type="number"
                         value={hr}
                         onChange={(e) => setHr(e.target.value)}
@@ -816,10 +837,12 @@ export default function ClinicalDashboardPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-temp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                         Temp (°C)
                       </label>
                       <input
+                        id="vitals-temp"
+                        name="tempC"
                         type="number"
                         step="0.1"
                         value={temp}
@@ -829,10 +852,12 @@ export default function ClinicalDashboardPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-spo2" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                         SpO2 (%)
                       </label>
                       <input
+                        id="vitals-spo2"
+                        name="spo2"
                         type="number"
                         value={spo2}
                         onChange={(e) => setSpo2(e.target.value)}
@@ -843,10 +868,12 @@ export default function ClinicalDashboardPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    <label htmlFor="vitals-notes" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                       Patronaj ko&apos;rigi xulosasi (Visit Notes)
                     </label>
                     <textarea
+                      id="vitals-notes"
+                      name="visitNotes"
                       rows={2}
                       value={visitNotes}
                       onChange={(e) => setVisitNotes(e.target.value)}

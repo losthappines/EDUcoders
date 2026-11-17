@@ -200,6 +200,7 @@ export interface SignupInput {
   password: string;
   role: UserRole;
   phone?: string;
+  region?: string;
   district?: string;
   mahalla?: string;
   address?: string;

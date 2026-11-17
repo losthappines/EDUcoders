@@ -13,12 +13,13 @@ import {
   IconSend,
   IconShieldCheck,
   IconUser,
-  IconWorld,
 } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
+import { useLanguage, type AppLang } from "@/context/LanguageContext";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 
-type Lang = "uz" | "ru" | "en";
+type Lang = AppLang;
 
 const COPY: Record<
   Lang,
@@ -92,7 +93,7 @@ const COPY: Record<
 export default function PatientPortalPage() {
   const { authUser, data, loading, fetchWithAuth, refreshData, showToast, dataLoadedAtMs } =
     usePlatform();
-  const [lang, setLang] = useState<Lang>("uz");
+  const { lang } = useLanguage();
 
   // Symptom form
   const [fever, setFever] = useState(false);
@@ -200,22 +201,7 @@ export default function PatientPortalPage() {
             <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.title}</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">{t.subtitle}</p>
           </div>
-          <div className="inline-flex items-center gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
-            <IconWorld className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400 ml-1.5" />
-            {(["uz", "ru", "en"] as Lang[]).map((code) => (
-              <button
-                key={code}
-                onClick={() => setLang(code)}
-                className={`rounded-lg px-2.5 py-1 text-xs font-bold uppercase transition ${
-                  lang === code
-                    ? "bg-teal-600 text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                }`}
-              >
-                {code}
-              </button>
-            ))}
-          </div>
+          <LanguageSwitcher />
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
@@ -394,10 +380,13 @@ export default function PatientPortalPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                  <label htmlFor="patient-bp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                     Blood Pressure (AQB)
                   </label>
                   <input
+                    id="patient-bp"
+                    name="bpReading"
+                    type="text"
                     value={bpReading}
                     onChange={(e) => setBpReading(e.target.value)}
                     placeholder="120/80"
@@ -405,10 +394,13 @@ export default function PatientPortalPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                  <label htmlFor="patient-notes" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                     Notes / Izoh
                   </label>
                   <input
+                    id="patient-notes"
+                    name="notes"
+                    type="text"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Holatingiz haqida..."
@@ -544,7 +536,15 @@ export default function PatientPortalPage() {
             ) : (
               <div className="space-y-2.5">
                 <div className="flex flex-col sm:flex-row gap-2">
+                  <label htmlFor="patient-otp" className="sr-only">
+                    4-digit visit OTP
+                  </label>
                   <input
+                    id="patient-otp"
+                    name="otp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
                     value={otpInput}
                     onChange={(e) => setOtpInput(e.target.value)}
                     placeholder={`4-digit OTP (e.g. ${call.patientOtpCode})`}

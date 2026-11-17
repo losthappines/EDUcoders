@@ -9,28 +9,38 @@ import {
 import type { UserRole } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
+  let body: { email?: unknown; password?: unknown };
+  try {
+    body = (await req.json()) as { email?: unknown; password?: unknown };
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request payload." },
+      { status: 400 }
+    );
+  }
+
+  const email =
+    typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const password = typeof body.password === "string" ? body.password : "";
+
+  if (!email || !password) {
+    return NextResponse.json(
+      { error: "Email and password are required." },
+      { status: 400 }
+    );
+  }
+
   try {
     await ensureSeeded();
+  } catch (seedError) {
+    console.warn("POST /api/auth/login ensureSeeded warning:", seedError);
+  }
 
-    const body = (await req.json()) as {
-      email?: string;
-      password?: string;
-    };
-
-    const email = (body.email || "").trim().toLowerCase();
-    const password = body.password || "";
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required." },
-        { status: 400 }
-      );
-    }
-
+  try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !verifyPassword(password, user.passwordHash)) {
       return NextResponse.json(
-        { error: "Invalid email or password." },
+        { error: "Incorrect email or password." },
         { status: 401 }
       );
     }
@@ -54,8 +64,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("POST /api/auth/login error:", error);
     return NextResponse.json(
-      { error: "Failed to sign in" },
-      { status: 500 }
+      { error: "Unable to sign in right now. Please try again." },
+      { status: 503 }
     );
   }
 }

@@ -8,6 +8,7 @@ import {
   VALID_ROLES,
 } from "@/lib/auth";
 import { encryptField, maskJshshir } from "@/lib/crypto";
+import { resolvePolyclinicForLocation } from "@/lib/uz-locations";
 import type {
   DoctorScheduleSlot,
   PatientGuide,
@@ -16,27 +17,36 @@ import type {
 } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
+  let body: {
+    fullName?: string;
+    email?: string;
+    password?: string;
+    role?: UserRole;
+    phone?: string;
+    region?: string;
+    district?: string;
+    mahalla?: string;
+    address?: string;
+    dateOfBirth?: string;
+    bloodType?: string;
+    jshshir?: string;
+    emergencyContact?: string;
+  };
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request payload." },
+      { status: 400 }
+    );
+  }
+
   try {
     await ensureSeeded();
 
-    const body = (await req.json()) as {
-      fullName?: string;
-      email?: string;
-      password?: string;
-      role?: UserRole;
-      phone?: string;
-      district?: string;
-      mahalla?: string;
-      address?: string;
-      dateOfBirth?: string;
-      bloodType?: string;
-      jshshir?: string;
-      emergencyContact?: string;
-    };
-
     const fullName = (body.fullName || "").trim();
     const email = (body.email || "").trim().toLowerCase();
-    const password = body.password || "";
+    const password = typeof body.password === "string" ? body.password : "";
     const role = body.role;
 
     if (fullName.length < 2) {
@@ -72,28 +82,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const district = (body.district || "Yunusobod").trim();
-    const isNamangan =
-      district.toLowerCase().includes("namangan") ||
-      district.toLowerCase().includes("davlatobod");
+    const region = (body.region || "").trim();
+    const rawDistrict = (body.district || "").trim();
+    const resolvedLocation = resolvePolyclinicForLocation(rawDistrict, region);
+    const district = rawDistrict
+      ? region && !rawDistrict.toLowerCase().includes(region.toLowerCase())
+        ? `${rawDistrict}, ${region}`
+        : rawDistrict
+      : region || "Yunusobod";
 
     const polyclinicId =
       role === "OVABMU_MD"
         ? "OVABMU-TSH-01"
         : role === "ADMIN_RECEPTION"
           ? "TTB-ADMIN-01"
-          : isNamangan
-            ? "OP-03-NAMANGAN"
-            : "OP-14-YUNUSOBOD";
+          : resolvedLocation.polyclinicId;
 
     const polyclinicName =
       role === "OVABMU_MD"
         ? "Respublika Ona va Bola Salomatligi Markazi (OvaBMU)"
         : role === "ADMIN_RECEPTION"
           ? "Tuman Tibbiyot Birlashmasi — Qabulxona va SLA Nazorati"
-          : isNamangan
-            ? "3-sonli Oilaviy Poliklinika (Davlatobod, Namangan)"
-            : "14-sonli Oilaviy Poliklinika (Yunusobod / Chilonzor)";
+          : resolvedLocation.polyclinicName;
 
     const defaultSlots: DoctorScheduleSlot[] =
       role === "FAMILY_MD"
@@ -105,7 +115,10 @@ export async function POST(req: NextRequest) {
         : [];
 
     const passwordHash = hashPassword(password);
-    const phone = (body.phone || "+998 90 500-11-22").trim();
+    const phone = (body.phone || "").trim();
+    const mahalla = (body.mahalla || "").trim();
+    const dateOfBirth = (body.dateOfBirth || "").trim();
+    const bloodType = (body.bloodType || "").trim() || "I don't know";
 
     const createdUser = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -158,18 +171,18 @@ export async function POST(req: NextRequest) {
             fullName,
             jshshirEncrypted: encryptField(rawJshshir),
             jshshirMasked: maskJshshir(rawJshshir),
-            dateOfBirth: body.dateOfBirth || "1996-05-15",
+            dateOfBirth,
             phone,
             district,
-            mahalla: (body.mahalla || "Markaziy MFY").trim(),
-            address: (body.address || `${district} tumani, asosiy ko'cha`).trim(),
-            bloodType: body.bloodType || "A(II) Rh+",
+            mahalla,
+            address: (body.address || `${district}${mahalla ? `, ${mahalla}` : ""}`).trim(),
+            bloodType,
             allergiesJson: JSON.stringify(["Ma'lumot kiritilmagan"]),
             polyclinicId,
             polyclinicName,
             assignedFamilyDoctorId: assignedDoc?.id ?? null,
             emergencyContact:
-              (body.emergencyContact || `Oila vakili • ${phone}`).trim(),
+              (body.emergencyContact || (phone ? `Oila vakili • ${phone}` : "Kiritilmagan")).trim(),
             status: "PATRONAGE_ACTIVE",
             dischargedAt: now,
           },

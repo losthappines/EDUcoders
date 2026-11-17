@@ -1,0 +1,204 @@
+// Strict ACID-compliant relational schema for Avtomatlashtirilgan Patronaj Tizimi
+// Configured for zero-config SQLite locally; swap provider to "postgresql" for production PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  fullName          String
+  role              String   // OVABMU_MD | FAMILY_MD | PATIENT | ADMIN_RECEPTION
+  polyclinicId      String?
+  polyclinicName    String?
+  district          String?
+  specialty         String?
+  phone             String?
+  telegramHandle    String?
+  scheduleSlotsJson String   @default("[]")
+  createdAt         DateTime @default(now())
+
+  assignedPatients       Patient[]      @relation("FamilyDoctorPatients")
+  authoredEhrs           EhrRecord[]    @relation("EhrAuthor")
+  orderedLabs            LabReport[]    @relation("LabOrderer")
+  writtenPrescriptions   Prescription[] @relation("PrescriptionAuthor")
+  dischargedCalls        ActiveCall[]   @relation("DischargingDoctor")
+  assignedCalls          ActiveCall[]   @relation("AssignedFamilyDoctor")
+
+  @@map("users")
+}
+
+model Patient {
+  id                     String   @id @default(cuid())
+  fullName               String
+  jshshirEncrypted       String
+  jshshirMasked          String
+  dateOfBirth            String
+  phone                  String
+  district               String
+  mahalla                String
+  address                String
+  bloodType              String
+  allergiesJson          String   @default("[]")
+  polyclinicId           String
+  polyclinicName         String
+  assignedFamilyDoctorId String?
+  assignedFamilyDoctor   User?    @relation("FamilyDoctorPatients", fields: [assignedFamilyDoctorId], references: [id])
+  emergencyContact       String
+  status                 String   @default("INPATIENT") // INPATIENT | PATRONAGE_ACTIVE | VISIT_COMPLETED
+  bedNumber              String?
+  admittedAt             DateTime @default(now())
+  dischargedAt           DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  ehrRecords    EhrRecord[]
+  labReports    LabReport[]
+  prescriptions Prescription[]
+  activeCalls   ActiveCall[]
+  invoices      Invoice[]
+
+  @@map("patients")
+}
+
+model EhrRecord {
+  id                     String   @id @default(cuid())
+  patientId              String
+  patient                Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  authorId               String
+  author                 User     @relation("EhrAuthor", fields: [authorId], references: [id])
+  recordType             String   // INPATIENT_SUMMARY | DISCHARGE_EPIKRIZ | POST_DISCHARGE_VITALS
+  diagnosisIcd10         String
+  diagnosisText          String
+  severity               String   // SEVERE | HIGH_RISK | MODERATE
+  clinicalNotesEncrypted String
+  vitalsJson             String
+  proceduresJson         String   @default("[]")
+  dischargeDocumentKey   String?
+  createdAt              DateTime @default(now())
+
+  @@map("ehr_records")
+}
+
+model LabReport {
+  id            String   @id @default(cuid())
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  orderedById   String
+  orderedBy     User     @relation("LabOrderer", fields: [orderedById], references: [id])
+  panelName     String
+  status        String   @default("COMPLETED") // COMPLETED | ORDERED_FOLLOWUP
+  resultsJson   String
+  attachmentKey String?
+  reportedAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@map("lab_reports")
+}
+
+model Prescription {
+  id                  String   @id @default(cuid())
+  patientId           String
+  patient             Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  prescribedById      String
+  prescribedBy        User     @relation("PrescriptionAuthor", fields: [prescribedById], references: [id])
+  medicationName      String
+  dosage              String
+  frequency           String
+  durationDays        Int
+  instructionsUz      String
+  instructionsRu      String
+  instructionsEn      String
+  pharmacyStockStatus String   @default("IN_STOCK") // IN_STOCK | LOW_STOCK | RESERVED
+  polyclinicPharmacy  String
+  adherenceLogsJson   String   @default("[]")
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now())
+
+  @@map("prescriptions")
+}
+
+model ActiveCall {
+  id                   String    @id @default(cuid())
+  patientId            String
+  patient              Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  dischargedById       String
+  dischargedBy         User      @relation("DischargingDoctor", fields: [dischargedById], references: [id])
+  assignedDoctorId     String
+  assignedDoctor       User      @relation("AssignedFamilyDoctor", fields: [assignedDoctorId], references: [id])
+  polyclinicName       String
+  district             String
+  status               String    @default("SCHEDULED") // SCHEDULED | ESCALATED_12H | CRITICAL_18H | COMPLETED
+  priority             String    @default("HIGH") // NORMAL | HIGH | CRITICAL
+  riskScore            Int
+  redFlagsJson         String
+  checklistJson        String
+  patientGuideJson     String
+  scheduledWindowStart DateTime
+  scheduledWindowEnd   DateTime
+  dischargedAt         DateTime
+  slaDeadlineAt        DateTime
+  escalationLevel      Int       @default(0) // 0: Green (<12h), 1: Yellow (12-18h), 2: Red (>18h)
+  symptomCheckinsJson  String    @default("[]")
+  doctorVitalsJson     String?
+  visitNotes           String?
+  patientOtpCode       String
+  visitVerifiedAt      DateTime?
+  verificationMethod   String?   // OTP_4DIGIT | ONE_TAP_PORTAL
+  aiAgentTraceJson     String    @default("[]")
+  notificationLogJson  String    @default("[]")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  invoices Invoice[]
+
+  @@map("active_calls")
+}
+
+model Invoice {
+  id                String     @id @default(cuid())
+  patientId         String
+  patient           Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  activeCallId      String
+  activeCall        ActiveCall @relation(fields: [activeCallId], references: [id], onDelete: Cascade)
+  itemCode          String
+  description       String
+  category          String     // STATE_GRANT | PAID_DIAGNOSTIC
+  amountUzs         Int
+  stateCoveredUzs   Int
+  patientPayableUzs Int
+  packageName       String
+  status            String     @default("COVERED_BY_STATE") // COVERED_BY_STATE | PAID | PENDING
+  createdAt         DateTime   @default(now())
+
+  @@map("invoices")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  actorId      String
+  actorName    String
+  actorRole    String
+  action       String   // VIEW_EHR | TRIGGER_DISCHARGE | AI_HANDOFF_CREATED | SLA_ESCALATED | VISIT_VERIFIED | SYMPTOM_ALERT | LAB_FOLLOWUP_ORDERED | VIEW_FHIR_BUNDLE | RBAC_DENIED
+  resourceType String
+  resourceId   String
+  ipAddress    String
+  detailsJson  String
+  createdAt    DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model SystemSimState {
+  id              String   @id @default("singleton")
+  timeOffsetHours Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  @@map("system_sim_state")
+}

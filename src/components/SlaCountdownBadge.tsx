@@ -31,8 +31,8 @@ export function SlaCountdownBadge({
 
   if (status === "COMPLETED") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800 border border-teal-200">
-        <IconCircleCheck className="h-3.5 w-3.5 text-teal-600" />
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+        <IconCircleCheck className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
         Patronaj tasdiqlandi
       </span>
     );
@@ -58,10 +58,10 @@ export function SlaCountdownBadge({
   const isYellow = !isRed && elapsedHours >= 12;
 
   const badgeStyle = isRed
-    ? "bg-rose-50 text-rose-700 border-rose-300"
+    ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800"
     : isYellow
-      ? "bg-amber-50 text-amber-800 border-amber-300"
-      : "bg-emerald-50 text-emerald-700 border-emerald-200";
+      ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+      : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800";
 
   const label = isOverdue
     ? "MUDDAT O'TGAN"

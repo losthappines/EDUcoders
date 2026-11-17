@@ -19,8 +19,50 @@ import type {
 
 let seedingPromise: Promise<void> | null = null;
 let backfillChecked = false;
+let schemaChecked = false;
+let schemaPromise: Promise<void> | null = null;
+
+async function ensureAuthSchemaColumns(): Promise<void> {
+  if (schemaChecked) return;
+  if (!schemaPromise) {
+    schemaPromise = (async () => {
+      try {
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "passwordHash" TEXT NOT NULL DEFAULT ''`
+        );
+        await prisma.$executeRawUnsafe(
+          `ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "userId" TEXT`
+        );
+        await prisma.$executeRawUnsafe(
+          `CREATE UNIQUE INDEX IF NOT EXISTS "patients_userId_key" ON "patients"("userId")`
+        );
+        await prisma.$executeRawUnsafe(`
+          DO $$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_constraint WHERE conname = 'patients_userId_fkey'
+            ) THEN
+              ALTER TABLE "patients"
+              ADD CONSTRAINT "patients_userId_fkey"
+              FOREIGN KEY ("userId") REFERENCES "users"("id")
+              ON DELETE SET NULL ON UPDATE CASCADE;
+            END IF;
+          END $$;
+        `);
+        schemaChecked = true;
+      } catch (err) {
+        // Ignore if already exists or handled by prisma db push
+        console.warn("ensureAuthSchemaColumns note:", err instanceof Error ? err.message : err);
+      } finally {
+        schemaPromise = null;
+      }
+    })();
+  }
+  await schemaPromise;
+}
 
 export async function ensureSeeded(): Promise<void> {
+  await ensureAuthSchemaColumns();
   const [userCount, patientCount] = await Promise.all([
     prisma.user.count(),
     prisma.patient.count(),

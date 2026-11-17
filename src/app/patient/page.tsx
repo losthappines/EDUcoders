@@ -185,7 +185,7 @@ export default function PatientPortalPage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
         Loading Patient Portal...
       </div>
     );
@@ -194,14 +194,14 @@ export default function PatientPortalPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       {/* Top Language & Personal Profile Banner */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h1 className="text-lg font-bold text-slate-900">{t.title}</h1>
-            <p className="text-xs text-slate-500">{t.subtitle}</p>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.title}</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{t.subtitle}</p>
           </div>
-          <div className="inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1">
-            <IconWorld className="h-3.5 w-3.5 text-slate-500 ml-1.5" />
+          <div className="inline-flex items-center gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+            <IconWorld className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400 ml-1.5" />
             {(["uz", "ru", "en"] as Lang[]).map((code) => (
               <button
                 key={code}
@@ -209,7 +209,7 @@ export default function PatientPortalPage() {
                 className={`rounded-lg px-2.5 py-1 text-xs font-bold uppercase transition ${
                   lang === code
                     ? "bg-teal-600 text-white"
-                    : "text-slate-600 hover:text-slate-900"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 {code}
@@ -218,13 +218,13 @@ export default function PatientPortalPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-          <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800">
-            <IconUser className="h-3.5 w-3.5 text-teal-600" />
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+            <IconUser className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
             {ownPatient?.fullName ?? authUser?.fullName}
           </span>
           {ownPatient && (
-            <span className="text-slate-500">
+            <span className="text-slate-500 dark:text-slate-400">
               {ownPatient.district}, {ownPatient.mahalla} • {ownPatient.polyclinicName}
             </span>
           )}
@@ -232,22 +232,22 @@ export default function PatientPortalPage() {
       </div>
 
       {!call ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
           Sizda hozircha faol uy patronaji tayinlanmagan.
         </div>
       ) : (
         <>
           {/* Assigned Family Doctor & 24h SLA Window */}
-          <section className="rounded-2xl border border-teal-200 bg-teal-50/50 p-4 space-y-3">
+          <section className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/30 p-4 space-y-3">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-teal-700">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
                   {t.doctorTitle}
                 </p>
-                <h2 className="text-base font-bold text-slate-900 mt-0.5">
+                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">
                   {call.assignedDoctor.fullName}
                 </h2>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-slate-600 dark:text-slate-300">
                   {call.polyclinicName} • {call.assignedDoctor.phone}
                 </p>
               </div>
@@ -261,10 +261,10 @@ export default function PatientPortalPage() {
                 />
               )}
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white p-3 border border-teal-100 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white dark:bg-slate-900 p-3 border border-teal-100 dark:border-teal-900 text-xs text-slate-700 dark:text-slate-300">
               <span>
                 Scheduled Visit Window:{" "}
-                <strong>
+                <strong className="text-slate-900 dark:text-slate-100">
                   {new Date(call.scheduledWindowStart).toLocaleTimeString("en-GB", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -276,7 +276,7 @@ export default function PatientPortalPage() {
                   })}
                 </strong>
               </span>
-              <span className="inline-flex items-center gap-1.5 font-mono font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200">
+              <span className="inline-flex items-center gap-1.5 font-mono font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 rounded-lg border border-teal-200 dark:border-teal-800">
                 <IconKey className="h-3.5 w-3.5" />
                 Visit OTP: {call.patientOtpCode}
               </span>
@@ -284,12 +284,12 @@ export default function PatientPortalPage() {
           </section>
 
           {/* AI Home Care Guide */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <IconShieldCheck className="h-4 w-4 text-teal-600" />
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <IconShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               {t.guideTitle}
             </h2>
-            <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 rounded-xl p-3 border border-slate-200">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
               {lang === "ru"
                 ? call.patientGuide.summaryRu
                 : lang === "en"
@@ -298,7 +298,7 @@ export default function PatientPortalPage() {
             </p>
 
             <div>
-              <h3 className="text-xs font-bold text-slate-700 mb-1.5">{t.rulesTitle}</h3>
+              <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">{t.rulesTitle}</h3>
               <ul className="space-y-1.5">
                 {(lang === "ru"
                   ? call.patientGuide.dailyRulesRu
@@ -308,21 +308,21 @@ export default function PatientPortalPage() {
                 )?.map((rule, idx) => (
                   <li
                     key={idx}
-                    className="flex items-start gap-2 text-xs text-slate-700"
+                    className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300"
                   >
-                    <IconCircleCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <IconCircleCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                     <span>{rule}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3">
-              <h3 className="text-xs font-bold text-rose-800 mb-1.5 flex items-center gap-1.5">
+            <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/70 dark:bg-rose-950/40 p-3">
+              <h3 className="text-xs font-bold text-rose-800 dark:text-rose-300 mb-1.5 flex items-center gap-1.5">
                 <IconPhoneCall className="h-3.5 w-3.5" />
                 {t.dangerTitle}
               </h3>
-              <ul className="space-y-1 text-xs text-rose-900 list-disc pl-4">
+              <ul className="space-y-1 text-xs text-rose-900 dark:text-rose-200 list-disc pl-4">
                 {(lang === "ru"
                   ? call.patientGuide.emergencySignsRu
                   : lang === "en"
@@ -336,9 +336,9 @@ export default function PatientPortalPage() {
           </section>
 
           {/* AI Home Symptom Check-in */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <IconHeartbeat className="h-4 w-4 text-rose-600" />
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <IconHeartbeat className="h-4 w-4 text-rose-600 dark:text-rose-400" />
               {t.checkinTitle}
             </h2>
             <form onSubmit={handleSymptomSubmit} className="space-y-3">
@@ -375,17 +375,17 @@ export default function PatientPortalPage() {
                 ].map((sym, i) => (
                   <label
                     key={i}
-                    className={`flex items-center gap-2.5 rounded-xl border p-3 text-xs font-medium cursor-pointer ${
+                    className={`flex items-center gap-2.5 rounded-xl border p-3 text-xs font-medium cursor-pointer transition ${
                       sym.checked
-                        ? "border-rose-400 bg-rose-50 text-rose-900"
-                        : "border-slate-200 bg-slate-50 text-slate-700"
+                        ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={sym.checked}
                       onChange={(e) => sym.set(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-rose-600"
+                      className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-rose-600"
                     />
                     <span>{lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}</span>
                   </label>
@@ -394,25 +394,25 @@ export default function PatientPortalPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                     Blood Pressure (AQB)
                   </label>
                   <input
                     value={bpReading}
                     onChange={(e) => setBpReading(e.target.value)}
                     placeholder="120/80"
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 font-mono text-xs"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono text-xs text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                     Notes / Izoh
                   </label>
                   <input
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Holatingiz haqida..."
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
                   />
                 </div>
               </div>
@@ -420,7 +420,7 @@ export default function PatientPortalPage() {
               <button
                 type="submit"
                 disabled={submittingSym}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-teal-600 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50 transition"
               >
                 <IconSend className="h-3.5 w-3.5" />
                 {submittingSym ? "AI tahlil qilmoqda..." : t.checkinBtn}
@@ -428,16 +428,16 @@ export default function PatientPortalPage() {
             </form>
 
             {call.symptomCheckins.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-slate-100">
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 {call.symptomCheckins.map((sc) => (
                   <div
                     key={sc.id}
                     className={`rounded-xl border p-3 text-xs ${
                       sc.aiTriageLevel === "RED_EMERGENCY"
-                        ? "border-rose-300 bg-rose-50 text-rose-900"
+                        ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
                         : sc.aiTriageLevel === "YELLOW"
-                          ? "border-amber-300 bg-amber-50 text-amber-900"
-                          : "border-emerald-200 bg-emerald-50 text-emerald-900"
+                          ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
+                          : "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200"
                     }`}
                   >
                     <div className="flex items-center justify-between font-bold mb-1">
@@ -466,21 +466,21 @@ export default function PatientPortalPage() {
           </section>
 
           {/* Active E-Prescriptions & Adherence */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <IconPill className="h-4 w-4 text-teal-600" />
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               {t.rxTitle}
             </h2>
             {call.patient.prescriptions.map((rx) => (
               <div
                 key={rx.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 p-3"
               >
                 <div>
-                  <p className="text-xs font-bold text-slate-900">
+                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
                     {rx.medicationName} — {rx.dosage}
                   </p>
-                  <p className="text-[11px] text-slate-600">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300">
                     {rx.frequency} •{" "}
                     {lang === "ru"
                       ? rx.instructionsRu
@@ -488,13 +488,13 @@ export default function PatientPortalPage() {
                         ? rx.instructionsEn
                         : rx.instructionsUz}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                     Logged doses: {rx.adherenceLogs.length}
                   </p>
                 </div>
                 <button
                   onClick={() => handleAdherence(rx.id)}
-                  className="inline-flex items-center gap-1 rounded-lg bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800 border border-teal-200 hover:bg-teal-100"
+                  className="inline-flex items-center gap-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 px-3 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/60"
                 >
                   <IconCheck className="h-3.5 w-3.5" />
                   {t.takenBtn}
@@ -504,24 +504,24 @@ export default function PatientPortalPage() {
           </section>
 
           {/* Discharge Lab Results */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <IconFlask className="h-4 w-4 text-teal-600" />
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <IconFlask className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               {t.labsTitle}
             </h2>
             {call.patient.labReports.map((lab) => (
-              <div key={lab.id} className="rounded-xl border border-slate-200 p-3 space-y-1.5">
-                <p className="text-xs font-bold text-slate-800">{lab.panelName}</p>
+              <div key={lab.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-1.5">
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{lab.panelName}</p>
                 {lab.results.map((r, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between text-xs py-1 border-b border-slate-100 last:border-0"
+                    className="flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0"
                   >
-                    <span className="text-slate-600">{r.testName}</span>
-                    <span className="font-mono font-bold text-slate-900">
+                    <span className="text-slate-600 dark:text-slate-300">{r.testName}</span>
+                    <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
                       {r.value} {r.unit}{" "}
                       {r.flag !== "NORMAL" && (
-                        <span className="ml-1 text-[10px] text-rose-600">({r.flag})</span>
+                        <span className="ml-1 text-[10px] text-rose-600 dark:text-rose-400">({r.flag})</span>
                       )}
                     </span>
                   </div>
@@ -531,11 +531,11 @@ export default function PatientPortalPage() {
           </section>
 
           {/* 4-Digit OTP / 1-Tap Visit Confirmation */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-            <h2 className="text-sm font-bold text-slate-900">{t.confirmTitle}</h2>
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">{t.confirmTitle}</h2>
             {call.status === "COMPLETED" ? (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800 flex items-center gap-2">
-                <IconCircleCheck className="h-4 w-4 text-emerald-600" />
+              <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                <IconCircleCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 Visit Confirmed ({call.verificationMethod}) at{" "}
                 {call.visitVerifiedAt
                   ? new Date(call.visitVerifiedAt).toLocaleString("en-GB")
@@ -549,7 +549,7 @@ export default function PatientPortalPage() {
                     onChange={(e) => setOtpInput(e.target.value)}
                     placeholder={`4-digit OTP (e.g. ${call.patientOtpCode})`}
                     maxLength={4}
-                    className="flex-1 rounded-xl border border-slate-300 px-3 py-2 font-mono text-xs"
+                    className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
                   />
                   <button
                     onClick={() => handleConfirmVisit("OTP_4DIGIT")}
@@ -562,7 +562,7 @@ export default function PatientPortalPage() {
                 <button
                   onClick={() => handleConfirmVisit("ONE_TAP_PORTAL")}
                   disabled={confirming}
-                  className="w-full rounded-xl border border-teal-600 bg-teal-50 py-2.5 text-xs font-bold text-teal-800 hover:bg-teal-100 disabled:opacity-50"
+                  className="w-full rounded-xl border border-teal-600 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/50 py-2.5 text-xs font-bold text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 disabled:opacity-50"
                 >
                   {t.oneTapBtn}
                 </button>

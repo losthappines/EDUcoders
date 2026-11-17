@@ -10,7 +10,7 @@ interface VitalsTrendChartProps {
 export function VitalsTrendChart({ records }: VitalsTrendChartProps) {
   if (!records || records.length === 0) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-500">
+      <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-4 text-xs text-slate-500 dark:text-slate-400">
         Vital ko&apos;rsatkichlar hali kiritilmagan.
       </div>
     );
@@ -58,12 +58,12 @@ export function VitalsTrendChart({ records }: VitalsTrendChartProps) {
     .join(" ");
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
           Statsionar vs. Uy Patronaji Vital Dinamikasi
         </h4>
-        <div className="flex items-center gap-3 text-[11px] font-medium text-slate-600">
+        <div className="flex items-center gap-3 text-[11px] font-medium text-slate-600 dark:text-slate-300">
           <span className="inline-flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-rose-600" /> SBP
           </span>
@@ -91,11 +91,11 @@ export function VitalsTrendChart({ records }: VitalsTrendChartProps) {
                 y1={y}
                 x2={width - padX}
                 y2={y}
-                stroke={tick === 140 ? "#fda4af" : "#e2e8f0"}
+                className={tick === 140 ? "stroke-rose-300 dark:stroke-rose-700" : "stroke-slate-200 dark:stroke-slate-700"}
                 strokeDasharray={tick === 140 ? "4 3" : undefined}
                 strokeWidth="1"
               />
-              <text x={4} y={y + 4} fontSize="10" fill="#64748b" className="font-mono">
+              <text x={4} y={y + 4} fontSize="10" className="font-mono fill-slate-500 dark:fill-slate-400">
                 {tick}
               </text>
             </g>
@@ -113,7 +113,7 @@ export function VitalsTrendChart({ records }: VitalsTrendChartProps) {
               <circle cx={x} cy={toY(p.vitals.systolicBp)} r="4" fill="#e11d48" stroke="#fff" strokeWidth="1.5" />
               <circle cx={x} cy={toY(p.vitals.diastolicBp)} r="3.5" fill="#f59e0b" stroke="#fff" strokeWidth="1.5" />
               <circle cx={x} cy={toY(p.vitals.heartRate)} r="3.5" fill="#0d9488" stroke="#fff" strokeWidth="1.5" />
-              <text x={x} y={height - 2} textAnchor="middle" fontSize="10" fill="#475569">
+              <text x={x} y={height - 2} textAnchor="middle" fontSize="10" className="fill-slate-600 dark:fill-slate-400">
                 {p.label}
               </text>
             </g>

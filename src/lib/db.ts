@@ -37,6 +37,13 @@ function isPostgresUrl(val: string | undefined): val is string {
   );
 }
 
+function normalizeRuntimePostgresUrl(url: string): string {
+  if (url.includes(":6543") && !/[?&]pgbouncer=true\b/i.test(url)) {
+    return `${url}${url.includes("?") ? "&" : "?"}pgbouncer=true`;
+  }
+  return url;
+}
+
 export function getDatabaseConfigInfo(): {
   url: string | undefined;
   envKey: string | null;
@@ -44,8 +51,10 @@ export function getDatabaseConfigInfo(): {
   detectedKeys: string[];
 } {
   const detectedKeys = Object.entries(process.env)
-    .filter(([key]) =>
-      /(DATABASE|POSTGRES|PRISMA|NEON|SUPABASE|STORAGE)/i.test(key)
+    .filter(
+      ([key]) =>
+        /(DATABASE|POSTGRES|PRISMA|NEON|SUPABASE)/i.test(key) &&
+        !/OBJECT_STORAGE/i.test(key)
     )
     .map(([key, raw]) => {
       const cleaned = cleanEnvValue(raw);
@@ -58,14 +67,24 @@ export function getDatabaseConfigInfo(): {
   for (const key of KNOWN_DB_ENV_KEYS) {
     const val = cleanEnvValue(process.env[key]);
     if (isPostgresUrl(val)) {
-      return { url: val, envKey: key, isPostgres: true, detectedKeys };
+      return {
+        url: normalizeRuntimePostgresUrl(val),
+        envKey: key,
+        isPostgres: true,
+        detectedKeys,
+      };
     }
   }
 
   for (const [key, raw] of Object.entries(process.env)) {
     const val = cleanEnvValue(raw);
     if (isPostgresUrl(val)) {
-      return { url: val, envKey: key, isPostgres: true, detectedKeys };
+      return {
+        url: normalizeRuntimePostgresUrl(val),
+        envKey: key,
+        isPostgres: true,
+        detectedKeys,
+      };
     }
   }
 

@@ -1,11 +1,19 @@
 import { execSync } from "node:child_process";
 
-const dbUrl = process.env.DATABASE_URL || "";
+const dbUrl =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.NEON_DATABASE_URL ||
+  "";
 
 if (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://")) {
-  console.log("[sync-db] PostgreSQL DATABASE_URL detected. Running prisma db push...");
+  console.log("[sync-db] PostgreSQL URL detected. Running prisma db push...");
   try {
-    execSync("npx prisma db push --skip-generate", { stdio: "inherit" });
+    execSync("npx prisma db push --skip-generate", {
+      stdio: "inherit",
+      env: { ...process.env, DATABASE_URL: dbUrl },
+    });
     console.log("[sync-db] Database schema is in sync.");
   } catch (err) {
     console.warn(
@@ -14,5 +22,5 @@ if (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://")) {
     );
   }
 } else {
-  console.log("[sync-db] Skipping prisma db push (non-PostgreSQL or local build environment).");
+  console.log("[sync-db] Skipping prisma db push (no PostgreSQL URL in build env).");
 }

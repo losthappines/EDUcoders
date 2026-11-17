@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "OnaCare AI — Automated Maternal Patronage & 24h Continuity of Care";
+  "OnaCare — Tug'ruqdan keyingi 24 soatlik uy patronaji va onalarga g'amxo'rlik";
 export const size = {
   width: 1200,
   height: 630,
@@ -54,9 +54,9 @@ export default function OpenGraphImage() {
               flexDirection: "column",
             }}
           >
-            <span style={{ fontSize: "28px", fontWeight: 700 }}>OnaCare AI</span>
+            <span style={{ fontSize: "28px", fontWeight: 700 }}>OnaCare</span>
             <span style={{ fontSize: "16px", color: "#99f6e4" }}>
-              Automated Maternal Patronage System • Uzbekistan
+              Onalar va chaqaloqlar uchun uyda tibbiy g&apos;amxo&apos;rlik • O&apos;zbekiston
             </span>
           </div>
         </div>
@@ -71,13 +71,13 @@ export default function OpenGraphImage() {
         >
           <div
             style={{
-              fontSize: "58px",
+              fontSize: "52px",
               fontWeight: 800,
-              lineHeight: 1.1,
+              lineHeight: 1.15,
               letterSpacing: "-0.02em",
             }}
           >
-            Zero-Gap 24-Hour Hospital-to-Polyclinic Continuity of Care
+            Tug&apos;ruqdan keyin uyga qaytyapsizmi? 24 soat ichida shifokor sizni ko&apos;radi.
           </div>
           <div
             style={{
@@ -86,8 +86,7 @@ export default function OpenGraphImage() {
               lineHeight: 1.4,
             }}
           >
-            Role-isolated portals for Patients, OvaBMU Doctors, Family Doctors,
-            and District Admins with HL7 FHIR R4 handoffs and AI triage.
+            Tug&apos;ruqxona natijalaringiz oilaviy shifokoringizga yuboriladi, uyga tashrif belgilanadi va kunlik holatingiz nazorat qilinadi.
           </div>
         </div>
 
@@ -107,7 +106,7 @@ export default function OpenGraphImage() {
               border: "1px solid rgba(94, 234, 212, 0.4)",
             }}
           >
-            24h SLA Dispatch
+            24 soatda uyga tashrif
           </span>
           <span
             style={{
@@ -117,7 +116,7 @@ export default function OpenGraphImage() {
               border: "1px solid rgba(94, 234, 212, 0.4)",
             }}
           >
-            UZ / RU / EN Guides
+            O&apos;zbekcha / Ruscha / Inglizcha
           </span>
           <span
             style={{
@@ -127,7 +126,7 @@ export default function OpenGraphImage() {
               border: "1px solid rgba(94, 234, 212, 0.4)",
             }}
           >
-            OTP Visit Verification
+            Maxfiy va shifrlangan
           </span>
         </div>
       </div>

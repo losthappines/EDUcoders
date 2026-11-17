@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { IconAlertTriangle, IconCircleCheck, IconClock } from "@tabler/icons-react";
+import { useLanguage, type AppLang } from "@/context/LanguageContext";
 
 interface SlaCountdownBadgeProps {
   dischargedAt: string;
@@ -10,7 +11,45 @@ interface SlaCountdownBadgeProps {
   dataLoadedAtMs: number;
   status: string;
   compact?: boolean;
+  plainMode?: boolean;
 }
+
+const BADGE_COPY: Record<
+  AppLang,
+  {
+    completed: string;
+    overdue: string;
+    critical: string;
+    warning: string;
+    okPlain: string;
+    okClinical: string;
+  }
+> = {
+  uz: {
+    completed: "Tashrif tasdiqlandi",
+    overdue: "Muddat o'tgan",
+    critical: "Zudlik bilan (>18 soat)",
+    warning: "Yaqinlashmoqda (12–18 soat)",
+    okPlain: "Reja bo'yicha (<12 soat)",
+    okClinical: "Muddatda <12h",
+  },
+  ru: {
+    completed: "Визит подтвержден",
+    overdue: "Срок истек",
+    critical: "Срочно (>18 ч)",
+    warning: "Скоро (>12 ч)",
+    okPlain: "По графику (<12 ч)",
+    okClinical: "В норме <12ч",
+  },
+  en: {
+    completed: "Visit confirmed",
+    overdue: "Overdue",
+    critical: "Urgent (>18h)",
+    warning: "Soon (12–18h)",
+    okPlain: "On schedule (<12h)",
+    okClinical: "On track <12h",
+  },
+};
 
 export function SlaCountdownBadge({
   dischargedAt,
@@ -19,7 +58,10 @@ export function SlaCountdownBadge({
   dataLoadedAtMs,
   status,
   compact = false,
+  plainMode = false,
 }: SlaCountdownBadgeProps) {
+  const { lang } = useLanguage();
+  const t = BADGE_COPY[lang];
   const [realNowMs, setRealNowMs] = useState<number>(() => dataLoadedAtMs || 0);
 
   useEffect(() => {
@@ -33,7 +75,7 @@ export function SlaCountdownBadge({
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
         <IconCircleCheck className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-        Patronaj tasdiqlandi
+        {t.completed}
       </span>
     );
   }
@@ -64,12 +106,14 @@ export function SlaCountdownBadge({
       : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800";
 
   const label = isOverdue
-    ? "MUDDAT O'TGAN"
+    ? t.overdue
     : isRed
-      ? "KRITIK >18h"
+      ? t.critical
       : isYellow
-        ? "OGOHLANTIRISH 12–18h"
-        : "SLA OK <12h";
+        ? t.warning
+        : plainMode
+          ? t.okPlain
+          : t.okClinical;
 
   return (
     <div
@@ -83,7 +127,7 @@ export function SlaCountdownBadge({
       <span className="font-mono tabular-nums tracking-tight">
         {isOverdue ? "00:00:00" : `${hh}:${mm}:${ss}`}
       </span>
-      {!compact && <span className="opacity-80">• {label}</span>}
+      {!compact && <span className="opacity-85">• {label}</span>}
     </div>
   );
 }

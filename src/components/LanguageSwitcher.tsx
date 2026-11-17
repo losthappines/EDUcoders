@@ -4,10 +4,10 @@ import React from "react";
 import { IconWorld } from "@tabler/icons-react";
 import { type AppLang, useLanguage } from "@/context/LanguageContext";
 
-const LANG_OPTIONS: Array<{ code: AppLang; label: string }> = [
-  { code: "en", label: "EN" },
-  { code: "uz", label: "UZ" },
-  { code: "ru", label: "RU" },
+const LANG_OPTIONS: Array<{ code: AppLang; label: string; title: string }> = [
+  { code: "uz", label: "UZ", title: "O'zbekcha" },
+  { code: "ru", label: "RU", title: "Русский" },
+  { code: "en", label: "EN", title: "English" },
 ];
 
 export function LanguageSwitcher({ className = "" }: { className?: string }) {
@@ -26,6 +26,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
           <button
             key={opt.code}
             type="button"
+            title={opt.title}
             onClick={() => setLang(opt.code)}
             aria-pressed={active}
             className={`rounded-lg px-2 py-1 text-[11px] font-bold uppercase transition ${

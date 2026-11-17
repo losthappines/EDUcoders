@@ -16,6 +16,7 @@ interface SearchableComboboxProps {
   disabled?: boolean;
   allowCustom?: boolean;
   emptyText?: string;
+  customHint?: string;
 }
 
 export function SearchableCombobox({
@@ -31,6 +32,7 @@ export function SearchableCombobox({
   disabled = false,
   allowCustom = false,
   emptyText = "No matches found",
+  customHint = "keep typing to use custom entry",
 }: SearchableComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -157,7 +159,7 @@ export function SearchableCombobox({
         >
           {filteredOptions.length === 0 ? (
             <li className="px-3 py-2 text-slate-500 dark:text-slate-400">
-              {allowCustom ? `${emptyText} — keep typing to use custom entry` : emptyText}
+              {allowCustom ? `${emptyText} — ${customHint}` : emptyText}
             </li>
           ) : (
             filteredOptions.map((opt) => {

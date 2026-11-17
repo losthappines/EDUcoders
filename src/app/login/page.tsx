@@ -18,29 +18,66 @@ import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage, type AppLang } from "@/context/LanguageContext";
 import { PublicHeader } from "@/components/PublicHeader";
 
-const DEMO_ACCOUNTS = [
+const DEMO_ACCOUNTS: Array<{
+  email: string;
+  label: Record<AppLang, string>;
+  sub: Record<AppLang, string>;
+  icon: React.ReactNode;
+}> = [
   {
-    label: "Discharged Patient",
-    sub: "Zulfiya Rustamova • /patient only",
     email: "zulfiya.rustamova@patient.uz",
+    label: {
+      uz: "Uyga chiqqan ona (Bemor)",
+      ru: "Выписанная мама (Пациент)",
+      en: "New Mother (Patient)",
+    },
+    sub: {
+      uz: "Zulfiya Rustamova • Shaxsiy kabinet",
+      ru: "Зульфия Рустамова • Личный кабинет",
+      en: "Zulfiya Rustamova • Personal portal",
+    },
     icon: <IconUser className="h-4 w-4 text-teal-700 dark:text-teal-400" />,
   },
   {
-    label: "OvaBMU Doctor",
-    sub: "Dr. Aziza Rahimova • /clinical",
     email: "a.rahimova@ovabmu.uz",
+    label: {
+      uz: "Tug'ruqxona shifokori",
+      ru: "Врач роддома",
+      en: "Hospital Doctor",
+    },
+    sub: {
+      uz: "Dr. Aziza Rahimova • Shifokor kabineti",
+      ru: "Д-р Азиза Рахимова • Кабинет врача",
+      en: "Dr. Aziza Rahimova • Doctor workspace",
+    },
     icon: <IconBuildingHospital className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />,
   },
   {
-    label: "Regional Family Doctor",
-    sub: "Dr. Dilnoza Toshmatova • /clinical",
     email: "d.toshmatova@op14.uz",
+    label: {
+      uz: "Hududiy oilaviy shifokor",
+      ru: "Участковый семейный врач",
+      en: "Local Family Doctor",
+    },
+    sub: {
+      uz: "Dr. Dilnoza Toshmatova • Uy tashriflari",
+      ru: "Д-р Дильноза Тошматова • Визиты на дом",
+      en: "Dr. Dilnoza Toshmatova • Home visits",
+    },
     icon: <IconStethoscope className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />,
   },
   {
-    label: "District Admin",
-    sub: "Sherzod Alimov • /admin",
     email: "sh.alimov@ssv.uz",
+    label: {
+      uz: "Poliklinika koordinatori",
+      ru: "Координатор клиники",
+      en: "Clinic Coordinator",
+    },
+    sub: {
+      uz: "Sherzod Alimov • Tashriflar nazorati",
+      ru: "Шерзод Алимов • Контроль визитов",
+      en: "Sherzod Alimov • Visit oversight",
+    },
     icon: <IconShieldCheck className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
   },
 ];
@@ -52,7 +89,10 @@ const COPY: Record<
     title: string;
     subtitle: string;
     emailLabel: string;
+    emailPlaceholder: string;
     passwordLabel: string;
+    passwordPlaceholder: string;
+    togglePw: string;
     forgotPassword: string;
     submit: string;
     submitting: string;
@@ -60,55 +100,68 @@ const COPY: Record<
     createAccount: string;
     demoTitle: string;
     demoSub: string;
+    defaultError: string;
   }
 > = {
-  en: {
-    badge: "Role-Isolated Secure Sign In",
-    title: "Sign In to Your OnaCare AI Portal",
-    subtitle:
-      "You will be routed strictly to your authorized portal (Patient, Doctor, or Admin).",
-    emailLabel: "Email Address",
-    passwordLabel: "Password",
-    forgotPassword: "Forgot password?",
-    submit: "Sign In",
-    submitting: "Signing in...",
-    newHere: "New to OnaCare AI?",
-    createAccount: "Create an account",
-    demoTitle: "Demo Portal Accounts",
-    demoSub:
-      "Click any seeded account below to sign in via real authentication (password: Demo1234!) and test its isolated portal.",
-  },
   uz: {
-    badge: "Rolga ajratilgan xavfsiz kirish",
-    title: "OnaCare AI Portaliga Kirish",
+    badge: "Shaxsiy va himoyalangan kirish",
+    title: "OnaCare kabinetingizga kiring",
     subtitle:
-      "Siz faqat o'zingizga biriktirilgan portalga (Bemor, Shifokor yoki Admin) yo'naltirilasiz.",
+      "Siz faqat o'zingizga tegishli kabinetga (ona, shifokor yoki koordinator) yo'naltirilasiz.",
     emailLabel: "Elektron pochta",
+    emailPlaceholder: "ism@example.uz",
     passwordLabel: "Parol",
+    passwordPlaceholder: "Parolingizni kiriting",
+    togglePw: "Parolni ko'rsatish yoki yashirish",
     forgotPassword: "Parolni unutdingizmi?",
     submit: "Kirish",
     submitting: "Kirilmoqda...",
-    newHere: "OnaCare AI tizimida yangimisiz?",
-    createAccount: "Hisob yaratish",
-    demoTitle: "Demo Portal Hisoblari",
+    newHere: "Hisobingiz yo'qmi?",
+    createAccount: "Ro'yxatdan o'tish",
+    demoTitle: "Tezkor sinov hisoblari",
     demoSub:
-      "Haqiqiy autentifikatsiya orqali sinov hisobiga kiring (parol: Demo1234!) va alohida portalni tekshiring.",
+      "Sinab ko'rish uchun quyidagi tayyor hisoblardan birini bosing (parol: Demo1234!).",
+    defaultError: "Elektron pochta yoki parol noto'g'ri.",
   },
   ru: {
-    badge: "Защищенный вход по ролям",
-    title: "Вход в портал OnaCare AI",
+    badge: "Защищенный личный вход",
+    title: "Войдите в свой кабинет OnaCare",
     subtitle:
-      "Вы будете направлены строго в свой авторизованный портал (Пациент, Врач или Админ).",
+      "Вы попадете только в свой раздел (личный кабинет мамы, кабинет врача или координатора).",
     emailLabel: "Электронная почта",
+    emailPlaceholder: "name@example.uz",
     passwordLabel: "Пароль",
+    passwordPlaceholder: "Введите ваш пароль",
+    togglePw: "Показать или скрыть пароль",
     forgotPassword: "Забыли пароль?",
     submit: "Войти",
-    submitting: "Выполняется вход...",
-    newHere: "Впервые в OnaCare AI?",
-    createAccount: "Создать аккаунт",
-    demoTitle: "Демо-аккаунты портала",
+    submitting: "Вход...",
+    newHere: "У вас еще нет аккаунта?",
+    createAccount: "Зарегистрироваться",
+    demoTitle: "Демо-аккаунты для проверки",
     demoSub:
-      "Нажмите на любой демо-аккаунт для входа с реальной проверкой пароля (пароль: Demo1234!).",
+      "Нажмите на любой аккаунт ниже для быстрого входа (пароль: Demo1234!).",
+    defaultError: "Неверный email или пароль.",
+  },
+  en: {
+    badge: "Private & Secure Sign In",
+    title: "Sign In to Your OnaCare Portal",
+    subtitle:
+      "You will be taken directly to your own space (Patient, Doctor, or Clinic Coordinator).",
+    emailLabel: "Email Address",
+    emailPlaceholder: "name@example.uz",
+    passwordLabel: "Password",
+    passwordPlaceholder: "Enter your password",
+    togglePw: "Toggle password visibility",
+    forgotPassword: "Forgot password?",
+    submit: "Sign In",
+    submitting: "Signing in...",
+    newHere: "Don't have an account?",
+    createAccount: "Create an account",
+    demoTitle: "Demo Accounts",
+    demoSub:
+      "Click any sample account below to sign in and try that view (password: Demo1234!).",
+    defaultError: "Incorrect email or password.",
   },
 };
 
@@ -130,7 +183,7 @@ export default function LoginPage() {
     try {
       const res = await login(email, password);
       if (!res.ok) {
-        setError(res.error || "Incorrect email or password.");
+        setError(res.error || t.defaultError);
       }
     } finally {
       setBusy(false);
@@ -145,7 +198,7 @@ export default function LoginPage() {
     try {
       const res = await login(demoEmail, "Demo1234!");
       if (!res.ok) {
-        setError(res.error || "Incorrect email or password.");
+        setError(res.error || t.defaultError);
       }
     } finally {
       setBusy(false);
@@ -199,7 +252,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.uz"
+                  placeholder={t.emailPlaceholder}
                   className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
                 />
               </div>
@@ -228,14 +281,14 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder={t.passwordPlaceholder}
                     className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                    aria-label="Toggle password visibility"
+                    aria-label={t.togglePw}
                   >
                     {showPw ? (
                       <IconEyeOff className="h-4 w-4" />
@@ -290,10 +343,10 @@ export default function LoginPage() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
-                        {acc.label}
+                        {acc.label[lang]}
                       </p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                        {acc.sub}
+                        {acc.sub[lang]}
                       </p>
                       <p className="font-mono text-[10px] text-slate-400 dark:text-slate-500 truncate">
                         {acc.email}

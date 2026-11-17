@@ -27,44 +27,52 @@ const NAV_COPY: Record<
   AppLang,
   {
     subtitle: string;
-    workflow: string;
+    howItWorks: string;
     portals: string;
-    sla: string;
+    visitPromise: string;
+    forClinics: string;
+    languageLabel: string;
     signIn: string;
     signUp: string;
     signOut: string;
     openPortal: string;
   }
 > = {
+  uz: {
+    subtitle: "Uyda 24 soatlik shifokor g'amxo'rligi",
+    howItWorks: "Qanday ishlaydi",
+    portals: "Kimlar uchun",
+    visitPromise: "24 soatlik tashrif",
+    forClinics: "Klinikalar va texnologiya",
+    languageLabel: "Til",
+    signIn: "Kirish",
+    signUp: "Ro'yxatdan o'tish",
+    signOut: "Chiqish",
+    openPortal: "Kabinetimga kirish",
+  },
+  ru: {
+    subtitle: "Забота врача на дому в течение 24 часов",
+    howItWorks: "Как это работает",
+    portals: "Для кого сервис",
+    visitPromise: "Визит за 24 часа",
+    forClinics: "Клиникам и технологии",
+    languageLabel: "Язык",
+    signIn: "Войти",
+    signUp: "Регистрация",
+    signOut: "Выйти",
+    openPortal: "Открыть кабинет",
+  },
   en: {
-    subtitle: "Automated Patronage System • Continuity of Care",
-    workflow: "Agentic AI Workflow",
-    portals: "Role-Isolated Portals",
-    sla: "24h SLA Guarantee",
+    subtitle: "Home care & doctor visit within 24 hours",
+    howItWorks: "How we help",
+    portals: "Who it's for",
+    visitPromise: "24h home visit",
+    forClinics: "For Clinics / Technology",
+    languageLabel: "Language",
     signIn: "Sign In",
     signUp: "Sign Up",
     signOut: "Sign Out",
     openPortal: "Open My Portal",
-  },
-  uz: {
-    subtitle: "Avtomatlashtirilgan Patronaj Tizimi • Uzluksiz Nazorat",
-    workflow: "AI Ish Jarayoni",
-    portals: "Alohida Portallar",
-    sla: "24 soatlik SLA",
-    signIn: "Kirish",
-    signUp: "Ro'yxatdan o'tish",
-    signOut: "Chiqish",
-    openPortal: "Portalga kirish",
-  },
-  ru: {
-    subtitle: "Автоматизированная система патронажа • Непрерывность ухода",
-    workflow: "ИИ-координатор",
-    portals: "Изолированные порталы",
-    sla: "Гарантия 24ч SLA",
-    signIn: "Войти",
-    signUp: "Регистрация",
-    signOut: "Выйти",
-    openPortal: "Открыть портал",
   },
 };
 
@@ -84,9 +92,9 @@ export function PublicHeader({ showAnchors = false }: { showAnchors?: boolean })
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate">
-                OnaCare AI
+                OnaCare
               </span>
-              <span className="hidden xs:inline-block sm:inline-block rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[10px] font-semibold text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 whitespace-nowrap">
+              <span className="rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[10px] font-semibold text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 whitespace-nowrap">
                 24/7
               </span>
             </div>
@@ -96,19 +104,27 @@ export function PublicHeader({ showAnchors = false }: { showAnchors?: boolean })
           </div>
         </Link>
 
-        {showAnchors && (
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            <a href="#workflow" className="hover:text-teal-700 dark:hover:text-teal-400 transition">
-              {t.workflow}
-            </a>
-            <a href="#portals" className="hover:text-teal-700 dark:hover:text-teal-400 transition">
-              {t.portals}
-            </a>
-            <a href="#sla" className="hover:text-teal-700 dark:hover:text-teal-400 transition">
-              {t.sla}
-            </a>
-          </nav>
-        )}
+        <nav className="hidden lg:flex items-center gap-5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+          {showAnchors && (
+            <>
+              <a href="#care-steps" className="hover:text-teal-700 dark:hover:text-teal-400 transition">
+                {t.howItWorks}
+              </a>
+              <a href="#portals" className="hover:text-teal-700 dark:hover:text-teal-400 transition">
+                {t.portals}
+              </a>
+              <a href="#visit-promise" className="hover:text-teal-700 dark:hover:text-teal-400 transition">
+                {t.visitPromise}
+              </a>
+            </>
+          )}
+          <Link
+            href="/technology"
+            className="text-slate-500 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-400 transition"
+          >
+            {t.forClinics}
+          </Link>
+        </nav>
 
         {/* Desktop controls */}
         <div className="hidden md:flex items-center gap-2">
@@ -152,7 +168,7 @@ export function PublicHeader({ showAnchors = false }: { showAnchors?: boolean })
           )}
         </div>
 
-        {/* Mobile controls + hamburger button (fits cleanly at 375px without overflow) */}
+        {/* Mobile controls + hamburger button (clean at 375px) */}
         <div className="flex md:hidden items-center gap-1.5 shrink-0">
           <ThemeToggle />
           <button
@@ -170,35 +186,44 @@ export function PublicHeader({ showAnchors = false }: { showAnchors?: boolean })
       {/* Collapsible mobile drawer */}
       {menuOpen && (
         <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 space-y-3 shadow-md">
-          {showAnchors && (
-            <nav className="flex flex-col gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <a
-                href="#workflow"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                {t.workflow}
-              </a>
-              <a
-                href="#portals"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                {t.portals}
-              </a>
-              <a
-                href="#sla"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                {t.sla}
-              </a>
-            </nav>
-          )}
+          <nav className="flex flex-col gap-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            {showAnchors && (
+              <>
+                <a
+                  href="#care-steps"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  {t.howItWorks}
+                </a>
+                <a
+                  href="#portals"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  {t.portals}
+                </a>
+                <a
+                  href="#visit-promise"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  {t.visitPromise}
+                </a>
+              </>
+            )}
+            <Link
+              href="/technology"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-lg px-2.5 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              {t.forClinics}
+            </Link>
+          </nav>
 
-          <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Language
+              {t.languageLabel}
             </span>
             <LanguageSwitcher />
           </div>

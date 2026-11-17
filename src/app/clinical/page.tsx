@@ -17,11 +17,298 @@ import {
   IconStethoscope,
 } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
+import { useLanguage, type AppLang } from "@/context/LanguageContext";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 import { VitalsTrendChart } from "@/components/VitalsTrendChart";
 import { FhirBundleModal } from "@/components/FhirBundleModal";
 import { AgentTraceModal } from "@/components/AgentTraceModal";
+import { InfoTooltip } from "@/components/InfoTooltip";
 import type { AgentTraceStep } from "@/lib/types";
+
+const CLINICAL_COPY: Record<
+  AppLang,
+  {
+    ovabmuTitle: string;
+    ovabmuSub: string;
+    familyTitle: string;
+    familySub: string;
+    ovabmuBadge: string;
+    familyBadge: string;
+    patientsWord: string;
+    pendingWord: string;
+    rosterTitle: string;
+    loadingEhr: string;
+    inpatientTag: string;
+    verifiedTag: string;
+    patronageTag: string;
+    allergiesLabel: string;
+    polyclinicLabel: string;
+    dischargeBtn: string;
+    dischargingBtn: string;
+    dischargedActive: string;
+    aiTraceBtn: string;
+    fhirBtn: string;
+    encryptedLabel: string;
+    encryptedTip: string;
+    icdTip: string;
+    jshshirTip: string;
+    archiveDoc: string;
+    vitalsVisitLabel: string;
+    vitalsDischargeLabel: string;
+    labsTitle: string;
+    orderLabBtn: string;
+    rxTitle: string;
+    addRxBtn: string;
+    rxMedPlaceholder: string;
+    rxDosePlaceholder: string;
+    rxFreqPlaceholder: string;
+    saveRxBtn: string;
+    daysWord: string;
+    queueTitle: string;
+    riskWord: string;
+    emergencyBanner: string;
+    noCalls: string;
+    addressLabel: string;
+    windowLabel: string;
+    viewFhirBtn: string;
+    redFlagsTitle: string;
+    checklistTitle: string;
+    oneClickLabBtn: string;
+    vitalsTitle: string;
+    verifiedLabel: string;
+    sbpLabel: string;
+    dbpLabel: string;
+    hrLabel: string;
+    tempLabel: string;
+    spo2Label: string;
+    spo2Tip: string;
+    visitNotesLabel: string;
+    verifyDoneBtn: string;
+    verifySavingBtn: string;
+    verifySubmitBtn: string;
+    alertsTitle: string;
+    dischargeErr: string;
+    dischargeOk: string;
+    checklistErr: string;
+    verifyErr: string;
+    verifyOk: string;
+    labOk: string;
+    labErr: string;
+    rxOk: string;
+    rxErr: string;
+  }
+> = {
+  uz: {
+    ovabmuTitle: "Tug'ruqxona shifokori — Chiqarish va patronaj boshqaruvi",
+    ovabmuSub: "Bemorlarning chiqarish xulosasini tayyorlang va 24 soatlik uy tashrifini boshlang",
+    familyTitle: "Hududiy oilaviy shifokor — 24 soatlik uy tashriflari",
+    familySub: "Uy tashrifi tekshiruv ro'yxatini bajaring, ko'rsatkichlarni kiriting va tashrifni tasdiqlang",
+    ovabmuBadge: "Tug'ruqxona shifokori",
+    familyBadge: "Oilaviy shifokor",
+    patientsWord: "bemor",
+    pendingWord: "kutilmoqda",
+    rosterTitle: "Bemorlar ro'yxati",
+    loadingEhr: "Bemor ma'lumotlari yuklanmoqda...",
+    inpatientTag: "SHIFOXONADA",
+    verifiedTag: "TASDIQLANGAN",
+    patronageTag: "24h PATRONAJ",
+    allergiesLabel: "Allergiyalar:",
+    polyclinicLabel: "Biriktirilgan poliklinika:",
+    dischargeBtn: "Uyga chiqarish va patronajni boshlash",
+    dischargingBtn: "Yuborilmoqda...",
+    dischargedActive: "Uyga chiqarildi • 24 soatlik nazorat faol",
+    aiTraceBtn: "Jarayon tarixi",
+    fhirBtn: "FHIR",
+    encryptedLabel: "Shifrlangan yozuv",
+    encryptedTip: "Klinik yozuvlar bazada AES-256-GCM algoritmi bilan shifrlangan.",
+    icdTip: "ICD-10 — kasalliklarning xalqaro tasnif kodi.",
+    jshshirTip: "JSHSHIR — bemorning shaxsiy identifikatsiya raqami (maxfiy ko'rinishda).",
+    archiveDoc: "Chiqarish xulosasi (Hujjat)",
+    vitalsVisitLabel: "Uy tashrifi",
+    vitalsDischargeLabel: "Chiqarish vaqti",
+    labsTitle: "Tahlil natijalari",
+    orderLabBtn: "Qayta tahlil",
+    rxTitle: "Yozilgan dorilar (E-retsept)",
+    addRxBtn: "Dori qo'shish",
+    rxMedPlaceholder: "Dori nomi",
+    rxDosePlaceholder: "Miqdori (doza)",
+    rxFreqPlaceholder: "Ichish tartibi",
+    saveRxBtn: "Saqlash",
+    daysWord: "kun",
+    queueTitle: "Faol uy tashriflari navbati",
+    riskWord: "Xavf",
+    emergencyBanner: "BEMOR XAVFLI BELGILAR HAQIDA XABAR BERDI",
+    noCalls: "Hozircha hududingizda faol uy tashriflari yo'q.",
+    addressLabel: "Manzil:",
+    windowLabel: "Tashrif oynasi:",
+    viewFhirBtn: "FHIR paketini ko'rish",
+    redFlagsTitle: "Muhim e'tibor talab belgilari (Xavf darajasi:",
+    checklistTitle: "24 soatlik uy ko'rigi tekshiruv ro'yxati",
+    oneClickLabBtn: "Qayta tahlil buyurtmasi",
+    vitalsTitle: "Uy ko'rigi ko'rsatkichlari va tashrifni tasdiqlash",
+    verifiedLabel: "Tasdiqlangan",
+    sbpLabel: "Yuqori bosim",
+    dbpLabel: "Pastki bosim",
+    hrLabel: "Puls",
+    tempLabel: "Harorat (°C)",
+    spo2Label: "SpO2 (%)",
+    spo2Tip: "Qondagi kislorod bilan to'yinish darajasi (pulsoksimetr ko'rsatkichi).",
+    visitNotesLabel: "Uy ko'rigi xulosasi",
+    verifyDoneBtn: "Tashrif allaqachon tasdiqlangan",
+    verifySavingBtn: "Saqlanmoqda...",
+    verifySubmitBtn: "Ko'rsatkichlarni saqlash va tasdiqlash",
+    alertsTitle: "Avtomatik Telegram / SMS xabarnomalar",
+    dischargeErr: "Chiqarishda xatolik yuz berdi.",
+    dischargeOk: "Uyga chiqarish va 24 soatlik patronaj boshlandi!",
+    checklistErr: "Ro'yxatni yangilash uchun shifokor ruxsati kerak.",
+    verifyErr: "Tashrifni tasdiqlashda xatolik.",
+    verifyOk: "Uy tashrifi muvaffaqiyatli tasdiqlandi!",
+    labOk: "Qayta tahlil buyurtmasi yuborildi:",
+    labErr: "Tahlil buyurtmasi uchun shifokor huquqi zarur.",
+    rxOk: "Dori qo'shildi:",
+    rxErr: "Retsept yozish uchun shifokor huquqi zarur.",
+  },
+  ru: {
+    ovabmuTitle: "Врач роддома — Выписка и передача на патронаж",
+    ovabmuSub: "Оформляйте выписные заключения и запускайте 24-часовой домашний визит",
+    familyTitle: "Семейный врач — 24-часовые визиты на дом",
+    familySub: "Выполняйте чек-лист домашнего осмотра, вносите показатели и подтверждайте визит",
+    ovabmuBadge: "Врач роддома",
+    familyBadge: "Семейный врач",
+    patientsWord: "пац.",
+    pendingWord: "ожидает",
+    rosterTitle: "Список пациенток",
+    loadingEhr: "Загрузка карты пациентки...",
+    inpatientTag: "В СТАЦИОНАРЕ",
+    verifiedTag: "ПОДТВЕРЖДЕН",
+    patronageTag: "24ч ПАТРОНАЖ",
+    allergiesLabel: "Аллергии:",
+    polyclinicLabel: "Поликлиника:",
+    dischargeBtn: "Выписать и назначить визит на дом",
+    dischargingBtn: "Оформление...",
+    dischargedActive: "Выписана • 24ч патронаж активен",
+    aiTraceBtn: "Шаги координации",
+    fhirBtn: "FHIR",
+    encryptedLabel: "Зашифровано",
+    encryptedTip: "Клинические заметки зашифрованы в базе по стандарту AES-256-GCM.",
+    icdTip: "ICD-10 (МКБ-10) — международный код диагноза.",
+    jshshirTip: "ПИНФЛ — персональный идентификационный номер пациентки (скрыт).",
+    archiveDoc: "Выписной эпикриз",
+    vitalsVisitLabel: "Визит на дом",
+    vitalsDischargeLabel: "При выписке",
+    labsTitle: "Лабораторные анализы",
+    orderLabBtn: "Повторный анализ",
+    rxTitle: "Назначения (Е-рецепты)",
+    addRxBtn: "Добавить",
+    rxMedPlaceholder: "Название препарата",
+    rxDosePlaceholder: "Дозировка",
+    rxFreqPlaceholder: "Кратность приема",
+    saveRxBtn: "Сохранить рецепт",
+    daysWord: "дн.",
+    queueTitle: "Очередь активных визитов",
+    riskWord: "Риск",
+    emergencyBanner: "ПАЦИЕНТКА СООБЩИЛА О ТРЕВОЖНЫХ СИМПТОМАХ",
+    noCalls: "В вашей поликлинике пока нет активных вызовов.",
+    addressLabel: "Адрес:",
+    windowLabel: "Окно визита:",
+    viewFhirBtn: "Открыть HL7 FHIR",
+    redFlagsTitle: "Ключевые факторы риска (Оценка:",
+    checklistTitle: "Чек-лист домашнего осмотра",
+    oneClickLabBtn: "Назначить повторный анализ",
+    vitalsTitle: "Показатели осмотра и подтверждение визита",
+    verifiedLabel: "Подтвержден",
+    sbpLabel: "Сист. АД",
+    dbpLabel: "Диаст. АД",
+    hrLabel: "Пульс",
+    tempLabel: "Темп. (°C)",
+    spo2Label: "SpO2 (%)",
+    spo2Tip: "Насыщение крови кислородом (сатурация).",
+    visitNotesLabel: "Заключение домашнего осмотра",
+    verifyDoneBtn: "Визит уже подтвержден",
+    verifySavingBtn: "Сохранение...",
+    verifySubmitBtn: "Сохранить показатели и подтвердить визит",
+    alertsTitle: "Журнал уведомлений Telegram / SMS",
+    dischargeErr: "Ошибка при выписке.",
+    dischargeOk: "Выписка оформлена, 24-часовой визит назначен!",
+    checklistErr: "Для обновления чек-листа нужны права врача.",
+    verifyErr: "Ошибка подтверждения визита.",
+    verifyOk: "Домашний визит успешно подтвержден!",
+    labOk: "Назначен повторный анализ:",
+    labErr: "Для назначения анализа нужны права врача.",
+    rxOk: "Рецепт добавлен:",
+    rxErr: "Для выписки рецепта нужны права врача.",
+  },
+  en: {
+    ovabmuTitle: "Hospital Doctor — Discharge & Home Care Handoff",
+    ovabmuSub: "Review inpatient records, prepare discharge summaries, and arrange 24-hour home visits",
+    familyTitle: "Family Doctor — 24h Home Visit Workspace",
+    familySub: "Complete home-visit check-ups, record vitals, and confirm completed visits",
+    ovabmuBadge: "Hospital Doctor",
+    familyBadge: "Family Doctor",
+    patientsWord: "patients",
+    pendingWord: "pending",
+    rosterTitle: "Patient Roster",
+    loadingEhr: "Loading patient records...",
+    inpatientTag: "INPATIENT",
+    verifiedTag: "VERIFIED",
+    patronageTag: "24h HOME CARE",
+    allergiesLabel: "Allergies:",
+    polyclinicLabel: "Assigned Clinic:",
+    dischargeBtn: "Discharge & Schedule Home Visit",
+    dischargingBtn: "Preparing handoff...",
+    dischargedActive: "Discharged • 24h Home Care Active",
+    aiTraceBtn: "Handoff Steps",
+    fhirBtn: "FHIR",
+    encryptedLabel: "Encrypted Record",
+    encryptedTip: "Clinical notes are encrypted at rest using AES-256-GCM.",
+    icdTip: "ICD-10 — International standard diagnosis code.",
+    jshshirTip: "JSHSHIR — masked national personal identifier.",
+    archiveDoc: "Discharge Summary",
+    vitalsVisitLabel: "Home visit",
+    vitalsDischargeLabel: "At discharge",
+    labsTitle: "Lab Results",
+    orderLabBtn: "Order Follow-Up",
+    rxTitle: "Prescriptions",
+    addRxBtn: "Add Medicine",
+    rxMedPlaceholder: "Medication name",
+    rxDosePlaceholder: "Dosage",
+    rxFreqPlaceholder: "Frequency",
+    saveRxBtn: "Save Prescription",
+    daysWord: "days",
+    queueTitle: "Active Home Visit Queue",
+    riskWord: "Risk",
+    emergencyBanner: "PATIENT REPORTED URGENT SYMPTOMS",
+    noCalls: "No active home visits assigned to your clinic yet.",
+    addressLabel: "Address:",
+    windowLabel: "Visit Window:",
+    viewFhirBtn: "View HL7 FHIR Bundle",
+    redFlagsTitle: "Priority Clinical Alerts (Risk Score:",
+    checklistTitle: "24-Hour Home Visit Checklist",
+    oneClickLabBtn: "1-Click Follow-Up Lab",
+    vitalsTitle: "Home Visit Vitals & Verification",
+    verifiedLabel: "Verified",
+    sbpLabel: "Systolic BP",
+    dbpLabel: "Diastolic BP",
+    hrLabel: "Heart Rate",
+    tempLabel: "Temp (°C)",
+    spo2Label: "SpO2 (%)",
+    spo2Tip: "Blood oxygen saturation measured by pulse oximeter.",
+    visitNotesLabel: "Home Visit Notes",
+    verifyDoneBtn: "Visit Already Verified",
+    verifySavingBtn: "Saving...",
+    verifySubmitBtn: "Save Vitals & Confirm Home Visit",
+    alertsTitle: "Telegram / SMS Notification Log",
+    dischargeErr: "Could not complete discharge handoff.",
+    dischargeOk: "Discharge summary ready and 24-hour home visit scheduled!",
+    checklistErr: "Doctor permissions required to update checklist.",
+    verifyErr: "Could not verify home visit.",
+    verifyOk: "Home visit verified successfully!",
+    labOk: "Follow-up lab ordered:",
+    labErr: "Doctor permissions required to order labs.",
+    rxOk: "Prescription added:",
+    rxErr: "Doctor permissions required to prescribe.",
+  },
+};
 
 export default function ClinicalDashboardPage() {
   const {
@@ -33,6 +320,8 @@ export default function ClinicalDashboardPage() {
     showToast,
     dataLoadedAtMs,
   } = usePlatform();
+  const { lang } = useLanguage();
+  const t = CLINICAL_COPY[lang];
 
   const [selectedPatientId, setSelectedPatientId] = useState<string>("pat-malika");
   const [selectedCallId, setSelectedCallId] = useState<string>("");
@@ -46,13 +335,11 @@ export default function ClinicalDashboardPage() {
     trace: AgentTraceStep[];
   } | null>(null);
 
-  // New e-prescription form
   const [rxFormOpen, setRxFormOpen] = useState(false);
   const [rxMed, setRxMed] = useState("Magne B6 Forte");
   const [rxDose, setRxDose] = useState("100 mg");
-  const [rxFreq, setRxFreq] = useState("Kuniga 2 mahal");
+  const [rxFreq, setRxFreq] = useState("2x daily");
 
-  // Post-discharge vitals form
   const [sbp, setSbp] = useState("128");
   const [dbp, setDbp] = useState("82");
   const [hr, setHr] = useState("84");
@@ -82,16 +369,13 @@ export default function ClinicalDashboardPage() {
       });
       const json = await res.json();
       if (!res.ok) {
-        showToast("error", json.error || "Chiqarishda xatolik yuz berdi");
+        showToast("error", json.error || t.dischargeErr);
         return;
       }
       await refreshData();
-      showToast(
-        "success",
-        `Agentic AI Patronaj ishga tushdi (${json.totalDurationMs}ms)! Aktiv Chaqiruv yaratildi.`
-      );
+      showToast("success", t.dischargeOk);
       setTraceModal({
-        patientName: selectedPatient?.fullName ?? "Bemor",
+        patientName: selectedPatient?.fullName ?? "",
         trace: json.agentTrace as AgentTraceStep[],
       });
       setSelectedCallId(json.activeCallId);
@@ -108,7 +392,7 @@ export default function ClinicalDashboardPage() {
     if (res.ok) {
       await refreshData();
     } else {
-      showToast("error", "Checklistni yangilash uchun shifokor roli talab qilinadi.");
+      showToast("error", t.checklistErr);
     }
   };
 
@@ -130,11 +414,11 @@ export default function ClinicalDashboardPage() {
       });
       const json = await res.json();
       if (!res.ok) {
-        showToast("error", json.error || "Tasdiqlashda xatolik");
+        showToast("error", json.error || t.verifyErr);
         return;
       }
       await refreshData();
-      showToast("success", "Uy patronaji muvaffaqiyatli tasdiqlandi va SLA yopildi!");
+      showToast("success", t.verifyOk);
     } finally {
       setVerifying(false);
     }
@@ -149,9 +433,9 @@ export default function ClinicalDashboardPage() {
       });
       if (res.ok) {
         await refreshData();
-        showToast("success", `Qayta tahlil buyurtmasi yuborildi: ${panelName}`);
+        showToast("success", `${t.labOk} ${panelName}`);
       } else {
-        showToast("error", "Tahlil buyurtmasi uchun shifokor huquqi zarur.");
+        showToast("error", t.labErr);
       }
     } finally {
       setOrderingLab(false);
@@ -174,9 +458,9 @@ export default function ClinicalDashboardPage() {
     if (res.ok) {
       setRxFormOpen(false);
       await refreshData();
-      showToast("success", `E-retsept qo'shildi: ${rxMed} ${rxDose}`);
+      showToast("success", `${t.rxOk} ${rxMed} ${rxDose}`);
     } else {
-      showToast("error", "E-retsept yozish uchun shifokor huquqi zarur.");
+      showToast("error", t.rxErr);
     }
   };
 
@@ -186,38 +470,33 @@ export default function ClinicalDashboardPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
         <div>
           <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-            {isOvabmu
-              ? "OvaBMU Inpatient Discharge & AI Continuity Console"
-              : "Regional Family Doctor — 24h Aktiv Chaqiruv Workspace"}
+            {isOvabmu ? t.ovabmuTitle : t.familyTitle}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {isOvabmu
-              ? "Manage inpatient maternal EHRs, trigger AI post-discharge patronage, and track handoffs"
-              : "Execute 24-hour home patronage checklists, record post-discharge vitals, and verify visits"}
+            {isOvabmu ? t.ovabmuSub : t.familySub}
           </p>
         </div>
         <div className="inline-flex items-center gap-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 px-3.5 py-2 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
           {isOvabmu ? (
             <>
               <IconBuildingHospital className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-              OvaBMU Inpatient Doctor ({patients.length} Patients)
+              {t.ovabmuBadge} ({patients.length} {t.patientsWord})
             </>
           ) : (
             <>
               <IconStethoscope className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-              Regional Family Doctor ({activeCalls.filter((c) => c.status !== "COMPLETED").length} Pending)
+              {t.familyBadge} ({activeCalls.filter((c) => c.status !== "COMPLETED").length} {t.pendingWord})
             </>
           )}
         </div>
       </div>
 
-      {/* ==================== VIEW 1: OVABMU INPATIENT DOCTOR VIEW ==================== */}
+      {/* VIEW 1: HOSPITAL DOCTOR */}
       {isOvabmu && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Left Patient Roster */}
           <div className="lg:col-span-4 space-y-2.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
-              OvaBMU Maternal &amp; Perinatal Roster ({patients.length})
+              {t.rosterTitle} ({patients.length})
             </h2>
             {patients.map((p) => {
               const selected = p.id === selectedPatient?.id;
@@ -248,32 +527,30 @@ export default function ClinicalDashboardPage() {
                       }`}
                     >
                       {isInpatient
-                        ? "INPATIENT"
+                        ? t.inpatientTag
                         : p.status === "VISIT_COMPLETED"
-                          ? "VERIFIED"
-                          : "24h PATRONAGE"}
+                          ? t.verifiedTag
+                          : t.patronageTag}
                     </span>
                   </div>
                   <p className="mt-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
                     {latestEhr?.diagnosisIcd10} — {latestEhr?.diagnosisText.slice(0, 62)}...
                   </p>
                   <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                    {p.district}, {p.mahalla} {p.bedNumber ? `• ${p.bedNumber}` : ""}
+                    {p.district}{p.mahalla ? `, ${p.mahalla}` : ""} {p.bedNumber ? `• ${p.bedNumber}` : ""}
                   </p>
                 </button>
               );
             })}
           </div>
 
-          {/* Right EHR Workspace */}
           <div className="lg:col-span-8">
             {loading || !selectedPatient ? (
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
-                Loading patient EHR...
+                {t.loadingEhr}
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Patient Header + Discharge Trigger */}
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div className="space-y-1.5">
@@ -282,22 +559,27 @@ export default function ClinicalDashboardPage() {
                           {selectedPatient.fullName}
                         </h2>
                         <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-xs text-slate-700 dark:text-slate-300">
-                          JSHSHIR: {selectedPatient.jshshirMasked}
+                          <InfoTooltip label="JSHSHIR" explanation={t.jshshirTip} />:{" "}
+                          {selectedPatient.jshshirMasked}
                         </span>
                         <span className="rounded bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 text-xs font-semibold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                           {selectedPatient.bloodType}
                         </span>
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-300">
-                        {selectedPatient.district}, {selectedPatient.mahalla}, {selectedPatient.address} •{" "}
+                        {selectedPatient.district}
+                        {selectedPatient.mahalla ? `, ${selectedPatient.mahalla}` : ""}, {selectedPatient.address} •{" "}
                         {selectedPatient.phone}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Allergies:{" "}
+                        {t.allergiesLabel}{" "}
                         <span className="font-semibold text-rose-700 dark:text-rose-400">
                           {selectedPatient.allergies.join(", ")}
                         </span>{" "}
-                        • Assigned Polyclinic: <strong className="text-slate-700 dark:text-slate-200">{selectedPatient.polyclinicName}</strong>
+                        • {t.polyclinicLabel}{" "}
+                        <strong className="text-slate-700 dark:text-slate-200">
+                          {selectedPatient.polyclinicName}
+                        </strong>
                       </p>
                     </div>
 
@@ -308,15 +590,13 @@ export default function ClinicalDashboardPage() {
                         className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-xs font-bold text-white hover:bg-teal-700 shadow-sm disabled:opacity-50 shrink-0"
                       >
                         <IconRobot className="h-4 w-4" />
-                        {discharging
-                          ? "AI Agent ishlamoqda..."
-                          : "Discharge & Trigger AI Patronage (Javob berish)"}
+                        {discharging ? t.dischargingBtn : t.dischargeBtn}
                       </button>
                     ) : (
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 px-3 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                           <IconCircleCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                          Discharged • AI Patronage Active
+                          {t.dischargedActive}
                         </div>
                         {selectedPatientCall && (
                           <>
@@ -330,14 +610,14 @@ export default function ClinicalDashboardPage() {
                               className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                             >
                               <IconRobot className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                              AI Trace
+                              {t.aiTraceBtn}
                             </button>
                             <button
                               onClick={() => setFhirCallId(selectedPatientCall.id)}
                               className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                             >
                               <IconFileCode className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-                              FHIR
+                              {t.fhirBtn}
                             </button>
                           </>
                         )}
@@ -345,7 +625,6 @@ export default function ClinicalDashboardPage() {
                     )}
                   </div>
 
-                  {/* Latest Inpatient EHR & AES-256 Encryption */}
                   {selectedPatient.ehrRecords.map((ehr) => (
                     <div
                       key={ehr.id}
@@ -354,7 +633,7 @@ export default function ClinicalDashboardPage() {
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span className="rounded bg-slate-900 dark:bg-teal-600 px-2 py-0.5 font-mono text-xs font-bold text-white">
-                            {ehr.diagnosisIcd10}
+                            <InfoTooltip label={ehr.diagnosisIcd10} explanation={t.icdTip} />
                           </span>
                           <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
                             {ehr.recordType} ({ehr.severity})
@@ -363,7 +642,7 @@ export default function ClinicalDashboardPage() {
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[10px] font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
                             <IconLock className="h-3 w-3" />
-                            AES-256-GCM Encrypted
+                            <InfoTooltip label={t.encryptedLabel} explanation={t.encryptedTip} />
                           </span>
                           {ehr.dischargeDocumentKey && (
                             <a
@@ -373,7 +652,7 @@ export default function ClinicalDashboardPage() {
                               className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-teal-700 dark:text-teal-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
                               <IconExternalLink className="h-3 w-3" />
-                              S3 Archive Artifact
+                              {t.archiveDoc}
                             </a>
                           )}
                         </div>
@@ -396,25 +675,22 @@ export default function ClinicalDashboardPage() {
                   ))}
                 </div>
 
-                {/* Vitals Trend Chart */}
                 <VitalsTrendChart
                   records={selectedPatient.ehrRecords.map((ehr) => ({
                     label:
                       ehr.recordType === "POST_DISCHARGE_VITALS"
-                        ? "Uy patronaji"
-                        : "Chiqarish (OvaBMU)",
+                        ? t.vitalsVisitLabel
+                        : t.vitalsDischargeLabel,
                     vitals: ehr.vitals,
                   }))}
                 />
 
-                {/* Labs & E-Prescriptions */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Labs */}
                   <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                         <IconFlask className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                        OvaBMU Lab Panels
+                        {t.labsTitle}
                       </h3>
                       <button
                         onClick={() =>
@@ -427,7 +703,7 @@ export default function ClinicalDashboardPage() {
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
                       >
                         <IconPlus className="h-3 w-3" />
-                        Order Follow-Up
+                        {t.orderLabBtn}
                       </button>
                     </div>
                     {selectedPatient.labReports.map((lab) => (
@@ -468,19 +744,18 @@ export default function ClinicalDashboardPage() {
                     ))}
                   </div>
 
-                  {/* E-Prescriptions */}
                   <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                         <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                        Discharge E-Prescriptions
+                        {t.rxTitle}
                       </h3>
                       <button
                         onClick={() => setRxFormOpen((v) => !v)}
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
                       >
                         <IconPlus className="h-3 w-3" />
-                        Add Rx
+                        {t.addRxBtn}
                       </button>
                     </div>
 
@@ -490,39 +765,39 @@ export default function ClinicalDashboardPage() {
                         className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3 space-y-2"
                       >
                         <label htmlFor="rx-med" className="sr-only">
-                          Medication name
+                          {t.rxMedPlaceholder}
                         </label>
                         <input
                           id="rx-med"
                           name="medicationName"
                           value={rxMed}
                           onChange={(e) => setRxMed(e.target.value)}
-                          placeholder="Dori nomi"
+                          placeholder={t.rxMedPlaceholder}
                           className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"
                           required
                         />
                         <div className="grid grid-cols-2 gap-2">
                           <label htmlFor="rx-dose" className="sr-only">
-                            Dosage
+                            {t.rxDosePlaceholder}
                           </label>
                           <input
                             id="rx-dose"
                             name="dosage"
                             value={rxDose}
                             onChange={(e) => setRxDose(e.target.value)}
-                            placeholder="Doza"
+                            placeholder={t.rxDosePlaceholder}
                             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"
                             required
                           />
                           <label htmlFor="rx-freq" className="sr-only">
-                            Frequency
+                            {t.rxFreqPlaceholder}
                           </label>
                           <input
                             id="rx-freq"
                             name="frequency"
                             value={rxFreq}
                             onChange={(e) => setRxFreq(e.target.value)}
-                            placeholder="Davriyligi"
+                            placeholder={t.rxFreqPlaceholder}
                             className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"
                             required
                           />
@@ -531,7 +806,7 @@ export default function ClinicalDashboardPage() {
                           type="submit"
                           className="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-semibold text-white hover:bg-teal-700"
                         >
-                          Save E-Prescription
+                          {t.saveRxBtn}
                         </button>
                       </form>
                     )}
@@ -556,9 +831,11 @@ export default function ClinicalDashboardPage() {
                             </span>
                           </div>
                           <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                            {rx.frequency} • {rx.durationDays} kun • {rx.polyclinicPharmacy}
+                            {rx.frequency} • {rx.durationDays} {t.daysWord} • {rx.polyclinicPharmacy}
                           </p>
-                          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{rx.instructionsUz}</p>
+                          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                            {lang === "ru" ? rx.instructionsRu : lang === "en" ? rx.instructionsEn : rx.instructionsUz}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -570,13 +847,12 @@ export default function ClinicalDashboardPage() {
         </div>
       )}
 
-      {/* ==================== VIEW 2: REGIONAL FAMILY DOCTOR VIEW ==================== */}
+      {/* VIEW 2: FAMILY DOCTOR */}
       {!isOvabmu && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Left Aktiv Chaqiruv Queue */}
           <div className="lg:col-span-4 space-y-2.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
-              Aktiv Chaqiruv Queue (Sorted by SLA)
+              {t.queueTitle}
             </h2>
             {activeCalls.map((call) => {
               const selected = call.id === selectedCall?.id;
@@ -596,7 +872,7 @@ export default function ClinicalDashboardPage() {
                         {call.patient.fullName}
                       </p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        {call.district}, {call.patient.mahalla}
+                        {call.district}{call.patient.mahalla ? `, ${call.patient.mahalla}` : ""}
                       </p>
                     </div>
                     <span
@@ -606,7 +882,7 @@ export default function ClinicalDashboardPage() {
                           : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"
                       }`}
                     >
-                      Risk {call.riskScore}
+                      {t.riskWord} {call.riskScore}
                     </span>
                   </div>
 
@@ -623,7 +899,7 @@ export default function ClinicalDashboardPage() {
                   {call.symptomCheckins.some((s) => s.aiTriageLevel === "RED_EMERGENCY") && (
                     <div className="rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white flex items-center gap-1.5">
                       <IconAlertTriangle className="h-3.5 w-3.5" />
-                      PATIENT REPORTED EMERGENCY SYMPTOMS
+                      {t.emergencyBanner}
                     </div>
                   )}
                 </button>
@@ -631,15 +907,13 @@ export default function ClinicalDashboardPage() {
             })}
           </div>
 
-          {/* Right Family Doctor Execution Workspace */}
           <div className="lg:col-span-8">
             {!selectedCall ? (
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
-                No Active Calls in your polyclinic scope yet.
+                {t.noCalls}
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Call Header & Actions */}
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -652,11 +926,15 @@ export default function ClinicalDashboardPage() {
                         </span>
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-                        Address: <strong className="text-slate-800 dark:text-slate-100">{selectedCall.patient.address}</strong> ({selectedCall.patient.mahalla}) •{" "}
+                        {t.addressLabel}{" "}
+                        <strong className="text-slate-800 dark:text-slate-100">
+                          {selectedCall.patient.address}
+                        </strong>{" "}
+                        {selectedCall.patient.mahalla ? `(${selectedCall.patient.mahalla})` : ""} •{" "}
                         {selectedCall.patient.phone}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Assigned Window:{" "}
+                        {t.windowLabel}{" "}
                         <strong className="text-slate-700 dark:text-slate-200">
                           {new Date(selectedCall.scheduledWindowStart).toLocaleTimeString("en-GB", {
                             hour: "2-digit",
@@ -692,23 +970,22 @@ export default function ClinicalDashboardPage() {
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         <IconRobot className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                        AI Agent Trace
+                        {t.aiTraceBtn}
                       </button>
                       <button
                         onClick={() => setFhirCallId(selectedCall.id)}
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
                         <IconFileCode className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-                        View HL7 FHIR Bundle
+                        {t.viewFhirBtn}
                       </button>
                     </div>
                   </div>
 
-                  {/* AI Top 3 Red Flags */}
                   <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/60 dark:bg-rose-950/40 p-3.5">
                     <h3 className="text-xs font-bold uppercase tracking-wide text-rose-800 dark:text-rose-300 mb-1.5 flex items-center gap-1.5">
                       <IconAlertTriangle className="h-3.5 w-3.5" />
-                      AI-Synthesized Clinical Red Flags (Risk Score: {selectedCall.riskScore}/100)
+                      {t.redFlagsTitle} {selectedCall.riskScore}/100)
                     </h3>
                     <ul className="space-y-1 text-xs text-rose-900 dark:text-rose-200 list-disc pl-4">
                       {selectedCall.redFlags.map((flag, i) => (
@@ -717,11 +994,10 @@ export default function ClinicalDashboardPage() {
                     </ul>
                   </div>
 
-                  {/* 5-Item Custom Uzbek Checklist */}
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                       <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                        24-Hour Home-Visit Examination Checklist (O&apos;zbekcha)
+                        {t.checklistTitle}
                       </h3>
                       <button
                         onClick={() =>
@@ -734,7 +1010,7 @@ export default function ClinicalDashboardPage() {
                         className="inline-flex items-center gap-1 rounded-lg bg-slate-900 dark:bg-teal-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 dark:hover:bg-teal-500"
                       >
                         <IconFlask className="h-3.5 w-3.5" />
-                        1-Click Follow-Up Lab Order
+                        {t.oneClickLabBtn}
                       </button>
                     </div>
                     <div className="space-y-2">
@@ -763,9 +1039,8 @@ export default function ClinicalDashboardPage() {
                                   : "text-slate-900 dark:text-slate-100"
                               }`}
                             >
-                              {item.titleUz}
+                              {lang === "ru" ? item.titleRu : lang === "en" ? item.titleEn : item.titleUz}
                             </p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400">{item.titleEn}</p>
                           </div>
                           <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-600 dark:text-slate-300">
                             {item.category}
@@ -776,19 +1051,18 @@ export default function ClinicalDashboardPage() {
                   </div>
                 </div>
 
-                {/* Post-Discharge Vitals Logger & Visit Verification */}
                 <form
                   onSubmit={handleVerifyVisit}
                   className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4"
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      Post-Discharge Home Vitals &amp; Visit Verification
+                      {t.vitalsTitle}
                     </h3>
                     {selectedCall.visitVerifiedAt && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                         <IconCircleCheck className="h-3.5 w-3.5" />
-                        Verified ({selectedCall.verificationMethod})
+                        {t.verifiedLabel} ({selectedCall.verificationMethod})
                       </span>
                     )}
                   </div>
@@ -796,7 +1070,7 @@ export default function ClinicalDashboardPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div>
                       <label htmlFor="vitals-sbp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                        Systolic BP
+                        {t.sbpLabel}
                       </label>
                       <input
                         id="vitals-sbp"
@@ -810,7 +1084,7 @@ export default function ClinicalDashboardPage() {
                     </div>
                     <div>
                       <label htmlFor="vitals-dbp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                        Diastolic BP
+                        {t.dbpLabel}
                       </label>
                       <input
                         id="vitals-dbp"
@@ -824,7 +1098,7 @@ export default function ClinicalDashboardPage() {
                     </div>
                     <div>
                       <label htmlFor="vitals-hr" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                        Heart Rate
+                        {t.hrLabel}
                       </label>
                       <input
                         id="vitals-hr"
@@ -838,7 +1112,7 @@ export default function ClinicalDashboardPage() {
                     </div>
                     <div>
                       <label htmlFor="vitals-temp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                        Temp (°C)
+                        {t.tempLabel}
                       </label>
                       <input
                         id="vitals-temp"
@@ -853,7 +1127,7 @@ export default function ClinicalDashboardPage() {
                     </div>
                     <div>
                       <label htmlFor="vitals-spo2" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                        SpO2 (%)
+                        <InfoTooltip label={t.spo2Label} explanation={t.spo2Tip} />
                       </label>
                       <input
                         id="vitals-spo2"
@@ -869,7 +1143,7 @@ export default function ClinicalDashboardPage() {
 
                   <div>
                     <label htmlFor="vitals-notes" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      Patronaj ko&apos;rigi xulosasi (Visit Notes)
+                      {t.visitNotesLabel}
                     </label>
                     <textarea
                       id="vitals-notes"
@@ -889,18 +1163,17 @@ export default function ClinicalDashboardPage() {
                   >
                     <IconSend className="h-3.5 w-3.5" />
                     {selectedCall.status === "COMPLETED"
-                      ? "Patronaj allaqachon tasdiqlangan"
+                      ? t.verifyDoneBtn
                       : verifying
-                        ? "Saqlanmoqda..."
-                        : "Submit Vitals & Verify Home Visit"}
+                        ? t.verifySavingBtn
+                        : t.verifySubmitBtn}
                   </button>
                 </form>
 
-                {/* Telegram / SMS Notification Dispatch Log */}
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
                   <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                     <IconBell className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                    Automated Telegram / SMS Alert Log
+                    {t.alertsTitle}
                   </h3>
                   {selectedCall.notificationLog.map((n) => (
                     <div

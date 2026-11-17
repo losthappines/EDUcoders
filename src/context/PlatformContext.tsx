@@ -9,6 +9,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import { getGlobalLanguage } from "@/context/LanguageContext";
 import type {
   AdherenceLog,
   AgentTraceStep,
@@ -342,7 +343,17 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
         };
       };
       if (!res.ok || !out.user) {
-        return { ok: false, error: out.error || "Sign in failed." };
+        const l = getGlobalLanguage();
+        return {
+          ok: false,
+          error:
+            out.error ||
+            (l === "ru"
+              ? "Не удалось войти."
+              : l === "en"
+                ? "Sign in failed."
+                : "Kirishda xatolik yuz berdi."),
+        };
       }
       setAuthUser({
         userId: out.user.id,
@@ -355,7 +366,15 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
       });
       setAuthChecked(true);
       await refreshData();
-      showToast("success", `Xush kelibsiz, ${out.user.fullName}!`);
+      const loginLang = getGlobalLanguage();
+      showToast(
+        "success",
+        loginLang === "ru"
+          ? `Добро пожаловать, ${out.user.fullName}!`
+          : loginLang === "en"
+            ? `Welcome, ${out.user.fullName}!`
+            : `Xush kelibsiz, ${out.user.fullName}!`
+      );
       router.push(out.redirectTo || "/");
       return { ok: true };
     },
@@ -384,7 +403,17 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
         };
       };
       if (!res.ok || !out.user) {
-        return { ok: false, error: out.error || "Registration failed." };
+        const l = getGlobalLanguage();
+        return {
+          ok: false,
+          error:
+            out.error ||
+            (l === "ru"
+              ? "Ошибка регистрации."
+              : l === "en"
+                ? "Registration failed."
+                : "Ro'yxatdan o'tishda xatolik yuz berdi."),
+        };
       }
       setAuthUser({
         userId: out.user.id,
@@ -397,7 +426,15 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
       });
       setAuthChecked(true);
       await refreshData();
-      showToast("success", `Hisob yaratildi: ${out.user.fullName}`);
+      const signupLang = getGlobalLanguage();
+      showToast(
+        "success",
+        signupLang === "ru"
+          ? `Аккаунт создан: ${out.user.fullName}`
+          : signupLang === "en"
+            ? `Account created: ${out.user.fullName}`
+            : `Hisob yaratildi: ${out.user.fullName}`
+      );
       router.push(out.redirectTo || "/");
       return { ok: true };
     },
@@ -411,7 +448,15 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
     });
     setAuthUser(null);
     setData(null);
-    showToast("info", "Tizimdan muvaffaqiyatli chiqdingiz.");
+    const l = getGlobalLanguage();
+    showToast(
+      "info",
+      l === "ru"
+        ? "Вы успешно вышли из системы."
+        : l === "en"
+          ? "Signed out successfully."
+          : "Tizimdan muvaffaqiyatli chiqdingiz."
+    );
     router.push("/");
   }, [router, showToast]);
 
@@ -429,13 +474,26 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
             evaluation: { escalatedCount: number };
           };
           await refreshData();
+          const l = getGlobalLanguage();
           showToast(
             out.evaluation.escalatedCount > 0 ? "error" : "info",
-            `Vaqt +${hours} soatga tezlashtirildi (Jami +${out.timeOffsetHours}h). ${
-              out.evaluation.escalatedCount > 0
-                ? `${out.evaluation.escalatedCount} ta holatda SLA eskalatsiya ishga tushdi!`
-                : "SLA taymerlari yangilandi."
-            }`
+            l === "ru"
+              ? `Время ускорено на +${hours} ч (Всего +${out.timeOffsetHours}ч). ${
+                  out.evaluation.escalatedCount > 0
+                    ? `Сработало срочных уведомлений: ${out.evaluation.escalatedCount}!`
+                    : "Таймеры визитов обновлены."
+                }`
+              : l === "en"
+                ? `Time fast-forwarded +${hours}h (Total +${out.timeOffsetHours}h). ${
+                    out.evaluation.escalatedCount > 0
+                      ? `${out.evaluation.escalatedCount} visit reminder escalation(s) triggered!`
+                      : "Visit timers updated."
+                  }`
+                : `Vaqt +${hours} soatga tezlashtirildi (Jami +${out.timeOffsetHours}h). ${
+                    out.evaluation.escalatedCount > 0
+                      ? `${out.evaluation.escalatedCount} ta holatda ogohlantirish ishga tushdi!`
+                      : "Tashrif taymerlari yangilandi."
+                  }`
           );
         }
       } finally {
@@ -454,9 +512,14 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
       });
       if (res.ok) {
         await refreshData();
+        const l = getGlobalLanguage();
         showToast(
           "success",
-          "Demo ma'lumotlari va SLA vaqti boshlang'ich holatga qaytarildi."
+          l === "ru"
+            ? "Демо-данные и время возвращены в исходное состояние."
+            : l === "en"
+              ? "Demo data and simulation clock reset."
+              : "Demo ma'lumotlari va vaqt boshlang'ich holatga qaytarildi."
         );
       }
     } finally {

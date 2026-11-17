@@ -3,18 +3,15 @@
 import React from "react";
 import Link from "next/link";
 import {
-  IconActivity,
   IconArrowRight,
-  IconBuildingHospital,
-  IconChecklist,
-  IconClock,
-  IconFileCode,
+  IconCalendarHeart,
+  IconClipboardCheck,
+  IconFileText,
   IconHeartHandshake,
   IconLock,
   IconLogin,
-  IconRobot,
+  IconMessageHeart,
   IconShieldCheck,
-  IconSparkles,
   IconStethoscope,
   IconUserPlus,
 } from "@tabler/icons-react";
@@ -33,9 +30,7 @@ const LANDING_COPY: Record<
   AppLang,
   {
     badge: string;
-    heroPrefix: string;
-    heroHighlight: string;
-    heroSuffix: string;
+    heroTitle: string;
     heroDesc: string;
     ctaSignup: string;
     ctaSignin: string;
@@ -47,322 +42,339 @@ const LANDING_COPY: Record<
     pipeSub: string;
     pipeBadge: string;
     steps: Array<{ step: string; title: string; desc: string }>;
-    rbacEyebrow: string;
-    rbacTitle: string;
-    rbacSub: string;
+    portalsEyebrow: string;
+    portalsTitle: string;
+    portalsSub: string;
     patientTitle: string;
     patientDesc: string;
     patientTag: string;
     patientCta: string;
     clinicalTitle: string;
     clinicalDesc: string;
+    clinicalTag: string;
     clinicalCta: string;
     adminTitle: string;
     adminDesc: string;
+    adminTag: string;
     adminCta: string;
-    slaBadge: string;
-    slaTitle: string;
-    slaDesc: string;
-    slaZones: Array<{ title: string; detail: string; tone: "green" | "yellow" | "red" }>;
+    promiseBadge: string;
+    promiseTitle: string;
+    promiseDesc: string;
+    promiseZones: Array<{ title: string; detail: string; tone: "green" | "yellow" | "red" }>;
     features: Array<{ title: string; desc: string }>;
+    clinicLinkLabel: string;
     footerBrand: string;
+    footerPrivacy: string;
+    footerTechLink: string;
     footerSignIn: string;
     footerSignUp: string;
   }
 > = {
-  en: {
-    badge: "National AI Hackathon • Task #11: Automated Patronage System",
-    heroPrefix: "OvaBMU → Family Polyclinic:",
-    heroHighlight: "Zero-Gap 24-Hour",
-    heroSuffix: "Maternal Continuity of Care",
-    heroDesc:
-      'The instant a high-risk maternal or perinatal patient is discharged from OvaBMU, our 4-Step Agentic AI Coordinator synthesizes her EHR and labs, dispatches an automated "Aktiv Chaqiruv" to the Regional Family Doctor, builds a tailored home-visit checklist, and enforces a strict 24-hour SLA.',
-    ctaSignup: "Create Free Account",
-    ctaSignin: "Sign In to Your Portal",
-    ctaOpenPortal: "Open Your Portal",
-    trust1: "AES-256-GCM Encrypted EHR",
-    trust2: "HL7 FHIR R4 Compliant",
-    trust3: "Strict Role-Isolated Portals",
-    pipeTitle: "Agentic AI Continuity Pipeline",
-    pipeSub: "Autonomous Post-Discharge Coordination",
-    pipeBadge: "LIVE 24h SLA",
-    steps: [
-      {
-        step: "01",
-        title: "EHR & Lab Risk Synthesis",
-        desc: "Scores post-discharge severity (ICD-10, Hb, BP, CRP) & extracts red flags.",
-      },
-      {
-        step: "02",
-        title: "Territorial Polyclinic Routing",
-        desc: "Matches Mahalla/District to the Regional Family Doctor & books conflict-free slot.",
-      },
-      {
-        step: "03",
-        title: "Uzbek Clinical Checklist & Guide",
-        desc: "Creates protocol checklist for doctor + UZ/RU/EN care guide for patient.",
-      },
-      {
-        step: "04",
-        title: "24h SLA Watchdog & Escalations",
-        desc: "Auto-escalates at 12h (Yellow) & 18h (Red) until OTP-verified home visit.",
-      },
-    ],
-    rbacEyebrow: "Role-Based Access Control (RBAC)",
-    rbacTitle: "Three Strictly Isolated Portals — Accessed Only by Signing In",
-    rbacSub:
-      "Every user logs into a dedicated portal tailored strictly to their role. Patients only see their own recovery portal and never have access to doctors' clinical records or admin governance views.",
-    patientTitle: "Patient Portal (/patient)",
-    patientDesc:
-      "Sign up as a patient to view only your own recovery plan, UZ/RU/EN home-care rules, active e-prescriptions, AI symptom triage check-in, and 1-tap / 4-digit OTP home visit confirmation.",
-    patientTag: "Own Data Only",
-    patientCta: "Sign up as Patient",
-    clinicalTitle: "Doctors' Clinical Portal (/clinical)",
-    clinicalDesc:
-      "Dedicated workspace for OvaBMU Inpatient Doctors to trigger AI discharge handoffs, and Regional Family Doctors to execute 24h home patronage checklists, vitals logging, and lab/Rx orders.",
-    clinicalCta: "Doctor Sign In",
-    adminTitle: "Admin & SLA Governance (/admin)",
-    adminDesc:
-      "Monitor district 24-hour SLA countdowns, bed turnover, state-grant vs. paid diagnostic billing, HL7 FHIR R4 interoperability, and audit logs — with sensitive clinical notes RBAC-redacted.",
-    adminCta: "Admin Sign In",
-    slaBadge: "Zero-Gap 24-Hour SLA Escalation Ladder",
-    slaTitle: "Automated Escalation Prevents Post-Discharge Drop-Offs",
-    slaDesc:
-      "In high-risk maternal care (severe preeclampsia, postpartum hemorrhage, post-cesarean sepsis), missing a 24-hour follow-up can be fatal. OnaCare AI continuously evaluates every active patronage window.",
-    slaZones: [
-      {
-        title: "0 – 12 Hours • Green Zone",
-        detail: "Assigned Family MD notified via Telegram & slot reserved",
-        tone: "green",
-      },
-      {
-        title: "12 – 18 Hours • Yellow Warning",
-        detail: "Automated SLA warning dispatched to Doctor & Polyclinic Lead",
-        tone: "yellow",
-      },
-      {
-        title: "18 – 24+ Hours • Red Critical",
-        detail: "District Medical Head & Reception alerted for immediate backup",
-        tone: "red",
-      },
-    ],
-    features: [
-      {
-        title: "OvaBMU Instant Epikriz",
-        desc: "Generates structured Epikriz summaries and frees ICU/maternity beds with one click.",
-      },
-      {
-        title: "Tailored UZ Checklists",
-        desc: "Diagnosis-specific physical exam, vitals, and lab verification items for home visits.",
-      },
-      {
-        title: "Patient AI Symptom Triage",
-        desc: "Real-time blood pressure and red-flag check-ins auto-upgrade case priority when needed.",
-      },
-      {
-        title: "HL7 FHIR R4 Ready",
-        desc: "Standardized Patient, Encounter, CarePlan, Task, and MedicationRequest JSON bundles.",
-      },
-    ],
-    footerBrand: "OnaCare AI — Automated Patronage System",
-    footerSignIn: "Sign In",
-    footerSignUp: "Sign Up",
-  },
   uz: {
-    badge: "National AI Hackathon • 11-topshiriq: Avtomatlashtirilgan Patronaj Tizimi",
-    heroPrefix: "OvaBMU → Oilaviy Poliklinika:",
-    heroHighlight: "24 Soatlik Uzluksiz",
-    heroSuffix: "Onalik Salomatligi Nazorati",
+    badge: "Onalar va chaqaloqlar uchun uyda g'amxo'rlik",
+    heroTitle:
+      "Tug'ruqdan keyin uyga qaytdingizmi? Mahallangizdagi oilaviy shifokor 24 soat ichida uyingizga tashrif buyuradi.",
     heroDesc:
-      'Yuqori xavfli bemor OvaBMUdan uyga chiqarilgan zahoti, 4 bosqichli Agentic AI Koordinatori EHR va tahlillarni sintez qiladi, hududiy oilaviy shifokorga "Aktiv Chaqiruv" yuboradi, o\'zbek tilida ko\'rik checklistini tuzadi va qat\'iy 24 soatlik SLA muddatini nazorat qiladi.',
-    ctaSignup: "Bepul Hisob Yaratish",
-    ctaSignin: "Portalga Kirish",
-    ctaOpenPortal: "Portalimga Kirish",
-    trust1: "AES-256-GCM Shifrlangan EHR",
-    trust2: "HL7 FHIR R4 Standarti",
-    trust3: "Rolga Ajratilgan Portallar",
-    pipeTitle: "Agentic AI Uzluksiz Zanjiri",
-    pipeSub: "Chiqarishdan Keyingi Avtonom Koordinatsiya",
-    pipeBadge: "JONLI 24h SLA",
+      "Uyga chiqqaningizdan so'ng yolg'iz qolmaysiz. Mahalliy poliklinikangizdan shifokor yoki hamshira siz va chaqalog'ingizni ko'rikdan o'tkazish uchun uyingizga keladi, siz esa kunlik ahvolingizni telefoningizdan oson ulashishingiz mumkin.",
+    ctaSignup: "Bepul hisob yaratish",
+    ctaSignin: "Kabinetga kirish",
+    ctaOpenPortal: "Kabinetimni ochish",
+    trust1: "Ma'lumotlaringiz shifrlangan va maxfiy",
+    trust2: "24 soat ichida shifokor yoki hamshira keladi",
+    trust3: "Faqat siz va shifokoringiz ko'radi",
+    pipeTitle: "Uyga qaytganingizdan keyin sizga qanday g'amxo'rlik qilamiz",
+    pipeSub: "Har bir qadam siz va oilangiz xotirjamligi uchun",
+    pipeBadge: "24 soatlik tashrif",
     steps: [
       {
         step: "01",
-        title: "EHR va Tahlil Xavfini Baholash",
-        desc: "ICD-10, Hb, AQB va CRP asosida xavf ballini hisoblaydi va qizil bayroqlarni ajratadi.",
+        title: "Shifoxona chiqarish xulosangiz",
+        desc: "Tug'ruqxona jamoasi sizning ahvolingiz haqidagi oddiy xulosani oilaviy shifokoringizga uzatadi.",
       },
       {
         step: "02",
-        title: "Hududiy Poliklinika Marshrutizatsiyasi",
-        desc: "Mahalla/tuman bo'yicha oilaviy shifokorni topadi va bo'sh tashrif vaqtini band qiladi.",
+        title: "Shifoxona tahlillaringizni ko'rib chiqamiz",
+        desc: "Oilaviy shifokoringiz uyingizga kelishidan oldin tahlil va ko'rsatkichlaringiz bilan tanishadi.",
       },
       {
         step: "03",
-        title: "O'zbekcha Checklist va Qo'llanma",
-        desc: "Shifokor uchun klinik checklist va bemor uchun UZ/RU/EN parvarish rejasini tuzadi.",
+        title: "Shifokor yoki hamshira 24 soat ichida keladi",
+        desc: "Sizga qulay vaqt belgilanadi va poliklinikadan shifokoringiz uyingizga tashrif buyuradi.",
       },
       {
         step: "04",
-        title: "24 soatlik SLA Nazorati va Eskalatsiya",
-        desc: "12 soatda (Sariq) va 18 soatda (Qizil) avtomatik ogohlantirishlar yuboradi.",
+        title: "Kunlik ahvol tekshiruvi: o'zingizni qanday his qilyapsiz?",
+        desc: "Harorat, qon bosimi yoki bezovtalik belgilarini telefoningizdan osongina yuborasiz.",
       },
     ],
-    rbacEyebrow: "Rolga Asoslangan Kirish Nazorati (RBAC)",
-    rbacTitle: "Uchta Qat'iy Ajratilgan Portal — Faqat Kirish Orqali Ochiladi",
-    rbacSub:
-      "Har bir foydalanuvchi faqat o'z roliga mos portalga kiradi. Bemorlar faqat shaxsiy sog'ayish kabinetini ko'radi va shifokorlar yoki admin boshqaruv oynalariga kira olmaydi.",
-    patientTitle: "Bemor Portali (/patient)",
+    portalsEyebrow: "Shaxsiy va xavfsiz kirish",
+    portalsTitle: "Ma'lumotlaringizni faqat siz va sizga qaraydigan shifokorlar ko'radi",
+    portalsSub:
+      "Har bir foydalanuvchi faqat o'ziga tegishli bo'limga kiradi. Bemorlar faqat o'z parvarish rejasini, shifokorlar esa o'z bemorlarini ko'radi.",
+    patientTitle: "Onalar va bemorlar uchun",
     patientDesc:
-      "Bemor sifatida ro'yxatdan o'tib, faqat shaxsiy parvarish rejangizni, UZ/RU/EN uy qoidalarini, faol e-retseptlarni, AI simptom tekshiruvini va 4-xonali OTP tashrif tasdig'ini ko'ring.",
-    patientTag: "Faqat shaxsiy ma'lumot",
+      "O'zingizning parvarish rejangiz, o'zbek/rus/ingliz tillaridagi uy qoidalari, dorilar eslatmasi, kunlik holat tekshiruvi va shifokor tashrifini tasdiqlash kodini ko'ring.",
+    patientTag: "Faqat shaxsiy kabinet",
     patientCta: "Bemor sifatida ro'yxatdan o'tish",
-    clinicalTitle: "Shifokorlar Klinik Portali (/clinical)",
+    clinicalTitle: "Shifokorlar va hamshiralar uchun",
     clinicalDesc:
-      "OvaBMU shifokorlari AI chiqarish handoffini boshlashi, hududiy oilaviy shifokorlar esa 24 soatlik uy patronaji checklisti, ko'rsatkichlar va tahlil buyurtmalarini bajarishi uchun.",
-    clinicalCta: "Shifokor Kirishi",
-    adminTitle: "Admin & SLA Boshqaruvi (/admin)",
+      "Tug'ruqxona va oilaviy poliklinika shifokorlari bemor xulosalarini tayyorlash, uyga tashrif ro'yxatini yuritish va ko'rik natijalarini kiritish uchun ishlaydigan bo'lim.",
+    clinicalTag: "Shifokorlar jamoasi",
+    clinicalCta: "Shifokor kirishi",
+    adminTitle: "Poliklinika koordinatorlari uchun",
     adminDesc:
-      "Tuman 24 soatlik SLA taymerlari, koyka aylanmasi, davlat granti va pullik diagnostika hisoboti, HL7 FHIR R4 hamda maxfiy klinik izohlarsiz xavfsizlik auditini kuzating.",
-    adminCta: "Admin Kirishi",
-    slaBadge: "24 Soatlik SLA Eskalatsiya Zanjiri",
-    slaTitle: "Avtomatik Eskalatsiya Bemor Nazoratidan Uzilishning Oldini Oladi",
-    slaDesc:
-      "Og'ir preeklampsiya, tug'ruqdan keyingi qon ketish yoki sepsis xavfi bo'lgan bemorlarda 24 soatlik ko'rikni kechiktirish hayotiy xavf tug'diradi. OnaCare AI har bir chaqiruvni uzluksiz kuzatadi.",
-    slaZones: [
+      "Qabulxona va mas'ul xodimlar barcha 24 soatlik tashriflar vaqtida bajarilishini kuzatishi hamda dorixona va davlat yordami hisobini yuritishi mumkin.",
+    adminTag: "Klinika boshqaruvi",
+    adminCta: "Koordinator kirishi",
+    promiseBadge: "24 soatlik tashrif kafolati",
+    promiseTitle: "Hech bir ona uyda e'tiborsiz qolmaydi",
+    promiseDesc:
+      "Uyga qaytgan dastlabki soatlarda o'z vaqtida ko'rikdan o'tish juda muhim. Tizim shifokor tashrifi vaqtida amalga oshishini avtomatik kuzatib boradi.",
+    promiseZones: [
       {
-        title: "0 – 12 Soat • Yashil Zona",
-        detail: "Oilaviy shifokorga Telegram xabar yuboriladi va vaqt band qilinadi",
+        title: "0 – 12 soat • Reja bo'yicha",
+        detail: "Oilaviy shifokoringiz xabardor qilinadi va tashrif vaqti belgilanadi",
         tone: "green",
       },
       {
-        title: "12 – 18 Soat • Sariq Ogohlantirish",
-        detail: "Shifokor va poliklinika mudiriga avtomatik SLA ogohlantirish yuboriladi",
+        title: "12 – 18 soat • Eslatma yuboriladi",
+        detail: "Agar tashrif hali bo'lmagan bo'lsa, shifokor va poliklinikaga eslatma boradi",
         tone: "yellow",
       },
       {
-        title: "18 – 24+ Soat • Qizil Kritik",
-        detail: "Tuman tibbiyot birlashmasi va qabulxonaga zudlik bilan zaxira signali",
+        title: "18 – 24 soat • Zudlik bilan zaxira",
+        detail: "Tuman mas'ul xodimiga xabar beriladi va darhol boshqa shifokor yuboriladi",
         tone: "red",
       },
     ],
     features: [
       {
-        title: "Tezkor OvaBMU Epikrizi",
-        desc: "Tuzilgan epikriz hujjatini yaratadi va bir bosishda statsionar koykani bo'shatadi.",
+        title: "Oson tushunarli xulosa",
+        desc: "Shifoxonadan chiqishdagi barcha muhim tavsiyalar sodda tilda jamlanadi.",
       },
       {
-        title: "Moslashtirilgan UZ Checklist",
-        desc: "Tashxisga xos jismoniy ko'rik, vital ko'rsatkichlar va tahlil nazorati bandlari.",
+        title: "Ona va chaqaloq uchun kundalik qoidalar",
+        desc: "O'zbek, rus va ingliz tillarida kunlik parvarish hamda ogohlantiruvchi belgilar.",
       },
       {
-        title: "Bemor AI Simptom Triaji",
-        desc: "Qon bosimi va xavfli belgilarni kiritishda ustuvorlik darajasini avtomatik oshiradi.",
+        title: "Kunlik ahvol tekshiruvi",
+        desc: "O'zingizni yomon his qilsangiz, bir necha tugma orqali shifokoringizga darhol xabar berasiz.",
       },
       {
-        title: "HL7 FHIR R4 Tayyor",
-        desc: "Standartlashtirilgan Patient, Encounter, CarePlan, Task va MedicationRequest JSON paketlari.",
+        title: "Tashrifni oddiy tasdiqlash",
+        desc: "Shifokor kelganda 4 xonali kod yoki bir bosish bilan tashrifni tasdiqlaysiz.",
       },
     ],
-    footerBrand: "OnaCare AI — Avtomatlashtirilgan Patronaj Tizimi",
+    clinicLinkLabel: "Klinikalar va mutaxassislar uchun: tizim qanday ishlashi haqida batafsil",
+    footerBrand: "OnaCare — Uyda 24 soatlik g'amxo'rlik",
+    footerPrivacy: "Ma'lumotlaringiz shifrlangan va maxfiy",
+    footerTechLink: "Klinikalar va texnologiya",
     footerSignIn: "Kirish",
     footerSignUp: "Ro'yxatdan o'tish",
   },
   ru: {
-    badge: "National AI Hackathon • Задача #11: Автоматизированная система патронажа",
-    heroPrefix: "OvaBMU → Семейная поликлиника:",
-    heroHighlight: "Непрерывный 24-часовой",
-    heroSuffix: "контроль материнства",
+    badge: "Домашняя забота о мамах и малышах",
+    heroTitle:
+      "Выписываетесь после родов домой? Семейный врач из вашей поликлиники придет к вам в течение 24 часов.",
     heroDesc:
-      "Как только пациентка высокой группы риска выписывается из OvaBMU, 4-шаговый ИИ-координатор анализирует ЭМК и анализы, отправляет «Aktiv Chaqiruv» участковому семейному врачу, формирует чек-лист осмотра и контролирует строгий 24-часовой SLA.",
+      "После возвращения домой вы не останетесь одна. Врач или медсестра из вашей поликлиники навестит вас и малыша дома, а вы сможете каждый день легко сообщать о своем самочувствии с телефона.",
     ctaSignup: "Создать аккаунт бесплатно",
-    ctaSignin: "Войти в портал",
-    ctaOpenPortal: "Открыть мой портал",
-    trust1: "Шифрование ЭМК AES-256-GCM",
-    trust2: "Совместимость с HL7 FHIR R4",
-    trust3: "Изолированные порталы по ролям",
-    pipeTitle: "Конвейер ИИ-координации",
-    pipeSub: "Автономное сопровождение после выписки",
-    pipeBadge: "LIVE 24ч SLA",
+    ctaSignin: "Войти в кабинет",
+    ctaOpenPortal: "Открыть мой кабинет",
+    trust1: "Ваши данные зашифрованы и конфиденциальны",
+    trust2: "Врач или медсестра придут в течение 24 часов",
+    trust3: "Доступ есть только у вас и ваших врачей",
+    pipeTitle: "Как мы заботимся о вас после возвращения домой",
+    pipeSub: "Каждый шаг создан для вашего спокойствия",
+    pipeBadge: "Визит за 24 часа",
     steps: [
       {
         step: "01",
-        title: "Синтез рисков ЭМК и анализов",
-        desc: "Оценивает тяжесть (МКБ-10, Hb, АД, СРБ) и выделяет критические красные флаги.",
+        title: "Ваша выписка из роддома",
+        desc: "Команда роддома передает понятную сводку о вашем самочувствии семейному врачу.",
       },
       {
         step: "02",
-        title: "Территориальная маршрутизация",
-        desc: "Подбирает семейного врача по махалле/району и бронирует свободный слот визита.",
+        title: "Мы проверяем ваши результаты из роддома",
+        desc: "Врач изучает ваши анализы и рекомендации еще до прихода к вам домой.",
       },
       {
         step: "03",
-        title: "Клинический чек-лист и памятка",
-        desc: "Создает протокол осмотра для врача и руководство UZ/RU/EN для пациентки.",
+        title: "Врач или медсестра приходят в течение 24 часов",
+        desc: "Вы заранее видите время визита специалиста из вашей поликлиники.",
       },
       {
         step: "04",
-        title: "Контроль 24ч SLA и эскалация",
-        desc: "Эскалация на 12ч (Желтая) и 18ч (Красная) до подтверждения визита по OTP.",
+        title: "Ежедневная проверка: расскажите, как вы себя чувствуете",
+        desc: "Отправьте температуру, давление или любые жалобы прямо с телефона.",
       },
     ],
-    rbacEyebrow: "Ролевой контроль доступа (RBAC)",
-    rbacTitle: "Три строго изолированных портала — доступ только после входа",
-    rbacSub:
-      "Каждый пользователь попадает исключительно в портал своей роли. Пациентки видят только свой план восстановления без доступа к клиническим данным врачей или панели администратора.",
-    patientTitle: "Портал пациента (/patient)",
+    portalsEyebrow: "Личный и защищенный доступ",
+    portalsTitle: "Ваши данные видите только вы и ваша команда врачей",
+    portalsSub:
+      "У каждого пользователя есть свой отдельный кабинет. Мамы видят только свой план восстановления, а врачи — только своих пациенток.",
+    patientTitle: "Для мам и пациенток",
     patientDesc:
-      "Зарегистрируйтесь как пациентка, чтобы видеть только свой план ухода, правила на UZ/RU/EN, активные е-рецепты, ИИ-триаж симптомов и подтверждение визита врача 4-значным OTP.",
-    patientTag: "Только свои данные",
-    patientCta: "Регистрация пациента",
-    clinicalTitle: "Клинический портал врачей (/clinical)",
+      "Смотрите свой план ухода на узбекском, русском или английском языке, напоминания о лекарствах, ежедневную проверку самочувствия и код подтверждения визита.",
+    patientTag: "Только ваши данные",
+    patientCta: "Регистрация для мам",
+    clinicalTitle: "Для врачей и медсестер",
     clinicalDesc:
-      "Рабочее пространство для врачей OvaBMU (выписка и запуск ИИ-патронажа) и семейных врачей (24ч чек-лист на дому, показатели витальных функций, анализы и рецепты).",
+      "Рабочий кабинет для врачей роддома и семейных поликлиник: передача выписки, чек-лист домашнего осмотра и запись показателей здоровья.",
+    clinicalTag: "Команда врачей",
     clinicalCta: "Вход для врачей",
-    adminTitle: "Администрирование и SLA (/admin)",
+    adminTitle: "Для координаторов клиник",
     adminDesc:
-      "Мониторинг 24-часовых таймеров SLA по районам, освобождения коек, госгрантов и платных услуг, HL7 FHIR R4 и журнала аудита с защитой врачебной тайны.",
-    adminCta: "Вход для админа",
-    slaBadge: "Лестница эскалации 24-часового SLA",
-    slaTitle: "Автоматическая эскалация предотвращает потерю связи после выписки",
-    slaDesc:
-      "При тяжелой преэклампсии, кровотечении или риске сепсиса пропуск 24-часового визита смертельно опасен. OnaCare AI непрерывно отслеживает каждый активный вызов.",
-    slaZones: [
+      "Помогает регистратуре и руководству следить, чтобы каждый визит в течение 24 часов состоялся вовремя, и вести учет бесплатной помощи.",
+    adminTag: "Координация клиники",
+    adminCta: "Вход для координатора",
+    promiseBadge: "Обещание визита за 24 часа",
+    promiseTitle: "Ни одна мама не остается без внимания дома",
+    promiseDesc:
+      "Первые сутки после выписки очень важны. Система автоматически следит за тем, чтобы семейный врач вовремя навестил вас.",
+    promiseZones: [
       {
-        title: "0 – 12 часов • Зеленая зона",
-        detail: "Семейный врач уведомлен в Telegram, время визита зарезервировано",
+        title: "0 – 12 часов • По графику",
+        detail: "Ваш семейный врач получил уведомление, время визита назначено",
         tone: "green",
       },
       {
-        title: "12 – 18 часов • Желтое предупреждение",
-        detail: "Автоматическое предупреждение врачу и заведующему поликлиники",
+        title: "12 – 18 часов • Напоминание",
+        detail: "Если визит еще не отмечен, врачу и поликлинике уходит напоминание",
         tone: "yellow",
       },
       {
-        title: "18 – 24+ часов • Красный критический уровень",
-        detail: "Сигнал руководителю РМО и приемной для экстренной подмены",
+        title: "18 – 24 часа • Срочная замена",
+        detail: "Координатор клиники подключается и направляет другого врача",
         tone: "red",
       },
     ],
     features: [
       {
-        title: "Мгновенный эпикриз OvaBMU",
-        desc: "Формирует структурированный эпикриз и освобождает койку в один клик.",
+        title: "Понятная выписка из больницы",
+        desc: "Все важные рекомендации после родов собраны в одном месте без сложных терминов.",
       },
       {
-        title: "Целевые чек-листы осмотра",
-        desc: "Специфичные для диагноза пункты осмотра, витальных показателей и анализов.",
+        title: "Памятка на узбекском, русском и английском",
+        desc: "Простые ежедневные советы по уходу и список тревожных симптомов.",
       },
       {
-        title: "ИИ-триаж симптомов пациентки",
-        desc: "Контроль давления и тревожных симптомов с мгновенным повышением приоритета.",
+        title: "Быстрая ежедневная проверка",
+        desc: "Если поднимется температура или давление, ваш врач сразу получит сигнал.",
       },
       {
-        title: "Поддержка HL7 FHIR R4",
-        desc: "Стандартизированные JSON-пакеты Patient, Encounter, CarePlan, Task и MedicationRequest.",
+        title: "Простое подтверждение визита",
+        desc: "Когда врач придет домой, подтвердите визит 4-значным кодом или в один клик.",
       },
     ],
-    footerBrand: "OnaCare AI — Автоматизированная система патронажа",
+    clinicLinkLabel: "Для клиник и специалистов: подробнее о стандартах и безопасности",
+    footerBrand: "OnaCare — Домашняя забота в течение 24 часов",
+    footerPrivacy: "Ваши данные зашифрованы и конфиденциальны",
+    footerTechLink: "Для клиник / Технологии",
     footerSignIn: "Войти",
     footerSignUp: "Регистрация",
+  },
+  en: {
+    badge: "Warm Home Care for New Mothers & Babies",
+    heroTitle:
+      "Going home after birth? A doctor from your local clinic will visit within 24 hours.",
+    heroDesc:
+      "You are never on your own after going home. A family doctor or nurse from your neighborhood clinic visits you at home, and you can share how you feel each day right from your phone.",
+    ctaSignup: "Create Free Account",
+    ctaSignin: "Sign In",
+    ctaOpenPortal: "Open My Portal",
+    trust1: "Your data is encrypted and private",
+    trust2: "A nurse or doctor visits you within 24 hours",
+    trust3: "Only you and your care team see your data",
+    pipeTitle: "How we look after you after you go home",
+    pipeSub: "Four simple steps for your peace of mind",
+    pipeBadge: "24h Home Visit",
+    steps: [
+      {
+        step: "01",
+        title: "Your hospital discharge summary",
+        desc: "Your birth team passes along a clear summary of how you and your baby are doing.",
+      },
+      {
+        step: "02",
+        title: "We review your hospital results",
+        desc: "Your local doctor checks your test results and notes before arriving.",
+      },
+      {
+        step: "03",
+        title: "A nurse or doctor visits you within 24 hours",
+        desc: "You see your reserved home visit window and your doctor's phone number.",
+      },
+      {
+        step: "04",
+        title: "Daily check-in: tell us how you feel",
+        desc: "Send a quick update on your blood pressure, temperature, or any discomfort.",
+      },
+    ],
+    portalsEyebrow: "Private & Role-Separated",
+    portalsTitle: "Only you and your care team see your data",
+    portalsSub:
+      "Each person only enters their own dedicated space. Mothers see only their personal care plan, never other patients or clinic management screens.",
+    patientTitle: "For Mothers & Patients",
+    patientDesc:
+      "View your personal recovery plan, simple care guides in UZ/RU/EN, medicine reminders, daily symptom check-ins, and your 4-digit visit confirmation code.",
+    patientTag: "Only your data",
+    patientCta: "Sign up as Patient",
+    clinicalTitle: "For Doctors & Nurses",
+    clinicalDesc:
+      "A clear workspace for maternity doctors to share discharge summaries and for local family doctors to complete 24-hour home visit check-ups.",
+    clinicalTag: "Care team",
+    clinicalCta: "Doctor Sign In",
+    adminTitle: "For Clinic Coordinators",
+    adminDesc:
+      "Helps clinic reception make sure every 24-hour home visit happens on time and track free state-covered medicines and lab tests.",
+    adminTag: "Clinic support",
+    adminCta: "Coordinator Sign In",
+    promiseBadge: "A nurse or doctor visits you within 24 hours",
+    promiseTitle: "Timely reminders so no mother is missed at home",
+    promiseDesc:
+      "The first 24 hours back home matter most. OnaCare gently tracks your home visit schedule and alerts backup staff if a doctor is delayed.",
+    promiseZones: [
+      {
+        title: "0 – 12 Hours • On Schedule",
+        detail: "Your local doctor is notified and your home visit time is reserved",
+        tone: "green",
+      },
+      {
+        title: "12 – 18 Hours • Friendly Reminder",
+        detail: "If not yet visited, an automatic reminder goes to your doctor and clinic lead",
+        tone: "yellow",
+      },
+      {
+        title: "18 – 24+ Hours • Priority Backup",
+        detail: "The clinic coordinator is alerted immediately to send another doctor",
+        tone: "red",
+      },
+    ],
+    features: [
+      {
+        title: "Your hospital discharge summary",
+        desc: "Everything your doctor needs to know is shared clearly when you leave the clinic.",
+      },
+      {
+        title: "Home care rules in UZ, RU & EN",
+        desc: "Plain daily tips and warning signs in your preferred language.",
+      },
+      {
+        title: "Daily check-in: tell us how you feel",
+        desc: "Quickly report fever, headache, swelling, or blood pressure from home.",
+      },
+      {
+        title: "Easy visit confirmation",
+        desc: "Confirm your doctor's home visit in one tap or with your 4-digit code.",
+      },
+    ],
+    clinicLinkLabel: "For clinics & technical teams: view security, clinical standards & workflow details",
+    footerBrand: "OnaCare — Home Care Within 24 Hours",
+    footerPrivacy: "Your data is encrypted and private",
+    footerTechLink: "For Clinics / Technology",
+    footerSignIn: "Sign In",
+    footerSignUp: "Sign Up",
   },
 };
 
@@ -376,20 +388,18 @@ export default function LandingPage() {
       <PublicHeader showAnchors />
 
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* Warm Patient-Facing Hero Section */}
         <section className="relative overflow-hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div className="mx-auto max-w-7xl px-4 py-12 md:py-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               <div className="lg:col-span-7 space-y-6">
                 <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 dark:bg-teal-950/60 px-3.5 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                  <IconSparkles className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" />
+                  <IconCalendarHeart className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" />
                   <span>{t.badge}</span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-[1.12]">
-                  {t.heroPrefix}{" "}
-                  <span className="text-teal-700 dark:text-teal-400">{t.heroHighlight}</span>{" "}
-                  {t.heroSuffix}
+                <h1 className="text-3xl sm:text-4xl lg:text-[2.65rem] font-bold tracking-tight text-slate-900 dark:text-white leading-[1.16]">
+                  {t.heroTitle}
                 </h1>
 
                 <p className="text-base leading-relaxed text-slate-600 dark:text-slate-300 max-w-2xl">
@@ -408,7 +418,7 @@ export default function LandingPage() {
                   ) : (
                     <>
                       <Link
-                        href="/signup"
+                        href="/signup?role=PATIENT"
                         className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 transition"
                       >
                         <IconUserPlus className="h-4 w-4" />
@@ -431,7 +441,7 @@ export default function LandingPage() {
                     {t.trust1}
                   </span>
                   <span className="inline-flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
-                    <IconFileCode className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                    <IconHeartHandshake className="h-4 w-4 text-teal-600 dark:text-teal-400" />
                     {t.trust2}
                   </span>
                   <span className="inline-flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
@@ -441,20 +451,20 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Architectural Preview Card */}
-              <div className="lg:col-span-5">
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-900 dark:bg-slate-950 p-6 text-white shadow-xl space-y-5">
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-4">
+              {/* Plain 4-Step Care Journey Card */}
+              <div id="care-steps" className="lg:col-span-5">
+                <div className="rounded-2xl border border-teal-200/80 dark:border-slate-800 bg-teal-50/40 dark:bg-slate-950 p-6 shadow-sm space-y-5">
+                  <div className="flex items-start justify-between gap-2 border-b border-teal-200/60 dark:border-slate-800 pb-4">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-500/20 text-teal-300 border border-teal-500/30">
-                        <IconRobot className="h-5 w-5" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white">
+                        <IconHeartHandshake className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-white">{t.pipeTitle}</p>
-                        <p className="text-[11px] text-slate-400">{t.pipeSub}</p>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">{t.pipeTitle}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.pipeSub}</p>
                       </div>
                     </div>
-                    <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
+                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950/70 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
                       {t.pipeBadge}
                     </span>
                   </div>
@@ -463,14 +473,14 @@ export default function LandingPage() {
                     {t.steps.map((item) => (
                       <div
                         key={item.step}
-                        className="flex items-start gap-3 rounded-xl bg-slate-800/80 p-3 border border-slate-700/80"
+                        className="flex items-start gap-3 rounded-xl bg-white dark:bg-slate-900 p-3.5 border border-slate-200/80 dark:border-slate-800"
                       >
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-teal-600 text-[11px] font-bold text-white font-mono">
                           {item.step}
                         </span>
                         <div>
-                          <p className="font-semibold text-slate-100">{item.title}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">{item.desc}</p>
+                          <p className="font-semibold text-slate-900 dark:text-slate-100">{item.title}</p>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">{item.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -481,17 +491,17 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Separated Role Portals */}
+        {/* Role-Separated Portals in Plain Language */}
         <section id="portals" className="mx-auto max-w-7xl px-4 py-14 space-y-8">
           <div className="max-w-2xl space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
-              {t.rbacEyebrow}
+              {t.portalsEyebrow}
             </span>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-              {t.rbacTitle}
+              {t.portalsTitle}
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              {t.rbacSub}
+              {t.portalsSub}
             </p>
           </div>
 
@@ -535,7 +545,7 @@ export default function LandingPage() {
               </div>
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-500 dark:text-slate-400">
-                  OVABMU_MD &amp; FAMILY_MD
+                  {t.clinicalTag}
                 </span>
                 <Link
                   href="/login"
@@ -560,7 +570,7 @@ export default function LandingPage() {
               </div>
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-500 dark:text-slate-400">
-                  ADMIN_RECEPTION
+                  {t.adminTag}
                 </span>
                 <Link
                   href="/login"
@@ -573,23 +583,23 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Workflow & SLA Architecture */}
-        <section id="workflow" className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-14">
-          <div className="mx-auto max-w-7xl px-4 space-y-10">
-            <div id="sla" className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Plain 24-Hour Promise & Everyday Care Features */}
+        <section id="visit-promise" className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-14">
+          <div className="mx-auto max-w-7xl px-4 space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 dark:bg-amber-950/60 px-3 py-1 text-xs font-semibold text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                  <IconClock className="h-3.5 w-3.5" />
-                  {t.slaBadge}
+                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <IconCalendarHeart className="h-3.5 w-3.5" />
+                  {t.promiseBadge}
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {t.slaTitle}
+                  {t.promiseTitle}
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  {t.slaDesc}
+                  {t.promiseDesc}
                 </p>
                 <div className="space-y-2.5 text-xs">
-                  {t.slaZones.map((zone) => (
+                  {t.promiseZones.map((zone) => (
                     <div
                       key={zone.title}
                       className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 rounded-xl border px-4 py-3 ${
@@ -629,7 +639,7 @@ export default function LandingPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 p-5 space-y-2">
-                  <IconBuildingHospital className="h-6 w-6 text-teal-700 dark:text-teal-400" />
+                  <IconFileText className="h-6 w-6 text-teal-700 dark:text-teal-400" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                     {t.features[0].title}
                   </h3>
@@ -638,7 +648,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 p-5 space-y-2">
-                  <IconChecklist className="h-6 w-6 text-teal-700 dark:text-teal-400" />
+                  <IconClipboardCheck className="h-6 w-6 text-teal-700 dark:text-teal-400" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                     {t.features[1].title}
                   </h3>
@@ -647,7 +657,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 p-5 space-y-2">
-                  <IconActivity className="h-6 w-6 text-teal-700 dark:text-teal-400" />
+                  <IconMessageHeart className="h-6 w-6 text-teal-700 dark:text-teal-400" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                     {t.features[2].title}
                   </h3>
@@ -656,7 +666,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 p-5 space-y-2">
-                  <IconFileCode className="h-6 w-6 text-teal-700 dark:text-teal-400" />
+                  <IconShieldCheck className="h-6 w-6 text-teal-700 dark:text-teal-400" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                     {t.features[3].title}
                   </h3>
@@ -665,6 +675,19 @@ export default function LandingPage() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 px-5 py-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <span className="text-slate-600 dark:text-slate-300 font-medium">
+                {t.clinicLinkLabel}
+              </span>
+              <Link
+                href="/technology"
+                className="inline-flex items-center gap-1.5 font-semibold text-teal-700 dark:text-teal-400 hover:underline"
+              >
+                {t.footerTechLink}
+                <IconArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           </div>
         </section>
@@ -676,14 +699,20 @@ export default function LandingPage() {
             <IconHeartHandshake className="h-4 w-4 text-teal-400" />
             {t.footerBrand}
           </div>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4">
             <Link href="/login" className="hover:text-white transition">
               {t.footerSignIn}
             </Link>
             <Link href="/signup" className="hover:text-white transition">
               {t.footerSignUp}
             </Link>
-            <span>AES-256-GCM • HL7 FHIR R4</span>
+            <Link href="/technology" className="hover:text-white transition">
+              {t.footerTechLink}
+            </Link>
+            <span className="inline-flex items-center gap-1 text-slate-300">
+              <IconLock className="h-3.5 w-3.5 text-teal-400" />
+              {t.footerPrivacy}
+            </span>
           </div>
         </div>
       </footer>

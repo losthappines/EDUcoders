@@ -18,9 +18,10 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage, type AppLang } from "@/context/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { InfoTooltip } from "@/components/InfoTooltip";
 import type { UserRole } from "@/lib/types";
 
 function getPortalForRole(role: UserRole): string {
@@ -52,6 +53,82 @@ function isRoleAllowedOnPath(role: UserRole, pathname: string): boolean {
   return true;
 }
 
+const SHELL_COPY: Record<
+  AppLang,
+  {
+    simBadge: string;
+    simDesc: string;
+    resetBtn: string;
+    privateBadge: string;
+    privateTooltip: string;
+    languageLabel: string;
+    signOut: string;
+    patientBadge: string;
+    patientSub: string;
+    ovabmuBadge: string;
+    ovabmuSub: string;
+    familyBadge: string;
+    familySub: string;
+    adminBadge: string;
+    adminSub: string;
+  }
+> = {
+  uz: {
+    simBadge: "VAQT SIMULYATORI",
+    simDesc: "24 soatlik tashrif muddatini sinash",
+    resetBtn: "Tiklash",
+    privateBadge: "Shaxsiy va himoyalangan",
+    privateTooltip:
+      "Barcha tibbiy ma'lumotlar shifrlangan va faqat siz hamda shifokoringizga ko'rinadi.",
+    languageLabel: "Til",
+    signOut: "Chiqish",
+    patientBadge: "Bemor kabineti",
+    patientSub: "Shaxsiy parvarish rejasi va 24 soatlik uy tashrifi",
+    ovabmuBadge: "Tug'ruqxona shifokori",
+    ovabmuSub: "Bemorlarni uyga chiqarish va shifokorga yo'naltirish",
+    familyBadge: "Oilaviy shifokor",
+    familySub: "Poliklinika va 24 soatlik uy ko'rigi",
+    adminBadge: "Qabulxona va nazorat",
+    adminSub: "24 soatlik tashriflar nazorati va hisobotlar",
+  },
+  ru: {
+    simBadge: "СИМУЛЯТОР ВРЕМЕНИ",
+    simDesc: "Проверка 24-часового окна визита",
+    resetBtn: "Сброс",
+    privateBadge: "Приватно и зашифровано",
+    privateTooltip:
+      "Ваши медицинские данные зашифрованы и доступны только вам и вашей команде врачей.",
+    languageLabel: "Язык",
+    signOut: "Выйти",
+    patientBadge: "Кабинет пациента",
+    patientSub: "Личный план восстановления и визит врача за 24 часа",
+    ovabmuBadge: "Врач роддома",
+    ovabmuSub: "Выписка пациенток и направление к семейному врачу",
+    familyBadge: "Семейный врач",
+    familySub: "Поликлиника и домашний осмотр в течение 24 часов",
+    adminBadge: "Координатор клиники",
+    adminSub: "Контроль 24-часовых визитов и отчетность",
+  },
+  en: {
+    simBadge: "TIME SIMULATOR",
+    simDesc: "Test 24-hour home visit reminders",
+    resetBtn: "Reset",
+    privateBadge: "Encrypted & private",
+    privateTooltip:
+      "Your health data is encrypted and visible only to you and your care team.",
+    languageLabel: "Language",
+    signOut: "Sign Out",
+    patientBadge: "Patient Portal",
+    patientSub: "Your recovery plan & 24-hour home visit",
+    ovabmuBadge: "Hospital Doctor",
+    ovabmuSub: "Prepare discharge summaries & arrange home visits",
+    familyBadge: "Family Doctor",
+    familySub: "Local clinic & 24-hour home check-ups",
+    adminBadge: "Clinic Coordinator",
+    adminSub: "24-hour visit tracking, reception & summaries",
+  },
+};
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -69,6 +146,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   } = usePlatform();
 
   const isProtected = isProtectedPortalPath(pathname);
+  const t = SHELL_COPY[lang];
 
   useEffect(() => {
     if (!isProtected || !authChecked) return;
@@ -115,39 +193,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {!authChecked
               ? lang === "ru"
                 ? "Проверка сессии..."
-                : lang === "uz"
-                  ? "Sessiya tekshirilmoqda..."
-                  : "Checking session..."
+                : lang === "en"
+                  ? "Checking session..."
+                  : "Sessiya tekshirilmoqda..."
               : !authUser
                 ? lang === "ru"
                   ? "Требуется вход"
-                  : lang === "uz"
-                    ? "Kirish talab qilinadi"
-                    : "Sign in required"
+                  : lang === "en"
+                    ? "Sign in required"
+                    : "Kirish talab qilinadi"
                 : lang === "ru"
                   ? "Доступ ограничен — перенаправление"
-                  : lang === "uz"
-                    ? "Ruxsat cheklangan — yo'naltirilmoqda"
-                    : "Access restricted — redirecting"}
+                  : lang === "en"
+                    ? "Access restricted — redirecting"
+                    : "Ruxsat cheklangan — yo'naltirilmoqda"}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             {!authChecked
               ? lang === "ru"
-                ? "Подключение к защищенному порталу..."
-                : lang === "uz"
-                  ? "Xavfsiz portalga ulanilmoqda..."
-                  : "Connecting to your secure portal..."
+                ? "Подключение к вашему защищенному кабинету..."
+                : lang === "en"
+                  ? "Connecting to your secure portal..."
+                  : "Xavfsiz kabinetga ulanilmoqda..."
               : !authUser
                 ? lang === "ru"
-                  ? "Сессия не подтверждена. Перенаправление на страницу входа."
-                  : lang === "uz"
-                    ? "Sizning hisobingiz tasdiqlanmadi. Kirish sahifasiga yo'naltirilmoqda."
-                    : "Your session is not signed in. Redirecting to Sign In."
+                  ? "Вы еще не вошли в систему. Перенаправляем на страницу входа."
+                  : lang === "en"
+                    ? "You are not signed in. Redirecting to Sign In."
+                    : "Siz hali tizimga kirmagansiz. Kirish sahifasiga yo'naltirilmoqda."
                 : lang === "ru"
-                  ? "Вы можете видеть только портал вашей роли."
-                  : lang === "uz"
-                    ? "Siz faqat o'zingizning rolingizga tegishli portalni ko'rishingiz mumkin."
-                    : "You can only access the portal assigned to your role."}
+                  ? "Вы можете открыть только кабинет вашей роли."
+                  : lang === "en"
+                    ? "You can only open the portal assigned to your role."
+                    : "Siz faqat o'zingizning rolingizga tegishli kabinetni ko'rishingiz mumkin."}
           </p>
         </div>
       </div>
@@ -168,47 +246,40 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const portalMeta =
     authUser.role === "PATIENT"
       ? {
-          badge: lang === "ru" ? "Портал пациента" : lang === "uz" ? "Bemor Portali" : "Patient Portal",
-          subtitle:
-            lang === "ru"
-              ? "Личный план выздоровления и 24ч патронаж"
-              : lang === "uz"
-                ? "Shaxsiy davolanish va 24 soatlik uy patronaji kabineti"
-                : "Personal recovery plan & 24h home patronage",
+          badge: t.patientBadge,
+          subtitle: t.patientSub,
           icon: <IconHeartHandshake className="h-4 w-4 text-teal-700 dark:text-teal-300" />,
         }
       : authUser.role === "OVABMU_MD"
         ? {
-            badge: "OvaBMU MD Portal",
-            subtitle: "Inpatient discharge & AI Patronage dispatch",
+            badge: t.ovabmuBadge,
+            subtitle: t.ovabmuSub,
             icon: <IconBuildingHospital className="h-4 w-4 text-teal-700 dark:text-teal-300" />,
           }
         : authUser.role === "FAMILY_MD"
           ? {
-              badge: "Family MD Portal",
-              subtitle: "Regional polyclinic & 24h home patronage",
+              badge: t.familyBadge,
+              subtitle: t.familySub,
               icon: <IconStethoscope className="h-4 w-4 text-teal-700 dark:text-teal-300" />,
             }
           : {
-              badge: "Admin & SLA Portal",
-              subtitle: "Reception, 24h SLA monitor & system audit",
+              badge: t.adminBadge,
+              subtitle: t.adminSub,
               icon: <IconShieldCheck className="h-4 w-4 text-teal-700 dark:text-teal-300" />,
             };
 
-  const signOutLabel = lang === "ru" ? "Выйти" : lang === "uz" ? "Chiqish" : "Sign Out";
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
-      {/* Staff-Only SLA Time Simulator Utility Bar (Hidden from Patients) */}
+      {/* Staff-Only Demo Time Simulator Utility Bar (Hidden from Patients) */}
       {isStaff && (
         <div className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900 dark:bg-slate-950 text-white shadow-md">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2">
             <div className="flex items-center gap-2 text-xs">
               <span className="inline-flex items-center gap-1.5 rounded-md bg-teal-500/20 px-2 py-0.5 text-[11px] font-bold tracking-wide text-teal-300 border border-teal-500/30">
-                SLA SIMULATOR
+                {t.simBadge}
               </span>
               <span className="text-slate-300 hidden sm:inline">
-                Real-time 24h Patronage Clock Control
+                {t.simDesc}
               </span>
             </div>
 
@@ -254,10 +325,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 onClick={resetDemo}
                 disabled={simBusy}
                 className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2 py-1 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 disabled:opacity-50"
-                title="Reset Time & Demo Seed"
+                title={t.resetBtn}
               >
                 <IconRotateClockwise className="h-3.5 w-3.5" />
-                Reset
+                {t.resetBtn}
               </button>
             </div>
           </div>
@@ -271,7 +342,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/"
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-xs hover:bg-teal-700 transition"
-              title="Home"
+              title="OnaCare"
             >
               <IconHeartHandshake className="h-5 w-5" />
             </Link>
@@ -281,11 +352,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   href="/"
                   className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 hover:text-teal-700 dark:hover:text-teal-400 truncate"
                 >
-                  OnaCare AI
+                  OnaCare
                 </Link>
                 <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[11px] font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 whitespace-nowrap">
                   {portalMeta.icon}
-                  <span className="truncate max-w-[120px] sm:max-w-none">{portalMeta.badge}</span>
+                  <span className="truncate max-w-[125px] sm:max-w-none">{portalMeta.badge}</span>
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block truncate">
@@ -300,7 +371,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
             <span className="hidden lg:inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
               <IconLock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-              AES-256-GCM
+              <InfoTooltip label={t.privateBadge} explanation={t.privateTooltip} />
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               <IconUserCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -312,11 +383,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition"
             >
               <IconLogout className="h-3.5 w-3.5" />
-              {signOutLabel}
+              {t.signOut}
             </button>
           </div>
 
-          {/* Mobile actions (ThemeToggle + Hamburger) */}
+          {/* Mobile actions */}
           <div className="flex md:hidden items-center gap-1.5 shrink-0">
             <ThemeToggle />
             <button
@@ -334,18 +405,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 space-y-3 text-xs">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                 <IconUserCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                 {authUser.fullName}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                 <IconLock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                AES-256
+                {t.privateBadge}
               </span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold text-slate-500 dark:text-slate-400">Language</span>
+              <span className="font-semibold text-slate-500 dark:text-slate-400">
+                {t.languageLabel}
+              </span>
               <LanguageSwitcher />
             </div>
             <button
@@ -357,7 +430,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
             >
               <IconLogout className="h-3.5 w-3.5" />
-              {signOutLabel}
+              {t.signOut}
             </button>
           </div>
         )}

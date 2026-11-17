@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-export type AppLang = "en" | "uz" | "ru";
+export type AppLang = "uz" | "ru" | "en";
 
 const STORAGE_KEY = "onacare_lang";
 const LANG_EVENT = "onacare-lang-change";
@@ -21,7 +21,7 @@ function subscribeLang(callback: () => void): () => void {
   };
 }
 
-function getLangSnapshot(): AppLang {
+export function getGlobalLanguage(): AppLang {
   if (typeof window !== "undefined") {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -32,11 +32,11 @@ function getLangSnapshot(): AppLang {
       // Ignore storage access errors
     }
   }
-  return "en";
+  return "uz";
 }
 
 function getLangServerSnapshot(): AppLang {
-  return "en";
+  return "uz";
 }
 
 function subscribeClient(): () => void {
@@ -68,12 +68,12 @@ export function useLanguage(): {
   );
   const storedLang = useSyncExternalStore(
     subscribeLang,
-    getLangSnapshot,
+    getGlobalLanguage,
     getLangServerSnapshot
   );
 
   return {
-    lang: isClient ? storedLang : "en",
+    lang: isClient ? storedLang : "uz",
     setLang: setGlobalLanguage,
     isClient,
   };

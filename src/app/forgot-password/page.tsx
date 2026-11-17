@@ -21,64 +21,106 @@ const COPY: Record<
     title: string;
     subtitle: string;
     emailLabel: string;
+    emailPlaceholder: string;
     requestBtn: string;
     requesting: string;
     codeLabel: string;
     newPwLabel: string;
+    newPwPlaceholder: string;
     confirmPwLabel: string;
+    confirmPwPlaceholder: string;
+    togglePw: string;
     resetBtn: string;
     resetting: string;
     backToLogin: string;
     demoNote: string;
+    codeReadyInfo: string;
+    noAccountErr: string;
+    mismatchErr: string;
+    requestErr: string;
+    resetErr: string;
+    doneInfo: string;
   }
 > = {
-  en: {
-    badge: "Account Recovery",
-    title: "Reset Your Password",
-    subtitle:
-      "Enter the email associated with your OnaCare AI account to receive a 6-digit verification code.",
-    emailLabel: "Account Email Address",
-    requestBtn: "Send Reset Code",
-    requesting: "Preparing reset code...",
-    codeLabel: "6-Digit Verification Code",
-    newPwLabel: "New Password (min 6 chars)",
-    confirmPwLabel: "Confirm New Password",
-    resetBtn: "Update Password",
-    resetting: "Updating password...",
-    backToLogin: "Back to Sign In",
-    demoNote: "Demo Verification Code (no SMTP configured):",
-  },
   uz: {
     badge: "Hisobni tiklash",
     title: "Parolni tiklash",
     subtitle:
-      "OnaCare AI hisobingizga biriktirilgan elektron pochtani kiriting va 6 xonali tasdiqlash kodini oling.",
+      "OnaCare hisobingizga biriktirilgan elektron pochtani kiriting va 6 xonali tasdiqlash kodini oling.",
     emailLabel: "Elektron pochta manzili",
-    requestBtn: "Tasdiqlash kodini yuborish",
+    emailPlaceholder: "ism@example.uz",
+    requestBtn: "Tasdiqlash kodini olish",
     requesting: "Kod tayyorlanmoqda...",
     codeLabel: "6 xonali tasdiqlash kodi",
     newPwLabel: "Yangi parol (kamida 6 belgi)",
+    newPwPlaceholder: "Kamida 6 ta belgi",
     confirmPwLabel: "Yangi parolni tasdiqlang",
+    confirmPwPlaceholder: "Yangi parolni qayta kiriting",
+    togglePw: "Parolni ko'rsatish yoki yashirish",
     resetBtn: "Parolni yangilash",
     resetting: "Yangilanmoqda...",
     backToLogin: "Kirish sahifasiga qaytish",
-    demoNote: "Demo tasdiqlash kodi (SMTP sozlanmagan):",
+    demoNote: "Demo tasdiqlash kodi (pochta serveri ulanmagan):",
+    codeReadyInfo:
+      "Tasdiqlash kodi tayyorlandi. Quyiga 6 xonali kod va yangi parolingizni kiriting.",
+    noAccountErr: "Bu elektron pochta manzili bilan hisob topilmadi.",
+    mismatchErr: "Kiritilgan parollar bir-biriga mos emas.",
+    requestErr: "Tasdiqlash kodini yuborib bo'lmadi.",
+    resetErr: "Parolni yangilab bo'lmadi.",
+    doneInfo: "Parol muvaffaqiyatli yangilandi. Endi tizimga kirishingiz mumkin.",
   },
   ru: {
     badge: "Восстановление доступа",
     title: "Сброс пароля",
     subtitle:
-      "Введите email вашего аккаунта OnaCare AI, чтобы получить 6-значный код подтверждения.",
+      "Введите email вашего аккаунта OnaCare, чтобы получить 6-значный код подтверждения.",
     emailLabel: "Электронная почта аккаунта",
-    requestBtn: "Отправить код сброса",
+    emailPlaceholder: "name@example.uz",
+    requestBtn: "Получить код сброса",
     requesting: "Подготовка кода...",
     codeLabel: "6-значный код подтверждения",
     newPwLabel: "Новый пароль (мин. 6 символов)",
+    newPwPlaceholder: "Не менее 6 символов",
     confirmPwLabel: "Подтвердите новый пароль",
+    confirmPwPlaceholder: "Повторите новый пароль",
+    togglePw: "Показать или скрыть пароль",
     resetBtn: "Обновить пароль",
     resetting: "Обновление...",
     backToLogin: "Вернуться ко входу",
     demoNote: "Демо-код подтверждения (без SMTP):",
+    codeReadyInfo: "Код создан. Введите 6-значный код и новый пароль ниже.",
+    noAccountErr: "Аккаунт с таким email не найден.",
+    mismatchErr: "Пароли не совпадают.",
+    requestErr: "Не удалось отправить код сброса.",
+    resetErr: "Не удалось обновить пароль.",
+    doneInfo: "Пароль успешно обновлен. Теперь вы можете войти.",
+  },
+  en: {
+    badge: "Account Recovery",
+    title: "Reset Your Password",
+    subtitle:
+      "Enter the email associated with your OnaCare account to receive a 6-digit verification code.",
+    emailLabel: "Account Email Address",
+    emailPlaceholder: "name@example.uz",
+    requestBtn: "Send Reset Code",
+    requesting: "Preparing reset code...",
+    codeLabel: "6-Digit Verification Code",
+    newPwLabel: "New Password (min 6 chars)",
+    newPwPlaceholder: "At least 6 characters",
+    confirmPwLabel: "Confirm New Password",
+    confirmPwPlaceholder: "Repeat new password",
+    togglePw: "Toggle password visibility",
+    resetBtn: "Update Password",
+    resetting: "Updating password...",
+    backToLogin: "Back to Sign In",
+    demoNote: "Demo Verification Code (no email server configured):",
+    codeReadyInfo:
+      "Verification code generated. Enter the 6-digit code and your new password below.",
+    noAccountErr: "No account found for that email address.",
+    mismatchErr: "Passwords do not match.",
+    requestErr: "Unable to send reset code.",
+    resetErr: "Failed to reset password.",
+    doneInfo: "Password updated successfully. You can now sign in.",
   },
 };
 
@@ -114,19 +156,18 @@ export default function ForgotPasswordPage() {
         accountFound?: boolean;
         resetToken?: string;
         demoVerificationCode?: string;
-        message?: string;
       };
       if (!res.ok) {
-        setError(json.error || "Unable to send reset code.");
+        setError(json.error || t.requestErr);
         return;
       }
       if (json.accountFound && json.resetToken) {
         setResetToken(json.resetToken);
         setDemoCode(json.demoVerificationCode ?? null);
         setStep("RESET");
-        setInfo(json.message || "Verification code generated.");
+        setInfo(t.codeReadyInfo);
       } else {
-        setError("No account found for that email address.");
+        setError(t.noAccountErr);
       }
     } finally {
       setBusy(false);
@@ -137,7 +178,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError(null);
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t.mismatchErr);
       return;
     }
     setBusy(true);
@@ -153,12 +194,12 @@ export default function ForgotPasswordPage() {
           newPassword,
         }),
       });
-      const json = (await res.json()) as { error?: string; message?: string };
+      const json = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setError(json.error || "Failed to reset password.");
+        setError(json.error || t.resetErr);
         return;
       }
-      setInfo(json.message || "Password updated successfully.");
+      setInfo(t.doneInfo);
       setStep("DONE");
     } finally {
       setBusy(false);
@@ -222,7 +263,7 @@ export default function ForgotPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.uz"
+                  placeholder={t.emailPlaceholder}
                   className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
                 />
               </div>
@@ -279,14 +320,14 @@ export default function ForgotPasswordPage() {
                     minLength={6}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="At least 6 characters"
+                    placeholder={t.newPwPlaceholder}
                     className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                    aria-label="Toggle password visibility"
+                    aria-label={t.togglePw}
                   >
                     {showPw ? (
                       <IconEyeOff className="h-4 w-4" />
@@ -313,7 +354,7 @@ export default function ForgotPasswordPage() {
                   minLength={6}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repeat new password"
+                  placeholder={t.confirmPwPlaceholder}
                   className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
                 />
               </div>

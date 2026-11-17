@@ -17,6 +17,7 @@ import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage, type AppLang } from "@/context/LanguageContext";
 import { PublicHeader } from "@/components/PublicHeader";
 import { SearchableCombobox } from "@/components/SearchableCombobox";
+import { InfoTooltip } from "@/components/InfoTooltip";
 import { BLOOD_TYPE_OPTIONS, UZ_REGIONS } from "@/lib/uz-locations";
 import type { UserRole } from "@/lib/types";
 
@@ -29,37 +30,85 @@ const VALID_ROLES: UserRole[] = [
 
 const ROLE_OPTIONS: Array<{
   role: UserRole;
-  title: string;
-  desc: string;
-  portal: string;
+  title: Record<AppLang, string>;
+  desc: Record<AppLang, string>;
+  tag: Record<AppLang, string>;
   icon: React.ReactNode;
 }> = [
   {
     role: "PATIENT",
-    title: "Patient (Bemor)",
-    desc: "Personal recovery portal, symptom check-ins & visit OTP",
-    portal: "/patient only",
+    title: {
+      uz: "Bemor / Ona",
+      ru: "Мама / Пациент",
+      en: "Mother / Patient",
+    },
+    desc: {
+      uz: "Shaxsiy parvarish rejasi, kunlik holat tekshiruvi va tashrif kodi",
+      ru: "Личный план восстановления, проверка самочувствия и код визита",
+      en: "Your personal recovery plan, daily check-ins & visit confirmation",
+    },
+    tag: {
+      uz: "Shaxsiy kabinet",
+      ru: "Личный кабинет",
+      en: "Personal portal",
+    },
     icon: <IconUser className="h-4 w-4 text-teal-700 dark:text-teal-400" />,
   },
   {
     role: "OVABMU_MD",
-    title: "OvaBMU Doctor",
-    desc: "Inpatient discharge & AI Patronage dispatch",
-    portal: "/clinical only",
+    title: {
+      uz: "Tug'ruqxona shifokori",
+      ru: "Врач роддома",
+      en: "Hospital Doctor",
+    },
+    desc: {
+      uz: "Chiqarish xulosasini tayyorlash va poliklinikaga yuborish",
+      ru: "Оформление выписки и передача пациентки в поликлинику",
+      en: "Prepare hospital discharge summaries & arrange home care",
+    },
+    tag: {
+      uz: "Shifokor kabineti",
+      ru: "Кабинет врача",
+      en: "Doctor workspace",
+    },
     icon: <IconBuildingHospital className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />,
   },
   {
     role: "FAMILY_MD",
-    title: "Regional Family Doctor",
-    desc: "24h home patronage checklist & visit verification",
-    portal: "/clinical only",
+    title: {
+      uz: "Hududiy oilaviy shifokor",
+      ru: "Семейный врач",
+      en: "Local Family Doctor",
+    },
+    desc: {
+      uz: "24 soatlik uy tashrifi ko'rik ro'yxati va natijalarni kiritish",
+      ru: "Домашний осмотр за 24 часа и запись показателей здоровья",
+      en: "24-hour home visit check-ups & health verification",
+    },
+    tag: {
+      uz: "Shifokor kabineti",
+      ru: "Кабинет врача",
+      en: "Doctor workspace",
+    },
     icon: <IconStethoscope className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />,
   },
   {
     role: "ADMIN_RECEPTION",
-    title: "District Admin / Reception",
-    desc: "24h SLA monitor, billing & audit compliance",
-    portal: "/admin only",
+    title: {
+      uz: "Poliklinika koordinatori",
+      ru: "Координатор клиники",
+      en: "Clinic Coordinator",
+    },
+    desc: {
+      uz: "Qabulxona, 24 soatlik tashriflar va dorixona hisobotini kuzatish",
+      ru: "Контроль визитов за 24 часа, регистратура и отчетность",
+      en: "Reception, 24-hour visit monitoring & clinic summaries",
+    },
+    tag: {
+      uz: "Klinika boshqaruvi",
+      ru: "Координация клиники",
+      en: "Coordinator view",
+    },
     icon: <IconShieldCheck className="h-4 w-4 text-slate-700 dark:text-slate-300" />,
   },
 ];
@@ -71,80 +120,133 @@ const COPY: Record<
     subtitle: string;
     roleLabel: string;
     fullName: string;
+    fullNamePlaceholder: string;
     email: string;
+    emailPlaceholder: string;
     password: string;
+    passwordPlaceholder: string;
+    togglePw: string;
     phone: string;
     region: string;
+    regionPlaceholder: string;
     district: string;
+    districtPlaceholder: string;
     mahalla: string;
+    mahallaTooltip: string;
+    mahallaPlaceholder: string;
+    emptySearch: string;
+    customHint: string;
     dob: string;
     bloodType: string;
     bloodPlaceholder: string;
+    districtError: string;
+    submitError: string;
     submit: string;
     submitting: string;
     already: string;
     signInHere: string;
+    loadingForm: string;
   }
 > = {
-  en: {
-    title: "Create Your OnaCare AI Account",
-    subtitle:
-      "Select your role below. Your account will have exclusive access only to your designated portal.",
-    roleLabel: "Account Role",
-    fullName: "Full Name",
-    email: "Email Address",
-    password: "Password (min 6 chars)",
-    phone: "Phone Number",
-    region: "Region (Viloyat / City)",
-    district: "District / City (Tuman / Shahar)",
-    mahalla: "Mahalla (MFY)",
-    dob: "Date of Birth",
-    bloodType: "Blood Type",
-    bloodPlaceholder: "Select blood type...",
-    submit: "Create Account & Enter Portal",
-    submitting: "Creating account...",
-    already: "Already registered?",
-    signInHere: "Sign In here",
-  },
   uz: {
-    title: "OnaCare AI Hisobini Yaratish",
+    title: "OnaCare hisobini yaratish",
     subtitle:
-      "Quyida rolingizni tanlang. Hisobingiz faqat o'zingizga tegishli portalga kirish huquqiga ega bo'ladi.",
-    roleLabel: "Hisob roli",
-    fullName: "F.I.O. (To'liq ism)",
+      "Quyida rolingizni tanlang. Hisobingiz faqat o'zingizga tegishli kabinetga kirish huquqiga ega bo'ladi.",
+    roleLabel: "Sizning rolingiz",
+    fullName: "F.I.O. (To'liq ism-familiya)",
+    fullNamePlaceholder: "Masalan: Malika Karimova",
     email: "Elektron pochta",
+    emailPlaceholder: "siz@example.uz",
     password: "Parol (kamida 6 belgi)",
+    passwordPlaceholder: "Kamida 6 ta belgi",
+    togglePw: "Parolni ko'rsatish yoki yashirish",
     phone: "Telefon raqami",
     region: "Hudud (Viloyat / Toshkent sh.)",
+    regionPlaceholder: "Hududni qidiring (masalan: Toshkent shahri)...",
     district: "Tuman / Shahar",
-    mahalla: "Mahalla (MFY)",
+    districtPlaceholder: "Tuman yoki shaharni qidiring...",
+    mahalla: "Mahalla",
+    mahallaTooltip: "MFY — siz yashaydigan mahalla fuqarolar yig'ini nomi.",
+    mahallaPlaceholder: "Mahallani tanlang yoki yozing...",
+    emptySearch: "Mos natija topilmadi",
+    customHint: "o'zingiz yozishingiz mumkin",
     dob: "Tug'ilgan sana",
     bloodType: "Qon guruhi",
     bloodPlaceholder: "Qon guruhini tanlang...",
-    submit: "Hisob yaratish va Portalga kirish",
+    districtError: "Iltimos, ro'yxatdan tuman yoki shahringizni tanlang.",
+    submitError: "Hisob yaratib bo'lmadi.",
+    submit: "Hisob yaratish va davom etish",
     submitting: "Hisob yaratilmoqda...",
-    already: "Allaqachon ro'yxatdan o'tganmisiz?",
+    already: "Allaqachon hisobingiz bormi?",
     signInHere: "Bu yerda kiring",
+    loadingForm: "Ro'yxatdan o'tish shakli yuklanmoqda...",
   },
   ru: {
-    title: "Создать аккаунт OnaCare AI",
+    title: "Создать аккаунт OnaCare",
     subtitle:
-      "Выберите вашу роль ниже. Аккаунт получит доступ только к соответствующему порталу.",
-    roleLabel: "Роль аккаунта",
+      "Выберите вашу роль ниже. Аккаунт откроет доступ только к вашему личному кабинету.",
+    roleLabel: "Ваша роль",
     fullName: "ФИО (Полное имя)",
+    fullNamePlaceholder: "Например: Малика Каримова",
     email: "Электронная почта",
-    password: "Пароль (мин. 6 символов)",
+    emailPlaceholder: "you@example.uz",
+    password: "Пароль (минимум 6 символов)",
+    passwordPlaceholder: "Не менее 6 символов",
+    togglePw: "Показать или скрыть пароль",
     phone: "Номер телефона",
     region: "Регион (Область / г. Ташкент)",
+    regionPlaceholder: "Поиск региона (например: г. Ташкент)...",
     district: "Район / Город",
-    mahalla: "Махалля (МСГ)",
+    districtPlaceholder: "Поиск района или города...",
+    mahalla: "Махалля",
+    mahallaTooltip: "МСГ / МФЙ — название вашей махалли по месту жительства.",
+    mahallaPlaceholder: "Выберите или введите махаллю...",
+    emptySearch: "Ничего не найдено",
+    customHint: "продолжайте ввод для своего варианта",
     dob: "Дата рождения",
     bloodType: "Группа крови",
     bloodPlaceholder: "Выберите группу крови...",
+    districtError: "Пожалуйста, выберите ваш район или город из списка.",
+    submitError: "Не удалось создать аккаунт.",
     submit: "Создать аккаунт и войти",
     submitting: "Создание аккаунта...",
-    already: "Уже зарегистрированы?",
+    already: "Уже есть аккаунт?",
     signInHere: "Войти здесь",
+    loadingForm: "Загрузка формы регистрации...",
+  },
+  en: {
+    title: "Create Your OnaCare Account",
+    subtitle:
+      "Choose your role below. Your account will only open the portal meant for your role.",
+    roleLabel: "Your Role",
+    fullName: "Full Name",
+    fullNamePlaceholder: "e.g. Malika Karimova",
+    email: "Email Address",
+    emailPlaceholder: "you@example.uz",
+    password: "Password (min 6 chars)",
+    passwordPlaceholder: "At least 6 characters",
+    togglePw: "Toggle password visibility",
+    phone: "Phone Number",
+    region: "Region",
+    regionPlaceholder: "Search region (e.g. Toshkent shahri)...",
+    district: "District / City",
+    districtPlaceholder: "Search district or city...",
+    mahalla: "Neighborhood (Mahalla)",
+    mahallaTooltip:
+      "Local neighborhood community name (MFY) used to match your clinic.",
+    mahallaPlaceholder: "Search or type your mahalla...",
+    emptySearch: "No matches found",
+    customHint: "keep typing to use your own entry",
+    dob: "Date of Birth",
+    bloodType: "Blood Type",
+    bloodPlaceholder: "Select blood type...",
+    districtError: "Please select your district or city from the list.",
+    submitError: "Could not create account.",
+    submit: "Create Account & Continue",
+    submitting: "Creating account...",
+    already: "Already have an account?",
+    signInHere: "Sign In here",
+    loadingForm: "Loading registration form...",
   },
 };
 
@@ -227,7 +329,7 @@ function SignupFormInner() {
     setError(null);
 
     if (!district.trim()) {
-      setError("Please select your district or city from the searchable list.");
+      setError(t.districtError);
       return;
     }
 
@@ -246,7 +348,7 @@ function SignupFormInner() {
         bloodType: role === "PATIENT" ? bloodType : undefined,
       });
       if (!res.ok) {
-        setError(res.error || "Could not create account.");
+        setError(res.error || t.submitError);
       }
     } finally {
       setBusy(false);
@@ -299,13 +401,13 @@ function SignupFormInner() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                      {opt.title}
+                      {opt.title[lang]}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
-                      {opt.desc}
+                      {opt.desc[lang]}
                     </p>
-                    <span className="mt-1 inline-block rounded bg-white dark:bg-slate-900 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-teal-700 dark:text-teal-400 border border-slate-200 dark:border-slate-700">
-                      {opt.portal}
+                    <span className="mt-1 inline-block rounded bg-white dark:bg-slate-900 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700 dark:text-teal-400 border border-slate-200 dark:border-slate-700">
+                      {opt.tag[lang]}
                     </span>
                   </div>
                 </button>
@@ -330,7 +432,7 @@ function SignupFormInner() {
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="e.g. Malika Karimova"
+              placeholder={t.fullNamePlaceholder}
               className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
             />
           </div>
@@ -350,7 +452,7 @@ function SignupFormInner() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.uz"
+              placeholder={t.emailPlaceholder}
               className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
             />
           </div>
@@ -372,14 +474,14 @@ function SignupFormInner() {
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder={t.passwordPlaceholder}
                 className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                aria-label="Toggle password visibility"
+                aria-label={t.togglePw}
               >
                 {showPw ? (
                   <IconEyeOff className="h-4 w-4" />
@@ -417,8 +519,10 @@ function SignupFormInner() {
             value={region}
             onChange={handleRegionChange}
             options={regionNames}
-            placeholder="Search region (e.g. Toshkent shahri)..."
+            placeholder={t.regionPlaceholder}
             autoComplete="address-level1"
+            emptyText={t.emptySearch}
+            customHint={t.customHint}
           />
 
           <SearchableCombobox
@@ -428,24 +532,33 @@ function SignupFormInner() {
             value={district}
             onChange={handleDistrictChange}
             options={districtNames}
-            placeholder="Search district or city..."
+            placeholder={t.districtPlaceholder}
             autoComplete="address-level2"
+            emptyText={t.emptySearch}
+            customHint={t.customHint}
             required
           />
 
           {role === "PATIENT" && (
             <>
-              <SearchableCombobox
-                id="signup-mahalla"
-                name="address-line1"
-                label={t.mahalla}
-                value={mahalla}
-                onChange={setMahalla}
-                options={mahallaSuggestions}
-                placeholder="Search or enter mahalla (e.g. Bog'ishamol MFY)"
-                autoComplete="street-address"
-                allowCustom
-              />
+              <div>
+                <SearchableCombobox
+                  id="signup-mahalla"
+                  name="address-line1"
+                  label={t.mahalla}
+                  value={mahalla}
+                  onChange={setMahalla}
+                  options={mahallaSuggestions}
+                  placeholder={t.mahallaPlaceholder}
+                  autoComplete="street-address"
+                  emptyText={t.emptySearch}
+                  customHint={t.customHint}
+                  allowCustom
+                />
+                <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                  <InfoTooltip label="MFY" explanation={t.mahallaTooltip} />
+                </p>
+              </div>
 
               <div>
                 <label
@@ -484,9 +597,9 @@ function SignupFormInner() {
                     <option key={bt.value} value={bt.value}>
                       {lang === "ru"
                         ? bt.labelRu
-                        : lang === "uz"
-                          ? bt.labelUz
-                          : bt.labelEn}
+                        : lang === "en"
+                          ? bt.labelEn
+                          : bt.labelUz}
                     </option>
                   ))}
                 </select>
@@ -515,18 +628,21 @@ function SignupFormInner() {
   );
 }
 
+function SignupFallback() {
+  const { lang } = useLanguage();
+  return (
+    <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+      {COPY[lang].loadingForm}
+    </div>
+  );
+}
+
 export default function SignupPage() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       <PublicHeader />
       <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <Suspense
-          fallback={
-            <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-xs text-slate-500 dark:text-slate-400">
-              Loading registration form...
-            </div>
-          }
-        >
+        <Suspense fallback={<SignupFallback />}>
           <SignupFormInner />
         </Suspense>
       </main>

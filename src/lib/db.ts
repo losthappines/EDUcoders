@@ -18,6 +18,18 @@ const KNOWN_DB_ENV_KEYS = [
   "SUPABASE_DB_URL",
 ];
 
+function cleanEnvValue(val: string | undefined): string | undefined {
+  if (typeof val !== "string") return undefined;
+  let cleaned = val.trim();
+  if (
+    (cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+    (cleaned.startsWith("'") && cleaned.endsWith("'"))
+  ) {
+    cleaned = cleaned.slice(1, -1).trim();
+  }
+  return cleaned || undefined;
+}
+
 function isPostgresUrl(val: string | undefined): val is string {
   return (
     typeof val === "string" &&
@@ -29,25 +41,40 @@ export function getDatabaseConfigInfo(): {
   url: string | undefined;
   envKey: string | null;
   isPostgres: boolean;
+  detectedKeys: string[];
 } {
+  const detectedKeys = Object.entries(process.env)
+    .filter(([key]) =>
+      /(DATABASE|POSTGRES|PRISMA|NEON|SUPABASE|STORAGE)/i.test(key)
+    )
+    .map(([key, raw]) => {
+      const cleaned = cleanEnvValue(raw);
+      if (!cleaned) return `${key}:empty`;
+      const schemeIdx = cleaned.indexOf("://");
+      const scheme = schemeIdx > 0 ? cleaned.slice(0, schemeIdx + 3) : "set";
+      return `${key}:${scheme}`;
+    });
+
   for (const key of KNOWN_DB_ENV_KEYS) {
-    const val = process.env[key];
+    const val = cleanEnvValue(process.env[key]);
     if (isPostgresUrl(val)) {
-      return { url: val, envKey: key, isPostgres: true };
+      return { url: val, envKey: key, isPostgres: true, detectedKeys };
     }
   }
 
-  for (const [key, val] of Object.entries(process.env)) {
+  for (const [key, raw] of Object.entries(process.env)) {
+    const val = cleanEnvValue(raw);
     if (isPostgresUrl(val)) {
-      return { url: val, envKey: key, isPostgres: true };
+      return { url: val, envKey: key, isPostgres: true, detectedKeys };
     }
   }
 
-  const fallback = process.env.DATABASE_URL;
+  const fallback = cleanEnvValue(process.env.DATABASE_URL);
   return {
     url: fallback,
     envKey: fallback ? "DATABASE_URL" : null,
     isPostgres: isPostgresUrl(fallback),
+    detectedKeys,
   };
 }
 
@@ -55,7 +82,7 @@ const dbConfig = getDatabaseConfigInfo();
 
 // Ensure PrismaClient internal schema check finds DATABASE_URL when Vercel
 // exposes POSTGRES_PRISMA_URL, STORAGE_DATABASE_URL, or NEON_DATABASE_URL instead.
-if (dbConfig.url && !process.env.DATABASE_URL) {
+if (dbConfig.url && dbConfig.isPostgres && process.env.DATABASE_URL !== dbConfig.url) {
   process.env.DATABASE_URL = dbConfig.url;
 }
 

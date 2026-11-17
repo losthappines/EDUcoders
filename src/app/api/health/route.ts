@@ -12,6 +12,7 @@ export async function GET() {
         ok: false,
         dbConfigured: false,
         dbEnvKey: dbInfo.envKey,
+        detectedDbEnvKeys: dbInfo.detectedKeys,
         dbConnected: false,
         code: "DB_NOT_CONFIGURED",
         message:
@@ -28,6 +29,7 @@ export async function GET() {
       ok: true,
       dbConfigured: true,
       dbEnvKey: dbInfo.envKey,
+      detectedDbEnvKeys: dbInfo.detectedKeys,
       dbConnected: true,
       userCount,
     });
@@ -38,6 +40,7 @@ export async function GET() {
         ok: false,
         dbConfigured: true,
         dbEnvKey: dbInfo.envKey,
+        detectedDbEnvKeys: dbInfo.detectedKeys,
         dbConnected: false,
         code: "DB_UNREACHABLE",
         message: errMsg.slice(0, 220),

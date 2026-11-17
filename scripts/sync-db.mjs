@@ -14,14 +14,27 @@ const KNOWN_DB_ENV_KEYS = [
   "SUPABASE_DB_URL",
 ];
 
+function cleanEnvValue(val) {
+  if (typeof val !== "string") return undefined;
+  let cleaned = val.trim();
+  if (
+    (cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+    (cleaned.startsWith("'") && cleaned.endsWith("'"))
+  ) {
+    cleaned = cleaned.slice(1, -1).trim();
+  }
+  return cleaned || undefined;
+}
+
 function findPostgresUrl() {
   for (const key of KNOWN_DB_ENV_KEYS) {
-    const val = process.env[key];
+    const val = cleanEnvValue(process.env[key]);
     if (val && (val.startsWith("postgres://") || val.startsWith("postgresql://"))) {
       return { key, url: val };
     }
   }
-  for (const [key, val] of Object.entries(process.env)) {
+  for (const [key, raw] of Object.entries(process.env)) {
+    const val = cleanEnvValue(raw);
     if (val && (val.startsWith("postgres://") || val.startsWith("postgresql://"))) {
       return { key, url: val };
     }

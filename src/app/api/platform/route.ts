@@ -99,6 +99,9 @@ export async function GET(req: NextRequest) {
     // - ADMIN_RECEPTION: Sees platform-wide SLA, invoices & audit logs (clinical notes redacted)
     const scopedPatients = rawPatients
       .filter((p) => {
+        if (p.status === "PENDING_VERIFICATION" || p.status === "REJECTED") {
+          return false;
+        }
         if (actor.role === "PATIENT") {
           return p.userId === actor.userId;
         }
@@ -207,16 +210,29 @@ export async function GET(req: NextRequest) {
         ? invoices.filter((inv) => scopedPatientIds.has(inv.patientId))
         : invoices;
 
+    const verifiedUsers = users.filter((u) => u.verificationStatus === "VERIFIED");
+
     const scopedUsers =
       actor.role === "PATIENT"
-        ? users
+        ? verifiedUsers
             .filter(
               (u) =>
                 u.id === actor.userId ||
                 scopedPatients.some((p) => p.assignedFamilyDoctorId === u.id)
             )
             .map(sanitizeUser)
-        : users.map(sanitizeUser);
+        : verifiedUsers.map(sanitizeUser);
+
+    const pendingVerificationsCount =
+      actor.role === "ADMIN_RECEPTION"
+        ? users.filter(
+            (u) =>
+              (u.role === "PATIENT" ||
+                u.role === "OVABMU_MD" ||
+                u.role === "FAMILY_MD") &&
+              u.verificationStatus === "PENDING"
+          ).length
+        : 0;
 
     const scopedAuditLogs = actor.role === "PATIENT" ? [] : auditLogs;
 
@@ -239,6 +255,7 @@ export async function GET(req: NextRequest) {
         timeOffsetHours,
         simulatedNow: simulatedNow.toISOString(),
       },
+      pendingVerificationsCount,
       users: scopedUsers,
       patients: scopedPatients,
       activeCalls: scopedCalls,

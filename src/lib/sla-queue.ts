@@ -71,7 +71,7 @@ export async function findAndBookOptimalDoctorSlot(params: {
   simulatedNow: Date;
 }) {
   const doctors = await prisma.user.findMany({
-    where: { role: "FAMILY_MD" },
+    where: { role: "FAMILY_MD", verificationStatus: "VERIFIED" },
   });
 
   // Prefer district match, fallback to first Family MD

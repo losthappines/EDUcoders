@@ -30,7 +30,11 @@ export async function resolveActorContext(
     where: { id: session.userId },
   });
 
-  if (!user || !VALID_ROLES.includes(user.role as UserRole)) {
+  if (
+    !user ||
+    !VALID_ROLES.includes(user.role as UserRole) ||
+    user.verificationStatus !== "VERIFIED"
+  ) {
     return null;
   }
 
@@ -73,7 +77,9 @@ export async function recordAuditLog(params: {
     | "SYMPTOM_ALERT"
     | "LAB_FOLLOWUP_ORDERED"
     | "VIEW_FHIR_BUNDLE"
-    | "RBAC_DENIED";
+    | "RBAC_DENIED"
+    | "ACCOUNT_VERIFIED"
+    | "ACCOUNT_REJECTED";
   resourceType: string;
   resourceId: string;
   details: Record<string, unknown>;

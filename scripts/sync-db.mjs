@@ -1,23 +1,47 @@
 import { execSync } from "node:child_process";
 
-const dbUrl =
-  process.env.DATABASE_URL ||
-  process.env.POSTGRES_PRISMA_URL ||
-  process.env.POSTGRES_URL ||
-  process.env.NEON_DATABASE_URL ||
-  "";
+const KNOWN_DB_ENV_KEYS = [
+  "DATABASE_URL",
+  "POSTGRES_PRISMA_URL",
+  "POSTGRES_URL",
+  "POSTGRES_URL_NON_POOLING",
+  "DATABASE_URL_UNPOOLED",
+  "NEON_DATABASE_URL",
+  "PRISMA_DATABASE_URL",
+  "STORAGE_PRISMA_DATABASE_URL",
+  "STORAGE_DATABASE_URL",
+  "STORAGE_POSTGRES_URL",
+  "SUPABASE_DB_URL",
+];
 
-if (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://")) {
-  console.log("[sync-db] PostgreSQL URL detected. Running prisma db push...");
+function findPostgresUrl() {
+  for (const key of KNOWN_DB_ENV_KEYS) {
+    const val = process.env[key];
+    if (val && (val.startsWith("postgres://") || val.startsWith("postgresql://"))) {
+      return { key, url: val };
+    }
+  }
+  for (const [key, val] of Object.entries(process.env)) {
+    if (val && (val.startsWith("postgres://") || val.startsWith("postgresql://"))) {
+      return { key, url: val };
+    }
+  }
+  return null;
+}
+
+const found = findPostgresUrl();
+
+if (found) {
+  console.log(`[sync-db] PostgreSQL URL detected via ${found.key}. Running prisma db push...`);
   try {
     execSync("npx prisma db push --skip-generate", {
       stdio: "inherit",
-      env: { ...process.env, DATABASE_URL: dbUrl },
+      env: { ...process.env, DATABASE_URL: found.url },
     });
     console.log("[sync-db] Database schema is in sync.");
   } catch (err) {
     console.warn(
-      "[sync-db] Warning: prisma db push failed during build; runtime ensureSeeded() will reconcile auth columns.",
+      "[sync-db] Warning: prisma db push failed during build; runtime ensureSeeded() will reconcile schema.",
       err instanceof Error ? err.message : err
     );
   }

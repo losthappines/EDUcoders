@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { getDatabaseConfigInfo, prisma } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed-data";
 import {
   createPasswordResetChallenge,
@@ -36,13 +36,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  try {
-    await ensureSeeded();
-  } catch (seedErr) {
-    console.warn("POST /api/auth/forgot-password ensureSeeded warning:", seedErr);
+  const dbInfo = getDatabaseConfigInfo();
+  if (!dbInfo.url || !dbInfo.isPostgres) {
+    return NextResponse.json(
+      {
+        error: "Database is not connected on this deployment (missing PostgreSQL DATABASE_URL).",
+        code: "DB_NOT_CONFIGURED",
+      },
+      { status: 503 }
+    );
   }
 
   try {
+    await ensureSeeded();
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (action === "REQUEST") {

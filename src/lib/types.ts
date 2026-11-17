@@ -1,4 +1,5 @@
 export type UserRole = "OVABMU_MD" | "FAMILY_MD" | "PATIENT" | "ADMIN_RECEPTION";
+export type VerificationStatus = "PENDING" | "VERIFIED" | "REJECTED";
 
 export interface VitalsSnapshot {
   systolicBp: number;

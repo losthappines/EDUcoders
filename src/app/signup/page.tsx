@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import {
   IconAlertTriangle,
   IconBuildingHospital,
+  IconCircleCheck,
+  IconClock,
   IconEye,
   IconEyeOff,
   IconShieldCheck,
@@ -146,6 +148,12 @@ const COPY: Record<
     already: string;
     signInHere: string;
     loadingForm: string;
+    verifyNotice: string;
+    pendingTitle: string;
+    pendingDesc: string;
+    pendingStatusBadge: string;
+    pendingGoLogin: string;
+    pendingBackHome: string;
   }
 > = {
   uz: {
@@ -180,6 +188,14 @@ const COPY: Record<
     already: "Allaqachon hisobingiz bormi?",
     signInHere: "Bu yerda kiring",
     loadingForm: "Ro'yxatdan o'tish shakli yuklanmoqda...",
+    verifyNotice:
+      "Bemorlar va shifokorlar ro'yxatdan o'tgandan so'ng tizimga kirishdan oldin administrator tomonidan tasdiqlanadi.",
+    pendingTitle: "Arizangiz qabul qilindi — tasdiqlash kutilmoqda",
+    pendingDesc:
+      "Xavfsizlik va bemorlar ma'lumotlarini himoyalash uchun barcha bemor va shifokor hisoblari poliklinika administratori tomonidan tasdiqlanadi. Tasdiqlangandan so'ng elektron pochtangiz va parolingiz bilan tizimga kirishingiz mumkin.",
+    pendingStatusBadge: "Administrator tasdig'ini kutmoqda",
+    pendingGoLogin: "Kirish sahifasiga o'tish",
+    pendingBackHome: "Bosh sahifaga qaytish",
   },
   ru: {
     title: "Создать аккаунт OnaCare",
@@ -213,6 +229,14 @@ const COPY: Record<
     already: "Уже есть аккаунт?",
     signInHere: "Войти здесь",
     loadingForm: "Загрузка формы регистрации...",
+    verifyNotice:
+      "После регистрации аккаунты пациентов и врачей проходят проверку администратором перед входом в систему.",
+    pendingTitle: "Заявка отправлена — ожидается проверка",
+    pendingDesc:
+      "Для защиты медицинских данных новые аккаунты пациентов и врачей подтверждаются администратором клиники. После подтверждения вы сможете войти с вашим email и паролем.",
+    pendingStatusBadge: "Ожидает подтверждения администратором",
+    pendingGoLogin: "Перейти ко входу",
+    pendingBackHome: "На главную",
   },
   en: {
     title: "Create Your OnaCare Account",
@@ -247,6 +271,14 @@ const COPY: Record<
     already: "Already have an account?",
     signInHere: "Sign In here",
     loadingForm: "Loading registration form...",
+    verifyNotice:
+      "Patient and Doctor accounts require verification by a clinic Administrator before you can sign in.",
+    pendingTitle: "Registration Submitted — Verification Pending",
+    pendingDesc:
+      "To keep patient records safe, all new patient and doctor registrations are verified by an Administrator. Once approved, you can sign in with your email and password.",
+    pendingStatusBadge: "Pending Admin Verification",
+    pendingGoLogin: "Go to Sign In",
+    pendingBackHome: "Back to Home",
   },
 };
 
@@ -280,6 +312,11 @@ function SignupFormInner() {
   const [bloodType, setBloodType] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingInfo, setPendingInfo] = useState<{
+    fullName: string;
+    email: string;
+    role: UserRole;
+  } | null>(null);
 
   const regionNames = useMemo(() => UZ_REGIONS.map((r) => r.name), []);
 
@@ -349,11 +386,69 @@ function SignupFormInner() {
       });
       if (!res.ok) {
         setError(res.error || t.submitError);
+      } else if (res.pendingVerification) {
+        setPendingInfo({
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          role,
+        });
       }
     } finally {
       setBusy(false);
     }
   };
+
+  if (pendingInfo) {
+    const selectedOpt = ROLE_OPTIONS.find((o) => o.role === pendingInfo.role);
+    return (
+      <div className="w-full max-w-xl rounded-2xl border border-amber-200 dark:border-amber-800/70 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-5 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+          <IconClock className="h-6 w-6" />
+        </div>
+        <div className="space-y-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-950/60 px-3 py-1 text-xs font-semibold text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+            <IconCircleCheck className="h-3.5 w-3.5" />
+            {t.pendingStatusBadge}
+          </span>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+            {t.pendingTitle}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            {t.pendingDesc}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4 text-left text-xs space-y-1.5">
+          <p className="font-bold text-slate-900 dark:text-slate-100">
+            {pendingInfo.fullName}
+          </p>
+          <p className="text-slate-600 dark:text-slate-300 font-mono">
+            {pendingInfo.email}
+          </p>
+          {selectedOpt && (
+            <p className="text-teal-700 dark:text-teal-400 font-semibold">
+              {selectedOpt.title[lang]}
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+          <Link
+            href="/login"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition"
+          >
+            {t.pendingGoLogin}
+          </Link>
+          <Link
+            href="/"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+          >
+            {t.pendingBackHome}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-6">
@@ -365,6 +460,13 @@ function SignupFormInner() {
           {t.subtitle}
         </p>
       </div>
+
+      {role !== "ADMIN_RECEPTION" && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-200 dark:border-amber-800/70 bg-amber-50/70 dark:bg-amber-950/40 px-3.5 py-2.5 text-xs text-amber-900 dark:text-amber-200">
+          <IconClock className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+          <span>{t.verifyNotice}</span>
+        </div>
+      )}
 
       {error && (
         <div

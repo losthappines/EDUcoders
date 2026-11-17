@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   IconAlertTriangle,
+  IconArrowRight,
   IconBed,
   IconCircleCheck,
   IconClock,
@@ -12,6 +14,7 @@ import {
   IconPackage,
   IconReceipt,
   IconShieldCheck,
+  IconUserCheck,
 } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage, type AppLang } from "@/context/LanguageContext";
@@ -62,6 +65,10 @@ const ADMIN_COPY: Record<
     colActor: string;
     colResource: string;
     colDetails: string;
+    verifTitle: string;
+    verifPendingDesc: string;
+    verifClearDesc: string;
+    verifBtn: string;
   }
 > = {
   uz: {
@@ -108,6 +115,10 @@ const ADMIN_COPY: Record<
     colActor: "Foydalanuvchi",
     colResource: "Obyekt",
     colDetails: "Tafsilotlar",
+    verifTitle: "Yangi ro'yxatdan o'tgan hisoblarni tasdiqlash",
+    verifPendingDesc: "ta yangi bemor yoki shifokor hisobi tasdiqlashingizni kutmoqda.",
+    verifClearDesc: "Barcha yangi bemor va shifokor arizalari ko'rib chiqilgan.",
+    verifBtn: "Tasdiqlash sahifasini ochish",
   },
   ru: {
     title: "Координация клиники и контроль 24-часовых визитов",
@@ -153,6 +164,10 @@ const ADMIN_COPY: Record<
     colActor: "Пользователь",
     colResource: "Ресурс",
     colDetails: "Детали",
+    verifTitle: "Проверка новых аккаунтов (Пациенты и Врачи)",
+    verifPendingDesc: "новых аккаунтов ожидают вашего подтверждения перед входом.",
+    verifClearDesc: "Все заявки пациентов и врачей уже рассмотрены.",
+    verifBtn: "Открыть страницу проверки",
   },
   en: {
     title: "Clinic Reception, 24-Hour Visit Monitor & Governance",
@@ -198,6 +213,10 @@ const ADMIN_COPY: Record<
     colActor: "Actor & Role",
     colResource: "Resource",
     colDetails: "Details",
+    verifTitle: "Account Verification Queue (Patients & Doctors)",
+    verifPendingDesc: "new patient or doctor registration(s) awaiting your verification.",
+    verifClearDesc: "All patient and doctor registrations have been reviewed.",
+    verifBtn: "Open Verifications Page",
   },
 };
 
@@ -226,6 +245,8 @@ export default function AdminPanelPage() {
   const totalStateCovered = invoices.reduce((acc, inv) => acc + inv.stateCoveredUzs, 0);
   const totalPatientPaid = invoices.reduce((acc, inv) => acc + inv.patientPayableUzs, 0);
 
+  const pendingVerifications = data?.pendingVerificationsCount ?? 0;
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -241,6 +262,44 @@ export default function AdminPanelPage() {
           <IconLock className="h-3.5 w-3.5 text-teal-400" />
           <InfoTooltip label={t.rbacBadge} explanation={t.rbacTip} />
         </div>
+      </div>
+
+      {/* Dedicated Account Verifications Callout */}
+      <div
+        className={`rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+          pendingVerifications > 0
+            ? "border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/40"
+            : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+        }`}
+      >
+        <div className="flex items-start sm:items-center gap-3">
+          <div
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+              pendingVerifications > 0
+                ? "bg-amber-100 dark:bg-amber-900/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300"
+                : "bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300"
+            }`}
+          >
+            <IconUserCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {t.verifTitle}
+            </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              {pendingVerifications > 0
+                ? `${pendingVerifications} ${t.verifPendingDesc}`
+                : t.verifClearDesc}
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/admin/verifications"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-teal-700 transition whitespace-nowrap"
+        >
+          {t.verifBtn}
+          <IconArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
       <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">

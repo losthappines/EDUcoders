@@ -71,6 +71,8 @@ const SHELL_COPY: Record<
     familySub: string;
     adminBadge: string;
     adminSub: string;
+    adminOverviewNav: string;
+    adminVerificationsNav: string;
   }
 > = {
   uz: {
@@ -90,6 +92,8 @@ const SHELL_COPY: Record<
     familySub: "Poliklinika va 24 soatlik uy ko'rigi",
     adminBadge: "Qabulxona va nazorat",
     adminSub: "24 soatlik tashriflar nazorati va hisobotlar",
+    adminOverviewNav: "Umumiy nazorat",
+    adminVerificationsNav: "Hisoblarni tasdiqlash",
   },
   ru: {
     simBadge: "СИМУЛЯТОР ВРЕМЕНИ",
@@ -108,6 +112,8 @@ const SHELL_COPY: Record<
     familySub: "Поликлиника и домашний осмотр в течение 24 часов",
     adminBadge: "Координатор клиники",
     adminSub: "Контроль 24-часовых визитов и отчетность",
+    adminOverviewNav: "Обзор клиники",
+    adminVerificationsNav: "Проверка аккаунтов",
   },
   en: {
     simBadge: "TIME SIMULATOR",
@@ -126,6 +132,8 @@ const SHELL_COPY: Record<
     familySub: "Local clinic & 24-hour home check-ups",
     adminBadge: "Clinic Coordinator",
     adminSub: "24-hour visit tracking, reception & summaries",
+    adminOverviewNav: "Dashboard Overview",
+    adminVerificationsNav: "Account Verifications",
   },
 };
 
@@ -432,7 +440,82 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <IconLogout className="h-3.5 w-3.5" />
               {t.signOut}
             </button>
+            {authUser.role === "ADMIN_RECEPTION" && (
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold border transition ${
+                    pathname === "/admin"
+                      ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
+                      : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                  }`}
+                >
+                  {t.adminOverviewNav}
+                </Link>
+                <Link
+                  href="/admin/verifications"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold border transition ${
+                    pathname.startsWith("/admin/verifications")
+                      ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
+                      : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
+                  }`}
+                >
+                  {t.adminVerificationsNav}
+                  {(data?.pendingVerificationsCount ?? 0) > 0 && (
+                    <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+                      {data?.pendingVerificationsCount}
+                    </span>
+                  )}
+                </Link>
+              </div>
+            )}
           </div>
+        )}
+
+        {/* Admin Dashboard Sub-Navigation Bar */}
+        {authUser.role === "ADMIN_RECEPTION" && (
+          <nav
+            aria-label="Admin dashboard navigation"
+            className="hidden md:block border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70"
+          >
+            <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-2">
+              <Link
+                href="/admin"
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  pathname === "/admin"
+                    ? "bg-teal-600 text-white shadow-xs"
+                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800"
+                }`}
+              >
+                <IconShieldCheck className="h-3.5 w-3.5" />
+                {t.adminOverviewNav}
+              </Link>
+              <Link
+                href="/admin/verifications"
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  pathname.startsWith("/admin/verifications")
+                    ? "bg-teal-600 text-white shadow-xs"
+                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800"
+                }`}
+              >
+                <IconUserCheck className="h-3.5 w-3.5" />
+                {t.adminVerificationsNav}
+                {(data?.pendingVerificationsCount ?? 0) > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                      pathname.startsWith("/admin/verifications")
+                        ? "bg-white text-teal-800"
+                        : "bg-amber-500 text-white"
+                    }`}
+                  >
+                    {data?.pendingVerificationsCount}
+                  </span>
+                )}
+              </Link>
+            </div>
+          </nav>
         )}
       </header>
 

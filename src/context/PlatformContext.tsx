@@ -188,6 +188,7 @@ export interface PlatformStatePayload {
     timeOffsetHours: number;
     simulatedNow: string;
   };
+  pendingVerificationsCount?: number;
   users: PlatformUser[];
   patients: PlatformPatient[];
   activeCalls: PlatformActiveCall[];
@@ -209,6 +210,14 @@ export interface SignupInput {
   bloodType?: string;
 }
 
+export interface AuthActionResult {
+  ok: boolean;
+  pendingVerification?: boolean;
+  error?: string;
+  code?: string;
+  reason?: string | null;
+}
+
 interface PlatformContextValue {
   authUser: AuthUserSummary | null;
   authChecked: boolean;
@@ -221,8 +230,8 @@ interface PlatformContextValue {
   showToast: (type: "success" | "error" | "info", text: string) => void;
   fetchWithAuth: (url: string, init?: RequestInit) => Promise<Response>;
   refreshData: () => Promise<void>;
-  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  signup: (input: SignupInput) => Promise<{ ok: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<AuthActionResult>;
+  signup: (input: SignupInput) => Promise<AuthActionResult>;
   logout: () => Promise<void>;
   fastForwardTime: (hours: number) => Promise<void>;
   resetDemo: () => Promise<void>;
@@ -322,121 +331,212 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
   }, [refreshData]);
 
   const login = useCallback(
-    async (email: string, password: string) => {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      const out = (await res.json()) as {
-        error?: string;
-        redirectTo?: string;
-        user?: {
-          id: string;
-          email: string;
-          fullName: string;
-          role: UserRole;
-          polyclinicId: string | null;
-          polyclinicName: string | null;
-          district: string | null;
+    async (email: string, password: string): Promise<AuthActionResult> => {
+      const l = getGlobalLanguage();
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, password }),
+        });
+        const out = (await res.json()) as {
+          error?: string;
+          code?: string;
+          reason?: string | null;
+          redirectTo?: string;
+          user?: {
+            id: string;
+            email: string;
+            fullName: string;
+            role: UserRole;
+            polyclinicId: string | null;
+            polyclinicName: string | null;
+            district: string | null;
+          };
         };
-      };
-      if (!res.ok || !out.user) {
-        const l = getGlobalLanguage();
+        if (!res.ok || !out.user) {
+          let message = out.error;
+          if (out.code === "PENDING_VERIFICATION") {
+            message =
+              l === "ru"
+                ? "Ваш аккаунт ожидает подтверждения администратором."
+                : l === "en"
+                  ? "Your account is awaiting administrator verification before you can sign in."
+                  : "Hisobingiz administrator tasdig'ini kutmoqda. Tasdiqlangandan so'ng kirishingiz mumkin.";
+          } else if (out.code === "VERIFICATION_REJECTED") {
+            message =
+              l === "ru"
+                ? `Регистрация отклонена администратором.${out.reason ? ` Причина: ${out.reason}` : ""}`
+                : l === "en"
+                  ? `Your registration was declined by an administrator.${out.reason ? ` Note: ${out.reason}` : ""}`
+                  : `Ro'yxatdan o'tish administrator tomonidan rad etildi.${out.reason ? ` Sabab: ${out.reason}` : ""}`;
+          } else if (out.code === "DB_NOT_CONFIGURED" || out.code === "DB_UNREACHABLE") {
+            message =
+              l === "ru"
+                ? "Сервер базы данных временно недоступен или не подключен (DATABASE_URL)."
+                : l === "en"
+                  ? "Database connection is not configured or temporarily unavailable."
+                  : "Ma'lumotlar bazasi ulanmagan yoki vaqtincha mavjud emas.";
+          } else if (res.status === 401) {
+            message =
+              l === "ru"
+                ? "Неверный email или пароль."
+                : l === "en"
+                  ? "Incorrect email or password."
+                  : "Elektron pochta yoki parol noto'g'ri.";
+          }
+          return {
+            ok: false,
+            code: out.code,
+            reason: out.reason,
+            error:
+              message ||
+              (l === "ru"
+                ? "Не удалось войти."
+                : l === "en"
+                  ? "Sign in failed."
+                  : "Kirishda xatolik yuz berdi."),
+          };
+        }
+        setAuthUser({
+          userId: out.user.id,
+          email: out.user.email,
+          fullName: out.user.fullName,
+          role: out.user.role,
+          polyclinicId: out.user.polyclinicId,
+          polyclinicName: out.user.polyclinicName,
+          district: out.user.district,
+        });
+        setAuthChecked(true);
+        await refreshData();
+        showToast(
+          "success",
+          l === "ru"
+            ? `Добро пожаловать, ${out.user.fullName}!`
+            : l === "en"
+              ? `Welcome, ${out.user.fullName}!`
+              : `Xush kelibsiz, ${out.user.fullName}!`
+        );
+        router.push(out.redirectTo || "/");
+        return { ok: true };
+      } catch {
         return {
           ok: false,
           error:
-            out.error ||
-            (l === "ru"
-              ? "Не удалось войти."
+            l === "ru"
+              ? "Ошибка соединения с сервером."
               : l === "en"
-                ? "Sign in failed."
-                : "Kirishda xatolik yuz berdi."),
+                ? "Network error while signing in."
+                : "Serverga ulanishda xatolik yuz berdi.",
         };
       }
-      setAuthUser({
-        userId: out.user.id,
-        email: out.user.email,
-        fullName: out.user.fullName,
-        role: out.user.role,
-        polyclinicId: out.user.polyclinicId,
-        polyclinicName: out.user.polyclinicName,
-        district: out.user.district,
-      });
-      setAuthChecked(true);
-      await refreshData();
-      const loginLang = getGlobalLanguage();
-      showToast(
-        "success",
-        loginLang === "ru"
-          ? `Добро пожаловать, ${out.user.fullName}!`
-          : loginLang === "en"
-            ? `Welcome, ${out.user.fullName}!`
-            : `Xush kelibsiz, ${out.user.fullName}!`
-      );
-      router.push(out.redirectTo || "/");
-      return { ok: true };
     },
     [refreshData, router, showToast]
   );
 
   const signup = useCallback(
-    async (input: SignupInput) => {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(input),
-      });
-      const out = (await res.json()) as {
-        error?: string;
-        redirectTo?: string;
-        user?: {
-          id: string;
-          email: string;
-          fullName: string;
-          role: UserRole;
-          polyclinicId: string | null;
-          polyclinicName: string | null;
-          district: string | null;
+    async (input: SignupInput): Promise<AuthActionResult> => {
+      const l = getGlobalLanguage();
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(input),
+        });
+        const out = (await res.json()) as {
+          error?: string;
+          code?: string;
+          pendingVerification?: boolean;
+          redirectTo?: string;
+          user?: {
+            id: string;
+            email: string;
+            fullName: string;
+            role: UserRole;
+            polyclinicId: string | null;
+            polyclinicName: string | null;
+            district: string | null;
+          };
         };
-      };
-      if (!res.ok || !out.user) {
-        const l = getGlobalLanguage();
+        if (!res.ok || !out.user) {
+          let message = out.error;
+          if (out.code === "DB_NOT_CONFIGURED" || out.code === "DB_UNREACHABLE") {
+            message =
+              l === "ru"
+                ? "Сервер базы данных временно недоступен или не подключен (DATABASE_URL)."
+                : l === "en"
+                  ? "Database connection is not configured or temporarily unavailable."
+                  : "Ma'lumotlar bazasi ulanmagan yoki vaqtincha mavjud emas.";
+          } else if (res.status === 409) {
+            message =
+              l === "ru"
+                ? "Аккаунт с таким email уже существует."
+                : l === "en"
+                  ? "An account with this email already exists."
+                  : "Ushbu elektron pochta bilan hisob allaqachon mavjud.";
+          }
+          return {
+            ok: false,
+            code: out.code,
+            error:
+              message ||
+              (l === "ru"
+                ? "Ошибка регистрации."
+                : l === "en"
+                  ? "Registration failed."
+                  : "Ro'yxatdan o'tishda xatolik yuz berdi."),
+          };
+        }
+
+        if (out.pendingVerification) {
+          setAuthUser(null);
+          setData(null);
+          setAuthChecked(true);
+          showToast(
+            "info",
+            l === "ru"
+              ? "Заявка отправлена! Ожидайте подтверждения администратором."
+              : l === "en"
+                ? "Account submitted! Awaiting administrator verification."
+                : "Arizangiz yuborildi! Administrator tasdig'ini kuting."
+          );
+          return { ok: true, pendingVerification: true };
+        }
+
+        setAuthUser({
+          userId: out.user.id,
+          email: out.user.email,
+          fullName: out.user.fullName,
+          role: out.user.role,
+          polyclinicId: out.user.polyclinicId,
+          polyclinicName: out.user.polyclinicName,
+          district: out.user.district,
+        });
+        setAuthChecked(true);
+        await refreshData();
+        showToast(
+          "success",
+          l === "ru"
+            ? `Аккаунт создан: ${out.user.fullName}`
+            : l === "en"
+              ? `Account created: ${out.user.fullName}`
+              : `Hisob yaratildi: ${out.user.fullName}`
+        );
+        router.push(out.redirectTo || "/");
+        return { ok: true, pendingVerification: false };
+      } catch {
         return {
           ok: false,
           error:
-            out.error ||
-            (l === "ru"
-              ? "Ошибка регистрации."
+            l === "ru"
+              ? "Ошибка соединения с сервером."
               : l === "en"
-                ? "Registration failed."
-                : "Ro'yxatdan o'tishda xatolik yuz berdi."),
+                ? "Network error while creating account."
+                : "Serverga ulanishda xatolik yuz berdi.",
         };
       }
-      setAuthUser({
-        userId: out.user.id,
-        email: out.user.email,
-        fullName: out.user.fullName,
-        role: out.user.role,
-        polyclinicId: out.user.polyclinicId,
-        polyclinicName: out.user.polyclinicName,
-        district: out.user.district,
-      });
-      setAuthChecked(true);
-      await refreshData();
-      const signupLang = getGlobalLanguage();
-      showToast(
-        "success",
-        signupLang === "ru"
-          ? `Аккаунт создан: ${out.user.fullName}`
-          : signupLang === "en"
-            ? `Account created: ${out.user.fullName}`
-            : `Hisob yaratildi: ${out.user.fullName}`
-      );
-      router.push(out.redirectTo || "/");
-      return { ok: true };
     },
     [refreshData, router, showToast]
   );

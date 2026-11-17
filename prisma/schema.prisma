@@ -11,19 +11,23 @@ datasource db {
 }
 
 model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  passwordHash      String   @default("")
-  fullName          String
-  role              String   // OVABMU_MD | FAMILY_MD | PATIENT | ADMIN_RECEPTION
-  polyclinicId      String?
-  polyclinicName    String?
-  district          String?
-  specialty         String?
-  phone             String?
-  telegramHandle    String?
-  scheduleSlotsJson String   @default("[]")
-  createdAt         DateTime @default(now())
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  passwordHash       String    @default("")
+  fullName           String
+  role               String    // OVABMU_MD | FAMILY_MD | PATIENT | ADMIN_RECEPTION
+  verificationStatus String    @default("VERIFIED") // PENDING | VERIFIED | REJECTED
+  verificationNote   String?
+  verifiedAt         DateTime?
+  verifiedById       String?
+  polyclinicId       String?
+  polyclinicName     String?
+  district           String?
+  specialty          String?
+  phone              String?
+  telegramHandle     String?
+  scheduleSlotsJson  String    @default("[]")
+  createdAt          DateTime  @default(now())
 
   patientProfile         Patient?       @relation("PatientAccount")
   assignedPatients       Patient[]      @relation("FamilyDoctorPatients")

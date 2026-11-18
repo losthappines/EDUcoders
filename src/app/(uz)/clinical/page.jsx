@@ -127,6 +127,13 @@ const CLINICAL_COPY = {
         directChatPanelTitle: "Bemorlar bilan to'g'ridan-to'g'ri chat (Bot + Mini App)",
         selectPatientLabel: "Bemor:",
         noPatientsForChat: "Hozircha chat uchun bemorlar mavjud emas.",
+        rxDurationLabel: "Davomiyligi (kun)",
+        rxInstructionsLabel: "Qo'llash yo'riqnomasi",
+        rxInstructionsPlaceholder: "Masalan: Ovqatdan keyin suv bilan iching.",
+        noRxYet: "Ushbu bemorga hali dorilar tayinlanmagan.",
+        assignedMedTitle: "Biriktirilgan bemorlar dorilari (E-retsept)",
+        assignedMedSub: "Oilaviy shifokor va hamshiralar biriktirilgan bemorlarga dori va Telegram eslatma vaqtini qo'shishi mumkin",
+        noPatientsAssigned: "Hozircha sizga biriktirilgan bemorlar topilmadi.",
     },
     ru: {
         ovabmuTitle: "Врач роддома — Выписка и передача на патронаж",
@@ -235,6 +242,20 @@ const CLINICAL_COPY = {
         selfHarmAlert: "СРОЧНО: EPDS Q10 (103 SLA)",
         rxReminderTimesLabel: "Время напоминаний в Telegram (24ч)",
         rxRemindersOn: "Напоминание за 10 мин активно",
+        remindersStripTitle: "Напоминания и задачи на сегодня",
+        pendingVisitsCount: "24ч визиты на дом:",
+        openComplaintsCount: "Активные жалобы:",
+        directMessagesCount: "Сообщения пациентов:",
+        directChatPanelTitle: "Прямой чат с пациентами (Бот + Mini App)",
+        selectPatientLabel: "Пациент:",
+        noPatientsForChat: "Пока нет доступных пациентов для чата.",
+        rxDurationLabel: "Длительность (дней)",
+        rxInstructionsLabel: "Инструкция по приему",
+        rxInstructionsPlaceholder: "Например: Принимать после еды с водой.",
+        noRxYet: "Этой пациентке еще не назначены лекарства.",
+        assignedMedTitle: "Назначения закрепленных пациентов (Е-рецепт)",
+        assignedMedSub: "Семейные врачи и медсестры могут добавлять лекарства и время напоминаний в Telegram закрепленным пациентам",
+        noPatientsAssigned: "Пока нет закрепленных за вами пациентов.",
     },
     en: {
         ovabmuTitle: "Hospital Doctor — Discharge & Home Care Handoff",
@@ -350,6 +371,13 @@ const CLINICAL_COPY = {
         directChatPanelTitle: "Direct Patient Chat (Bot + Mini App)",
         selectPatientLabel: "Patient:",
         noPatientsForChat: "No patients available to message yet.",
+        rxDurationLabel: "Duration (days)",
+        rxInstructionsLabel: "Instructions",
+        rxInstructionsPlaceholder: "e.g. Take after meals with water.",
+        noRxYet: "No medications prescribed for this patient yet.",
+        assignedMedTitle: "Assigned Patients & Medications (E-Rx)",
+        assignedMedSub: "Family doctors & nurses can prescribe medications and set Telegram reminders for assigned patients",
+        noPatientsAssigned: "No assigned patients available yet.",
     },
 };
 export default function ClinicalDashboardPage() {
@@ -383,13 +411,17 @@ export default function ClinicalDashboardPage() {
     const [orderingLab, setOrderingLab] = useState(false);
     const [fhirCallId, setFhirCallId] = useState(null);
     const [traceModal, setTraceModal] = useState(null);
+    const [selectedRxPatientId, setSelectedRxPatientId] = useState("");
     const [rxFormOpen, setRxFormOpen] = useState(false);
     const [rxMed, setRxMed] = useState("Magne B6 Forte");
     const [rxDose, setRxDose] = useState("100 mg");
     const [rxFreq, setRxFreq] = useState("2x daily");
+    const [rxDurationDays, setRxDurationDays] = useState("14");
+    const [rxInstructions, setRxInstructions] = useState("");
     const [rxReminderTimes, setRxReminderTimes] = useState("08:00, 20:00");
     const [rxReminderEdited, setRxReminderEdited] = useState(false);
     const [rxRemindersEnabled, setRxRemindersEnabled] = useState(true);
+    const [rxSubmitting, setRxSubmitting] = useState(false);
     const [sbp, setSbp] = useState("128");
     const [dbp, setDbp] = useState("82");
     const [hr, setHr] = useState("84");
@@ -703,34 +735,48 @@ export default function ClinicalDashboardPage() {
             setOrderingLab(false);
         }
     };
-    const handleAddRx = async (e) => {
+    const handleAddRx = async (e, targetPatientId) => {
         e.preventDefault();
-        if (!selectedPatient)
+        const patientId = targetPatientId ||
+            (isOvabmu
+                ? selectedPatient?.id
+                : selectedRxPatientId || selectedCall?.patient?.id || selectedComplaint?.patientId || patients[0]?.id);
+        if (!patientId)
             return;
-        const reminderTimes = rxReminderTimes
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        const res = await fetchWithAuth("/api/clinical/orders", {
-            method: "POST",
-            body: JSON.stringify({
-                type: "ADD_PRESCRIPTION",
-                patientId: selectedPatient.id,
-                medicationName: rxMed,
-                dosage: rxDose,
-                frequency: rxFreq,
-                reminderTimes,
-                remindersEnabled: rxRemindersEnabled,
-            }),
-        });
-        if (res.ok) {
-            setRxFormOpen(false);
-            setRxReminderEdited(false);
-            await refreshData();
-            showToast("success", `${t.rxOk} ${rxMed} ${rxDose}`);
+        setRxSubmitting(true);
+        try {
+            const reminderTimes = rxReminderTimes
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            const res = await fetchWithAuth("/api/clinical/orders", {
+                method: "POST",
+                body: JSON.stringify({
+                    type: "ADD_PRESCRIPTION",
+                    patientId,
+                    medicationName: rxMed,
+                    dosage: rxDose,
+                    frequency: rxFreq,
+                    durationDays: Number(rxDurationDays) || 14,
+                    instructionsUz: rxInstructions.trim() || undefined,
+                    reminderTimes,
+                    remindersEnabled: rxRemindersEnabled,
+                }),
+            });
+            if (res.ok) {
+                setRxFormOpen(false);
+                setRxReminderEdited(false);
+                setRxInstructions("");
+                await refreshData();
+                showToast("success", `${t.rxOk} ${rxMed} ${rxDose}`);
+            }
+            else {
+                const errJson = await res.json().catch(() => ({}));
+                showToast("error", errJson.error || t.rxErr);
+            }
         }
-        else {
-            showToast("error", t.rxErr);
+        finally {
+            setRxSubmitting(false);
         }
     };
     return (<div className="space-y-5">
@@ -1238,12 +1284,12 @@ export default function ClinicalDashboardPage() {
                       </button>
                     </div>
 
-                    {rxFormOpen && (<form onSubmit={handleAddRx} className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3 space-y-2">
+                    {rxFormOpen && (<form onSubmit={(e) => handleAddRx(e, selectedPatient.id)} className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3 space-y-2">
                         <label htmlFor="rx-med" className="sr-only">
                           {t.rxMedPlaceholder}
                         </label>
                         <input id="rx-med" name="medicationName" value={rxMed} onChange={(e) => setRxMed(e.target.value)} placeholder={t.rxMedPlaceholder} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           <label htmlFor="rx-dose" className="sr-only">
                             {t.rxDosePlaceholder}
                           </label>
@@ -1258,7 +1304,9 @@ export default function ClinicalDashboardPage() {
                             setRxReminderTimes(inferReminderTimesFromFrequency(val).join(", "));
                         }
                     }} placeholder={t.rxFreqPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
+                          <input id="rx-duration" name="durationDays" type="number" min={1} max={180} value={rxDurationDays} onChange={(e) => setRxDurationDays(e.target.value)} placeholder={t.rxDurationLabel} aria-label={t.rxDurationLabel} className="col-span-2 sm:col-span-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
                         </div>
+                        <input id="rx-instructions" name="instructionsUz" value={rxInstructions} onChange={(e) => setRxInstructions(e.target.value)} placeholder={t.rxInstructionsPlaceholder} aria-label={t.rxInstructionsLabel} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
                         <div className="space-y-1">
                           <label htmlFor="rx-reminder-times" className="block text-[10px] font-semibold text-slate-600 dark:text-slate-300">
                             {t.rxReminderTimesLabel}
@@ -1272,13 +1320,13 @@ export default function ClinicalDashboardPage() {
                           <input type="checkbox" checked={rxRemindersEnabled} onChange={(e) => setRxRemindersEnabled(e.target.checked)} className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600"/>
                           <span>{t.rxRemindersOn}</span>
                         </label>
-                        <button type="submit" className="w-full min-h-[40px] rounded-lg bg-teal-700 py-2 text-xs font-semibold text-white hover:bg-teal-800">
-                          {t.saveRxBtn}
+                        <button type="submit" disabled={rxSubmitting} className="w-full min-h-[40px] rounded-lg bg-teal-700 py-2 text-xs font-semibold text-white hover:bg-teal-800 disabled:opacity-50">
+                          {rxSubmitting ? "..." : t.saveRxBtn}
                         </button>
                       </form>)}
 
                     <div className="space-y-2">
-                      {selectedPatient.prescriptions.map((rx) => (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+                      {selectedPatient.prescriptions.length === 0 ? (<p className="text-xs text-slate-400 py-2 text-center">{t.noRxYet}</p>) : (selectedPatient.prescriptions.map((rx) => (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
                               {rx.medicationName} ({rx.dosage})
@@ -1300,7 +1348,7 @@ export default function ClinicalDashboardPage() {
                           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                             {lang === "ru" ? rx.instructionsRu : lang === "en" ? rx.instructionsEn : rx.instructionsUz}
                           </p>
-                        </div>))}
+                        </div>)))}
                     </div>
                   </div>
                 </div>
@@ -1308,15 +1356,114 @@ export default function ClinicalDashboardPage() {
           </div>
         </div>)}
 
-      {/* VIEW 2: FAMILY DOCTOR */}
-      {!isOvabmu && (<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* VIEW 2: FAMILY DOCTOR & NURSE */}
+      {!isOvabmu && (() => {
+            const effectiveRxPatientId = selectedRxPatientId ||
+                selectedCall?.patient?.id ||
+                selectedComplaint?.patientId ||
+                patients[0]?.id ||
+                "";
+            const effectiveRxPatient = patients.find((p) => p.id === effectiveRxPatientId) ||
+                selectedCall?.patient ||
+                patients[0] ||
+                null;
+            return (<div className="space-y-5">
+          {/* Assigned Patients & Medications (E-Rx for Family Doctors & Nurses) */}
+          <section id="assigned-patient-medications" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+                  {t.assignedMedTitle}
+                </h2>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.assignedMedSub}</p>
+              </div>
+              {patients.length > 0 && (<div className="flex flex-wrap items-center gap-2">
+                  <label htmlFor="family-rx-patient" className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    {t.selectPatientLabel}
+                  </label>
+                  <select id="family-rx-patient" value={effectiveRxPatient?.id || ""} onChange={(e) => setSelectedRxPatientId(e.target.value)} className="min-h-[36px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-slate-100">
+                    {patients.map((p) => (<option key={p.id} value={p.id}>
+                        {p.fullName}{p.district ? ` (${p.district})` : ""} • {(p.prescriptions ?? []).length}
+                      </option>))}
+                  </select>
+                  <button type="button" onClick={() => setRxFormOpen((v) => !v)} className="inline-flex min-h-[36px] items-center gap-1 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-800">
+                    <IconPlus className="h-3.5 w-3.5"/>
+                    {t.addRxBtn}
+                  </button>
+                </div>)}
+            </div>
+
+            {!effectiveRxPatient ? (<p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center">
+                {t.noPatientsAssigned}
+              </p>) : (<div className="space-y-3">
+                {rxFormOpen && (<form onSubmit={(e) => handleAddRx(e, effectiveRxPatient.id)} className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3.5 space-y-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                      <input id="family-rx-med" name="medicationName" value={rxMed} onChange={(e) => setRxMed(e.target.value)} placeholder={t.rxMedPlaceholder} aria-label={t.rxMedPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100" required/>
+                      <input id="family-rx-dose" name="dosage" value={rxDose} onChange={(e) => setRxDose(e.target.value)} placeholder={t.rxDosePlaceholder} aria-label={t.rxDosePlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100" required/>
+                      <input id="family-rx-freq" name="frequency" value={rxFreq} onChange={(e) => {
+                        const val = e.target.value;
+                        setRxFreq(val);
+                        if (!rxReminderEdited) {
+                            setRxReminderTimes(inferReminderTimesFromFrequency(val).join(", "));
+                        }
+                    }} placeholder={t.rxFreqPlaceholder} aria-label={t.rxFreqPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100" required/>
+                      <input id="family-rx-duration" name="durationDays" type="number" min={1} max={180} value={rxDurationDays} onChange={(e) => setRxDurationDays(e.target.value)} placeholder={t.rxDurationLabel} aria-label={t.rxDurationLabel} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input id="family-rx-instructions" name="instructionsUz" value={rxInstructions} onChange={(e) => setRxInstructions(e.target.value)} placeholder={t.rxInstructionsPlaceholder} aria-label={t.rxInstructionsLabel} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+                      <input id="family-rx-reminder-times" name="reminderTimes" value={rxReminderTimes} onChange={(e) => {
+                        setRxReminderEdited(true);
+                        setRxReminderTimes(e.target.value);
+                    }} placeholder="08:00, 20:00" aria-label={t.rxReminderTimesLabel} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 font-mono text-xs text-slate-900 dark:text-slate-100"/>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <label className="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                        <input type="checkbox" checked={rxRemindersEnabled} onChange={(e) => setRxRemindersEnabled(e.target.checked)} className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600"/>
+                        <span>{t.rxRemindersOn}</span>
+                      </label>
+                      <button type="submit" disabled={rxSubmitting} className="min-h-[38px] rounded-lg bg-teal-700 px-4 py-2 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50">
+                        {rxSubmitting ? "..." : t.saveRxBtn}
+                      </button>
+                    </div>
+                  </form>)}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {(effectiveRxPatient.prescriptions ?? []).length === 0 ? (<p className="col-span-full text-xs text-slate-400 py-2 text-center">{t.noRxYet}</p>) : ((effectiveRxPatient.prescriptions ?? []).map((rx) => (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                          {rx.medicationName} ({rx.dosage})
+                        </span>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${rx.pharmacyStockStatus === "IN_STOCK"
+                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300"
+                        : rx.pharmacyStockStatus === "RESERVED"
+                            ? "bg-teal-50 text-teal-700 dark:bg-teal-950/70 dark:text-teal-300"
+                            : "bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                          {rx.pharmacyStockStatus}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                        {rx.frequency} • {rx.durationDays} {t.daysWord} • {rx.polyclinicPharmacy}
+                      </p>
+                      {rx.remindersEnabled !== false && (rx.reminderTimes ?? []).length > 0 && (<p className="mt-1 inline-flex items-center gap-1 rounded bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2 py-0.5 font-mono text-[10px] font-semibold text-teal-800 dark:text-teal-300">
+                          🔔 {(rx.reminderTimes ?? []).join(", ")}
+                        </p>)}
+                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                        {lang === "ru" ? rx.instructionsRu : lang === "en" ? rx.instructionsEn : rx.instructionsUz}
+                      </p>
+                    </div>)))}
+                </div>
+              </div>)}
+          </section>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           <div className="lg:col-span-4 space-y-2.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
               {t.queueTitle}
             </h2>
             {activeCalls.map((call) => {
                 const selected = call.id === selectedCall?.id;
-                return (<button key={call.id} onClick={() => setSelectedCallId(call.id)} className={`w-full text-left rounded-xl border p-4 space-y-2 transition ${selected
+                return (<button key={call.id} onClick={() => { setSelectedCallId(call.id); if (call.patientId) setSelectedRxPatientId(call.patientId); }} className={`w-full text-left rounded-xl border p-4 space-y-2 transition ${selected
                         ? "border-teal-500 bg-teal-50/40 dark:bg-teal-950/40 ring-1 ring-teal-500"
                         : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"}`}>
                   <div className="flex items-start justify-between gap-2">
@@ -1606,7 +1753,9 @@ export default function ClinicalDashboardPage() {
                 </div>
               </div>)}
           </div>
-        </div>)}
+        </div>
+        </div>);
+        })()}
 
       <FhirBundleModal activeCallId={fhirCallId} onClose={() => setFhirCallId(null)}/>
       <AgentTraceModal open={Boolean(traceModal)} patientName={traceModal?.patientName} trace={traceModal?.trace ?? []} onClose={() => setTraceModal(null)}/>

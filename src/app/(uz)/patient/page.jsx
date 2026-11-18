@@ -1,7 +1,8 @@
 "use client";
 import React, { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { IconAlertOctagon, IconBell, IconBrandTelegram, IconCalendarEvent, IconCheck, IconChevronDown, IconChevronUp, IconCircleCheck, IconCrown, IconFlask, IconHeartHandshake, IconHeartbeat, IconKey, IconMapPin, IconMessageCircle, IconPhoneCall, IconPill, IconPlus, IconSend, IconShieldCheck, IconStethoscope, IconUser, IconX, } from "@tabler/icons-react";
+import { IconAlertOctagon, IconBell, IconBrandTelegram, IconCalendarEvent, IconCheck, IconChevronDown, IconChevronUp, IconCircleCheck, IconCrown, IconFlask, IconHeartHandshake, IconHeartbeat, IconKey, IconMapPin, IconMessageCircle, IconPhoneCall, IconPill, IconPlus, IconRobot, IconSend, IconShieldCheck, IconStethoscope, IconUser, IconX, } from "@tabler/icons-react";
+import AIComposer from "@/components/ui/ai-prompt-composer-with-model-selector";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -134,6 +135,22 @@ const COPY = {
         remindersWbTodo: "Bugungi kunlik check-in hali topshirilmagan",
         remindersGoChat: "Shifokor / hamshira bilan chat →",
         remindersEmpty: "Bugun uchun barcha asosiy eslatmalar bajarildi.",
+        tabDashboard: "Kabinet",
+        tabAiChat: "AI Yordamchi",
+        aiTitle: "OnaCare AI Tibbiy Yordamchi",
+        aiSubtitle: "Dorilaringiz, uy tashrifi, tug'ruqdan keyingi parvarish va chaqaloq parvarishi bo'yicha savollar bering",
+        aiDisclaimer: "AI maslahati faqat ma'lumot uchundir; shoshilinch holatlarda darhol 103 ga qo'ng'iroq qiling yoki shifokoringizga yozing.",
+        aiPlaceholder: "Savolingizni yozing... @medications yoki @visit deb context biriktirishingiz mumkin",
+        aiThinking: "AI javob tayyorlamoqda...",
+        aiEmptyTitle: "Salom! OnaCare AI yordamchisi tayyor.",
+        aiEmptySub: "Pastdagi tezkor savollardan birini bosing yoki o'z savolingizni yozing.",
+        aiUrgentBtn: "103 Tez Yordamga Qo'ng'iroq Qilish",
+        aiStarters: [
+            "Menga yozilgan dorilar va ichish vaqtlarim qanday? @medications",
+            "24 soatlik uy tashrifi va shifokorim haqida ma'lumot bering @visit",
+            "Tug'ruqdan keyin qaysi belgilarda darhol 103 ga murojaat qilish kerak?",
+            "Bugungi kunlik parvarish rejamni tuzib bering",
+        ],
     },
     ru: {
         loading: "Загрузка личного кабинета...",
@@ -246,6 +263,30 @@ const COPY = {
         psychSessionsTitle: "Мои запланированные сеансы",
         psychChatTitle: "Личный чат с психологом",
         psychChatPlaceholder: "Напишите психологу...",
+        remindersTitle: "Напоминания и расписание на сегодня",
+        remindersMedItem: "Время приема лекарств:",
+        remindersVisitItem: "24ч визит на дом:",
+        remindersPsychItem: "Сеанс с психологом:",
+        remindersWbDone: "Ежедневный чек-ин на сегодня выполнен ✓",
+        remindersWbTodo: "Ежедневный чек-ин на сегодня еще не заполнен",
+        remindersGoChat: "Чат с врачом / медсестрой →",
+        remindersEmpty: "На сегодня все основные задачи выполнены.",
+        tabDashboard: "Кабинет",
+        tabAiChat: "ИИ Чат-бот",
+        aiTitle: "ИИ-помощник OnaCare",
+        aiSubtitle: "Задавайте вопросы о ваших лекарствах, домашнем визите и послеродовом уходе",
+        aiDisclaimer: "ИИ-ответы носят справочный характер; в экстренных случаях немедленно звоните 103.",
+        aiPlaceholder: "Задайте вопрос... Используйте @medications или @visit для контекста",
+        aiThinking: "ИИ готовит ответ...",
+        aiEmptyTitle: "Здравствуйте! ИИ-помощник OnaCare на связи.",
+        aiEmptySub: "Выберите готовый вопрос ниже или напишите свой запрос.",
+        aiUrgentBtn: "Позвонить в скорую 103",
+        aiStarters: [
+            "Какие лекарства мне назначены и когда их принимать? @medications",
+            "Когда придет врач на домашний визит? @visit",
+            "При каких тревожных симптомах нужно срочно звонить 103?",
+            "Составь план ухода и восстановления на сегодня",
+        ],
     },
     en: {
         loading: "Loading your portal...",
@@ -366,6 +407,22 @@ const COPY = {
         remindersWbTodo: "Today's wellbeing check-in is still pending",
         remindersGoChat: "Chat with doctor / nurse →",
         remindersEmpty: "All caught up for today.",
+        tabDashboard: "Dashboard",
+        tabAiChat: "AI Chatbot",
+        aiTitle: "OnaCare AI Health Assistant",
+        aiSubtitle: "Ask questions about your prescribed medicines, upcoming home visit, and postpartum care",
+        aiDisclaimer: "AI answers are for informational guidance only; call 103 immediately for any medical emergency.",
+        aiPlaceholder: "Ask anything... Use @medications or @visit for context",
+        aiThinking: "AI is preparing an answer...",
+        aiEmptyTitle: "Hi! Your OnaCare AI Assistant is ready.",
+        aiEmptySub: "Pick a quick question below or type your own question.",
+        aiUrgentBtn: "Call Emergency 103",
+        aiStarters: [
+            "What medications am I prescribed and when do I take them? @medications",
+            "Tell me about my 24h home visit and assigned doctor @visit",
+            "Which warning signs require calling 103 immediately?",
+            "Create a simple postpartum recovery plan for today",
+        ],
     },
 };
 function getLabTooltip(testName, lang) {
@@ -448,6 +505,11 @@ export default function PatientPortalPage() {
     const [psychActionBusy, setPsychActionBusy] = useState(false);
     const [psychChatBody, setPsychChatBody] = useState("");
     const [sendingPsychChat, setSendingPsychChat] = useState(false);
+    const [activeTab, setActiveTab] = useState("dashboard");
+    const [aiMessages, setAiMessages] = useState([]);
+    const [aiBusy, setAiBusy] = useState(false);
+    const aiSeqRef = useRef(1);
+    const aiEndRef = useRef(null);
     const activeCalls = useMemo(() => data?.activeCalls ?? [], [data?.activeCalls]);
     const call = activeCalls[0];
     const ownPatient = data?.patients?.[0];
@@ -800,6 +862,75 @@ export default function PatientPortalPage() {
             setSendingPsychChat(false);
         }
     };
+    const handleAiChatSubmit = async (submission) => {
+        const promptText = String(submission?.prompt || "").trim();
+        const filesList = Array.isArray(submission?.attachedFiles) ? submission.attachedFiles : [];
+        if (!promptText && filesList.length === 0)
+            return;
+        const userId = `ai-u-${aiSeqRef.current++}`;
+        const userMsg = {
+            id: userId,
+            sender: "user",
+            text: promptText || filesList.join(", "),
+            mode: submission?.mode || "Ask",
+            modelName: submission?.modelName || "Gemini 3.5 Flash",
+            attachedFiles: filesList,
+        };
+        const historySnapshot = aiMessages.slice(-8).map((m) => ({
+            sender: m.sender,
+            text: m.text,
+        }));
+        setAiMessages((prev) => [...prev, userMsg]);
+        setAiBusy(true);
+        setTimeout(() => aiEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+        try {
+            const res = await fetchWithAuth("/api/ai/patient-chat", {
+                method: "POST",
+                body: JSON.stringify({
+                    message: promptText,
+                    mode: submission?.mode || "Ask",
+                    modelId: submission?.modelId || "gemini-3.5-flash",
+                    effort: submission?.effort || "High",
+                    attachedFiles: filesList,
+                    history: historySnapshot,
+                    lang,
+                }),
+            });
+            const json = await res.json().catch(() => ({}));
+            const botId = `ai-b-${aiSeqRef.current++}`;
+            if (!res.ok) {
+                showToast("error", json.error || "Could not reach AI assistant");
+                setAiMessages((prev) => [
+                    ...prev,
+                    {
+                        id: botId,
+                        sender: "assistant",
+                        text: json.error || "Kechirasiz, javob olishda xatolik yuz berdi. Iltimos qayta urinib ko'ring.",
+                        urgentAlert103: false,
+                        suggestedQuestions: [],
+                        modelUsed: "system",
+                    },
+                ]);
+                return;
+            }
+            setAiMessages((prev) => [
+                ...prev,
+                {
+                    id: botId,
+                    sender: "assistant",
+                    text: json.reply,
+                    urgentAlert103: Boolean(json.urgentAlert103),
+                    suggestedQuestions: Array.isArray(json.suggestedQuestions) ? json.suggestedQuestions : [],
+                    modelUsed: json.modelUsed || "gemini-3.5-flash",
+                    provider: json.provider || "gemini",
+                },
+            ]);
+            setTimeout(() => aiEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 80);
+        }
+        finally {
+            setAiBusy(false);
+        }
+    };
     if (loading) {
         return (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
         {t.loading}
@@ -851,6 +982,101 @@ export default function PatientPortalPage() {
           </div>
         </div>
       </div>
+
+      {/* Patient Portal Tabs: Dashboard vs AI Chatbot */}
+      <div role="tablist" aria-label="Patient sections" className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5">
+        <button type="button" role="tab" aria-selected={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition ${activeTab === "dashboard"
+            ? "bg-teal-700 text-white shadow-sm"
+            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
+          <IconHeartbeat className="h-4 w-4"/>
+          <span>{t.tabDashboard}</span>
+        </button>
+        <button type="button" role="tab" aria-selected={activeTab === "chatbot"} onClick={() => setActiveTab("chatbot")} className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition ${activeTab === "chatbot"
+            ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
+            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
+          <IconRobot className="h-4 w-4"/>
+          <span>{t.tabAiChat}</span>
+        </button>
+      </div>
+
+      {/* AI Chatbot Tab */}
+      {activeTab === "chatbot" && (<section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <IconRobot className="h-5 w-5 text-teal-600 dark:text-teal-400"/>
+              <span>{t.aiTitle}</span>
+            </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400">{t.aiSubtitle}</p>
+            <p className="rounded-xl border border-amber-200 dark:border-amber-800/80 bg-amber-50/70 dark:bg-amber-950/30 px-3 py-2 text-[11px] font-medium text-amber-900 dark:text-amber-200">
+              {t.aiDisclaimer}
+            </p>
+          </div>
+
+          {/* Chat Conversation History */}
+          <div className="max-h-[380px] min-h-[210px] overflow-y-auto space-y-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3.5">
+            {aiMessages.length === 0 ? (<div className="space-y-3 py-2">
+                <div className="text-center space-y-1">
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{t.aiEmptyTitle}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.aiEmptySub}</p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {(t.aiStarters || []).map((q, idx) => (<button key={idx} type="button" disabled={aiBusy} onClick={() => handleAiChatSubmit({ prompt: q, mode: "Ask", modelId: "gemini-3.5-flash", modelName: "Gemini 3.5 Flash", effort: "High", attachedFiles: [] })} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-left text-[11px] font-medium text-slate-700 dark:text-slate-200 hover:border-teal-500 hover:bg-teal-50/40 dark:hover:bg-teal-950/40 transition disabled:opacity-50">
+                      {q}
+                    </button>))}
+                </div>
+              </div>) : (aiMessages.map((msg) => {
+                const isUser = msg.sender === "user";
+                return (<div key={msg.id} className={`flex flex-col gap-1 ${isUser ? "items-end" : "items-start"}`}>
+                    <div className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${isUser
+                        ? "bg-teal-700 text-white"
+                        : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200"}`}>
+                      <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[10px] opacity-75">
+                        <span className="font-bold">{isUser ? (ownPatient?.fullName ?? authUser?.fullName ?? "You") : "OnaCare AI"}</span>
+                        {isUser && msg.mode && <span>• {msg.mode}</span>}
+                        {!isUser && msg.modelUsed && <span className="font-mono">• {msg.modelUsed}</span>}
+                      </div>
+                      <p>{msg.text}</p>
+                      {msg.attachedFiles && msg.attachedFiles.length > 0 && (<div className="mt-1.5 flex flex-wrap gap-1">
+                          {msg.attachedFiles.map((f) => (<span key={f} className="rounded bg-black/20 px-1.5 py-0.5 text-[10px] font-mono">
+                              📎 {f}
+                            </span>))}
+                        </div>)}
+                    </div>
+
+                    {!isUser && msg.urgentAlert103 && (<a href="tel:103" className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-rose-700">
+                        <IconPhoneCall className="h-3.5 w-3.5"/>
+                        {t.aiUrgentBtn}
+                      </a>)}
+
+                    {!isUser && msg.suggestedQuestions && msg.suggestedQuestions.length > 0 && (<div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {msg.suggestedQuestions.map((sq, sIdx) => (<button key={sIdx} type="button" disabled={aiBusy} onClick={() => handleAiChatSubmit({ prompt: sq, mode: "Ask", modelId: "gemini-3.5-flash", modelName: "Gemini 3.5 Flash", effort: "High", attachedFiles: [] })} className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-[10px] font-semibold text-teal-800 dark:text-teal-300 hover:border-teal-500 disabled:opacity-50">
+                            {sq}
+                          </button>))}
+                      </div>)}
+                  </div>);
+            }))}
+            {aiBusy && (<div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 px-1">
+                <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse"/>
+                <span>{t.aiThinking}</span>
+              </div>)}
+            <div ref={aiEndRef}/>
+          </div>
+
+          {/* Prompt Composer styled per ai-prompt-composer-with-model-selector */}
+          <AIComposer
+            embedded
+            initialTheme="dark"
+            showUpgradeBanner={false}
+            showWalkthroughControl={false}
+            disabled={aiBusy}
+            defaultMode="Ask"
+            defaultModelId="gemini-3.5-flash"
+            placeholder={t.aiPlaceholder}
+            onSubmit={handleAiChatSubmit}
+          />
+        </section>)}
+
+      {activeTab === "dashboard" && (<>
 
       {/* Bugungi Eslatmalar / Today's Reminders Card */}
       <section className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-2.5">
@@ -1819,5 +2045,6 @@ export default function PatientPortalPage() {
               </div>)}
           </>)}
       </section>
+      </>)}
     </div>);
 }

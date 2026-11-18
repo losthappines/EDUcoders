@@ -423,24 +423,24 @@ export function AiSignupAssistant({
   const isPasswordStep = currentStep === "password";
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 oc-fade-in">
       {/* Conversational Gemini 3.5 Flash Chat Panel */}
-      <div className="lg:col-span-7 flex flex-col rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] overflow-hidden">
-        <div className="flex items-center justify-between gap-2 border-b border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-4 py-3.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]">
-              <IconSparkles className="h-4 w-4" />
+      <div className="lg:col-span-7 flex flex-col rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] overflow-hidden shadow-xs">
+        <div className="flex items-center justify-between gap-2 border-b border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-4 py-3.5">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 text-white shadow-xs">
+              <IconSparkles className="h-5 w-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="font-heading text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] truncate">
+                <h2 className="font-heading text-sm font-bold text-slate-900 dark:text-white truncate">
                   {t.headerTitle}
                 </h2>
-                <span className="hidden sm:inline-block rounded-sm border border-[#A7BBAA] dark:border-[#6E8572] bg-[#EFECE3] dark:bg-[#242A27] px-1.5 py-0.5 font-mono text-[9px] font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+                <span className="hidden sm:inline-block rounded-full border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 font-mono text-xs font-semibold text-teal-700 dark:text-teal-300">
                   {providerLabel === "smart-fallback" ? "Smart Assist" : providerLabel}
                 </span>
               </div>
-              <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] truncate">
+              <p className="text-xs text-slate-600 dark:text-slate-300 truncate mt-0.5">
                 {t.headerSub}
               </p>
             </div>
@@ -448,22 +448,22 @@ export function AiSignupAssistant({
           <button
             type="button"
             onClick={handleRestart}
-            className="inline-flex min-h-[34px] items-center gap-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-1 text-[11px] font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors shrink-0"
+            className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 dark:hover:border-teal-400 transition-colors shrink-0"
           >
-            <IconRefresh className="h-3 w-3" />
-            {t.restartBtn}
+            <IconRefresh className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t.restartBtn}</span>
           </button>
         </div>
 
         {/* Starter FAQ bar — always visible so users know they can ask questions */}
-        <div className="flex flex-wrap items-center gap-1.5 border-b border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#1D221F]/60 px-4 py-2">
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#101E21]/80 px-4 py-2.5">
           {starterFaq.map((chip) => (
             <button
               key={chip.value}
               type="button"
               disabled={aiBusy}
               onClick={() => submitAnswer(chip.value, chip.label, { isQuestionChip: true })}
-              className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-2.5 py-1 text-[10px] font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:border-[#244C40] dark:hover:border-[#A7BBAA] disabled:opacity-50 transition-colors"
+              className="min-h-[34px] rounded-full border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3 py-1 text-xs font-semibold text-teal-700 dark:text-teal-300 hover:border-teal-600 dark:hover:border-teal-400 disabled:opacity-50 transition-colors"
             >
               {chip.label}
             </button>
@@ -472,34 +472,34 @@ export function AiSignupAssistant({
 
         <div
           ref={scrollContainerRef}
-          className="flex-1 max-h-[360px] min-h-[260px] overflow-y-auto p-4 space-y-3"
+          className="flex-1 max-h-[380px] min-h-[260px] overflow-y-auto p-4 space-y-3"
         >
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex items-start gap-2.5 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+              className={`oc-fade-up flex items-start gap-2.5 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
             >
               {msg.sender === "ai" && (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] text-teal-700 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A]">
                   <IconRobot className="h-4 w-4" />
                 </div>
               )}
               <div
-                className={`max-w-[85%] rounded-sm px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-line ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-line shadow-2xs ${
                   msg.sender === "user"
-                    ? "bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]"
-                    : "bg-[#FFFFFF] dark:bg-[#1D221F] text-[#292E2B] dark:text-[#F3F0E8] border border-[#DDD8CC] dark:border-[#2F3733]"
+                    ? "bg-teal-700 dark:bg-teal-600 text-white rounded-br-sm"
+                    : "bg-white dark:bg-[#101E21] text-slate-900 dark:text-slate-100 border border-[#D7E4E1] dark:border-[#1E353A] rounded-bl-sm"
                 }`}
               >
                 {msg.text}
                 {Array.isArray(msg.filledFields) && msg.filledFields.length > 0 && (
-                  <div className="mt-2 pt-1.5 border-t border-[#DDD8CC]/70 dark:border-[#2F3733] flex flex-wrap gap-1">
+                  <div className="mt-2 pt-2 border-t border-teal-200/50 dark:border-[#1E353A] flex flex-wrap gap-1.5">
                     {msg.filledFields.map((f) => (
                       <span
                         key={f}
-                        className="inline-flex items-center gap-0.5 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-1.5 py-0.5 text-[10px] font-semibold text-[#244C40] dark:text-[#A7BBAA]"
+                        className="inline-flex items-center gap-1 rounded-full bg-[#EDF5F3] dark:bg-[#16272B] px-2.5 py-0.5 text-xs font-semibold text-teal-800 dark:text-teal-200"
                       >
-                        <IconCheck className="h-2.5 w-2.5" />
+                        <IconCheck className="h-3 w-3" />
                         {t.autoFilledNotice}: {f}
                       </span>
                     ))}
@@ -510,18 +510,18 @@ export function AiSignupAssistant({
           ))}
 
           {aiBusy && (
-            <div className="flex items-start gap-2.5 justify-start">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
-                <IconRobot className="h-4 w-4" />
+            <div className="oc-fade-in flex items-start gap-2.5 justify-start">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] text-teal-700 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A]">
+                <IconRobot className="h-4 w-4 animate-pulse" />
               </div>
-              <div className="rounded-sm px-3.5 py-2.5 text-xs bg-[#FFFFFF] dark:bg-[#1D221F] text-[#525954] dark:text-[#B8C2BA] border border-[#DDD8CC] dark:border-[#2F3733] italic">
+              <div className="rounded-2xl px-4 py-3 text-sm bg-white dark:bg-[#101E21] text-slate-600 dark:text-slate-300 border border-[#D7E4E1] dark:border-[#1E353A] italic">
                 {t.thinking}
               </div>
             </div>
           )}
 
           {activeChips.length > 0 && !isComplete && !aiBusy && activeChips !== starterFaq && (
-            <div className="flex flex-wrap gap-1.5 pl-9 pt-1">
+            <div className="flex flex-wrap gap-2 pl-10 pt-1">
               {activeChips.map((chip) => (
                 <button
                   key={`${chip.value}-${chip.label}`}
@@ -531,7 +531,7 @@ export function AiSignupAssistant({
                       isQuestionChip: isLikelyQuestion(chip.value),
                     })
                   }
-                  className="min-h-[36px] rounded-sm border border-[#A7BBAA] dark:border-[#6E8572] bg-[#FFFFFF] dark:bg-[#1D221F] px-3 py-1.5 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors"
+                  className="min-h-[40px] rounded-xl border border-teal-300 dark:border-teal-700 bg-white dark:bg-[#101E21] px-3.5 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] transition-colors"
                 >
                   {chip.label}
                 </button>
@@ -541,7 +541,7 @@ export function AiSignupAssistant({
         </div>
 
         {error && (
-          <div className="mx-3 mb-2 flex flex-wrap items-center justify-between gap-2 border-l-4 border-[#9E4747] bg-[#F3EAE7] dark:bg-[#2E1E1D] px-3.5 py-2.5 text-xs text-[#7A2E2E] dark:text-[#F0C8C4]">
+          <div className="mx-3 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 px-4 py-2.5 text-sm text-rose-800 dark:text-rose-200">
             <span className="inline-flex items-center gap-1.5 font-semibold">
               <IconAlertTriangle className="h-4 w-4 shrink-0" />
               {error}
@@ -549,21 +549,21 @@ export function AiSignupAssistant({
             <button
               type="button"
               onClick={handleChangeEmail}
-              className="rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] px-2.5 py-1.5 text-[11px] font-semibold text-[#7A2E2E] dark:text-[#F0C8C4] border border-[#D9B8AE] dark:border-[#7A2E2E] hover:bg-[#F7F5EF] transition-colors"
+              className="rounded-lg bg-white dark:bg-[#101E21] px-3 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-200 border border-rose-200 dark:border-rose-800 hover:bg-rose-50 transition-colors"
             >
               {t.changeEmailBtn}
             </button>
           </div>
         )}
 
-        <div className="border-t border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-3 space-y-2.5">
+        <div className="border-t border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] p-3.5 space-y-2.5">
           {isComplete && (
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => onCreateAccount(draft)}
-                className="flex-1 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-4 py-2.5 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-50 transition-colors"
+                className="flex-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all shadow-sm"
               >
                 <IconUserPlus className="h-4 w-4" />
                 {busy ? t.creatingBtn : t.createBtn}
@@ -571,9 +571,9 @@ export function AiSignupAssistant({
               <button
                 type="button"
                 onClick={() => onSwitchToForm(draft)}
-                className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3.5 py-2.5 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors"
+                className="inline-flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 dark:hover:border-teal-400 transition-colors"
               >
-                <IconEdit className="h-3.5 w-3.5" />
+                <IconEdit className="h-4 w-4" />
                 {t.editInFormBtn}
               </button>
             </div>
@@ -599,13 +599,13 @@ export function AiSignupAssistant({
               onChange={(e) => setInputValue(e.target.value)}
               disabled={aiBusy}
               placeholder={isComplete ? t.askAnyHint : stepPrompt.placeholder}
-              className="min-h-[44px] flex-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-xs sm:text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors disabled:opacity-60"
+              className="min-h-[46px] flex-1 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={!inputValue.trim() || aiBusy}
               aria-label={t.sendAria}
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-40 transition-colors"
+              className="inline-flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.96] disabled:opacity-40 transition-all"
             >
               <IconSend className="h-4 w-4" />
             </button>
@@ -614,45 +614,45 @@ export function AiSignupAssistant({
       </div>
 
       {/* Live Auto-Filled Profile Summary Panel */}
-      <div className="lg:col-span-5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/50 dark:bg-[#1D221F] p-5 flex flex-col justify-between space-y-4">
-        <div className="space-y-3">
+      <div className="lg:col-span-5 rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#101E21] p-5 flex flex-col justify-between space-y-4">
+        <div className="space-y-3.5">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-heading text-xs font-semibold uppercase tracking-[0.08em] text-[#292E2B] dark:text-[#F3F0E8]">
+            <h3 className="font-heading text-xs font-bold uppercase tracking-[0.08em] text-slate-800 dark:text-slate-100">
               {t.previewTitle}
             </h3>
-            <span className="border border-[#A7BBAA] dark:border-[#6E8572] bg-[#FFFFFF] dark:bg-[#161A18] px-2 py-0.5 font-mono text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+            <span className="rounded-full border border-teal-200 dark:border-teal-800 bg-white dark:bg-[#091315] px-2.5 py-0.5 font-mono text-xs font-semibold text-teal-700 dark:text-teal-300">
               {t.progressLabel}: {progress}%
             </span>
           </div>
 
-          <div className="h-1.5 w-full bg-[#DDD8CC] dark:bg-[#2F3733] overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-[#D7E4E1] dark:bg-[#1E353A] overflow-hidden">
             <div
-              className="h-full bg-[#244C40] dark:bg-[#A7BBAA] transition-all duration-300"
+              className="h-full rounded-full bg-teal-700 dark:bg-teal-400 transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
 
-          <dl className="divide-y divide-[#DDD8CC] dark:divide-[#2F3733] text-xs">
+          <dl className="divide-y divide-[#D7E4E1] dark:divide-[#1E353A] text-sm">
             {summaryRows.map((row) => {
               const justFilled = recentlyFilled.includes(row.key);
               return (
                 <div
                   key={row.key}
-                  className={`flex items-center justify-between gap-2 py-2 px-1 transition-colors ${
-                    justFilled ? "bg-[#A7BBAA]/20 dark:bg-[#244C40]/30" : ""
+                  className={`flex items-center justify-between gap-2 py-2.5 px-2 rounded-lg transition-colors ${
+                    justFilled ? "bg-teal-100/70 dark:bg-teal-950/50" : ""
                   }`}
                 >
-                  <dt className="text-[#525954] dark:text-[#B8C2BA] shrink-0">{row.label}</dt>
+                  <dt className="text-slate-600 dark:text-slate-400 shrink-0">{row.label}</dt>
                   <dd className="flex items-center gap-1.5 font-semibold text-right truncate">
                     {row.filled ? (
                       <>
-                        <span className="text-[#292E2B] dark:text-[#F3F0E8] truncate max-w-[170px]">
+                        <span className="text-slate-900 dark:text-white truncate max-w-[180px]">
                           {row.value}
                         </span>
-                        <IconCheck className="h-3.5 w-3.5 shrink-0 text-[#244C40] dark:text-[#A7BBAA]" />
+                        <IconCheck className="h-4 w-4 shrink-0 text-teal-700 dark:text-teal-300" />
                       </>
                     ) : (
-                      <span className="text-[#767E78] dark:text-[#8E9890] font-normal italic">
+                      <span className="text-slate-400 dark:text-slate-500 font-normal italic text-xs">
                         {t.pendingAnswer}
                       </span>
                     )}
@@ -663,10 +663,10 @@ export function AiSignupAssistant({
           </dl>
         </div>
 
-        <div className="space-y-2 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+        <div className="space-y-2.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
           <GpsConsentButton
             label={t.shareGpsBtn}
-            className="w-full inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#244C40] dark:border-[#A7BBAA] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors"
+            className="w-full inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl border border-teal-700 dark:border-teal-500 bg-white dark:bg-[#091315] px-4 py-2.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-[#16272B] transition-colors"
             onLocationCaptured={({ latitude, longitude }) => {
               const updated = { ...draft, latitude, longitude };
               setDraft(updated);
@@ -677,17 +677,17 @@ export function AiSignupAssistant({
             onError={() => setGpsNotice(t.gpsError)}
           />
           {gpsNotice && (
-            <p className="inline-flex items-center gap-1 text-[11px] text-[#525954] dark:text-[#B8C2BA]">
-              <IconMapPin className="h-3 w-3 shrink-0 text-[#244C40] dark:text-[#A7BBAA]" />
+            <p className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+              <IconMapPin className="h-3.5 w-3.5 shrink-0 text-teal-700 dark:text-teal-300" />
               {gpsNotice}
             </p>
           )}
           <button
             type="button"
             onClick={() => onSwitchToForm(draft)}
-            className="w-full inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors"
+            className="w-full inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-4 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 dark:hover:border-teal-400 transition-colors"
           >
-            <IconEdit className="h-3.5 w-3.5" />
+            <IconEdit className="h-4 w-4" />
             {t.editInFormBtn}
           </button>
         </div>

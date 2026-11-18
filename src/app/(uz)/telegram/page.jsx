@@ -437,36 +437,36 @@ function TelegramConsoleContent() {
   const lastBotMsg = [...history].reverse().find((m) => m.from === "bot");
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <PublicHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 sm:px-8 py-10 sm:py-12 space-y-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-8 py-8 sm:py-12 space-y-8 oc-fade-up">
         <Emergency103Banner />
 
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 border-b border-[#DDD8CC] dark:border-[#2F3733] pb-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 border-b border-[#D7E4E1] dark:border-[#1E353A] pb-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#244C40] dark:text-[#A7BBAA] mb-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-teal-700 dark:text-teal-300 mb-2.5">
               <IconBrandTelegram className="h-3.5 w-3.5" />
               {t.badge}
             </div>
-            <h1 className="font-heading text-2xl sm:text-4xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8]">
+            <h1 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
               {t.title}
             </h1>
-            <p className="mt-2.5 text-sm sm:text-base text-[#525954] dark:text-[#B8C2BA] leading-relaxed">
+            <p className="mt-2.5 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
               {t.subtitle}
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5 shrink-0">
             <Link
               href="/signup"
-              className="inline-flex min-h-[42px] items-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-4 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors"
+              className="inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-4 py-2 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 dark:hover:border-teal-400 transition-colors"
             >
-              <IconUserPlus className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" />
+              <IconUserPlus className="h-4 w-4 text-teal-700 dark:text-teal-300" />
               {t.openSignupBtn}
             </Link>
             {authUser?.role === "ADMIN_RECEPTION" && (
               <Link
                 href="/admin"
-                className="inline-flex min-h-[42px] items-center gap-1.5 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-4 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] transition-colors"
+                className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 transition-all active:scale-[0.98]"
               >
                 <IconShieldCheck className="h-4 w-4" />
                 {t.openAdminBtn}
@@ -475,30 +475,30 @@ function TelegramConsoleContent() {
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-12">
+        <div className="grid gap-6 lg:grid-cols-12">
           {/* Left: Live Interactive Telegram Messenger */}
-          <div className="lg:col-span-8 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] overflow-hidden flex flex-col">
+          <div className="lg:col-span-8 med-card overflow-hidden flex flex-col">
             {/* Bot Header */}
-            <div className="bg-[#244C40] dark:bg-[#1E3B32] px-5 py-3.5 text-[#F7F5EF] flex flex-wrap items-center justify-between gap-2">
+            <div className="bg-teal-700 dark:bg-teal-800 px-4 sm:px-5 py-4 text-white flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-sm bg-[#F7F5EF]/15 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center">
                   <IconRobot className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="font-heading text-sm font-semibold flex items-center gap-2">
+                  <div className="font-heading text-sm sm:text-base font-bold flex items-center gap-2">
                     {t.liveChatTitle}
-                    <span className="h-2 w-2 rounded-full bg-[#A7BBAA]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
                   </div>
-                  <div className="text-[11px] text-[#D8E2DA]">{t.liveChatSub}</div>
+                  <div className="text-xs text-teal-100">{t.liveChatSub}</div>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
                 {linkedUser && (
                   <button
                     type="button"
                     disabled={busy}
                     onClick={() => sendPayload({ callbackData: "MENU:PROFILE" })}
-                    className="inline-flex items-center gap-1 rounded-sm border border-[#F7F5EF]/30 bg-[#F7F5EF]/15 hover:bg-[#F7F5EF]/25 px-2.5 py-1.5 text-[11px] font-semibold transition-colors"
+                    className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/25 bg-white/15 hover:bg-white/25 px-3 py-1.5 text-xs font-semibold transition-colors"
                   >
                     <IconUser className="h-3.5 w-3.5" />
                     {t.profileQuickBtn}
@@ -509,7 +509,7 @@ function TelegramConsoleContent() {
                     type="button"
                     disabled={busy}
                     onClick={() => sendPayload({ action: "LINK_CURRENT_USER" })}
-                    className="inline-flex items-center gap-1 rounded-sm border border-[#F7F5EF]/25 bg-[#F7F5EF]/10 hover:bg-[#F7F5EF]/20 px-2.5 py-1.5 text-[11px] font-semibold transition-colors"
+                    className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-semibold transition-colors"
                   >
                     <IconLink className="h-3.5 w-3.5" />
                     {t.linkMeBtn}
@@ -519,7 +519,7 @@ function TelegramConsoleContent() {
                   type="button"
                   disabled={busy}
                   onClick={() => sendPayload({ action: "RESET" })}
-                  className="inline-flex items-center gap-1 rounded-sm border border-[#F7F5EF]/25 bg-[#F7F5EF]/10 hover:bg-[#F7F5EF]/20 px-2.5 py-1.5 text-[11px] font-semibold transition-colors"
+                  className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-semibold transition-colors"
                 >
                   <IconRefresh className="h-3.5 w-3.5" />
                   {t.resetChatBtn}
@@ -528,52 +528,52 @@ function TelegramConsoleContent() {
             </div>
 
             {/* Session Info Ribbon */}
-            <div className="bg-[#EFECE3]/70 dark:bg-[#242A27] border-b border-[#DDD8CC] dark:border-[#2F3733] px-5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#525954] dark:text-[#B8C2BA]">
+            <div className="bg-[#EDF5F3] dark:bg-[#16272B] border-b border-[#D7E4E1] dark:border-[#1E353A] px-4 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
               <span>
                 {t.linkedAccountLabel}{" "}
-                <strong className="text-[#292E2B] dark:text-[#F3F0E8]">
+                <strong className="text-slate-900 dark:text-white">
                   {linkedUser ? `${linkedUser.fullName} (${linkedUser.role})` : t.guestLabel}
                 </strong>
               </span>
               <span>
                 {t.stateLabel}{" "}
-                <code className="border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-1.5 py-0.5 font-mono text-[10px]">
+                <code className="rounded-md border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-2 py-0.5 font-mono text-xs">
                   {flowState}
                 </code>
               </span>
             </div>
 
             {/* Messages Thread */}
-            <div className="flex-1 min-h-[380px] max-h-[500px] overflow-y-auto p-5 space-y-3 bg-[#F7F5EF]/70 dark:bg-[#161A18]">
+            <div className="flex-1 min-h-[380px] max-h-[500px] overflow-y-auto p-4 sm:p-5 space-y-3 bg-[#F4F8F7] dark:bg-[#091315]">
               {history.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
+                  className={`oc-fade-up flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-sm px-4 py-3 text-xs ${
+                    className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm shadow-2xs ${
                       msg.from === "user"
-                        ? "bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]"
-                        : "bg-[#FFFFFF] dark:bg-[#1D221F] border border-[#DDD8CC] dark:border-[#2F3733] text-[#292E2B] dark:text-[#F3F0E8]"
+                        ? "bg-teal-700 dark:bg-teal-600 text-white rounded-br-sm"
+                        : "bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-900 dark:text-slate-100 rounded-bl-sm"
                     }`}
                   >
                     <div
-                      className="whitespace-pre-line leading-relaxed [&_code]:border [&_code]:border-[#DDD8CC] [&_code]:dark:border-[#2F3733] [&_code]:bg-[#F7F5EF] [&_code]:dark:bg-[#161A18] [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[11px]"
+                      className="whitespace-pre-line leading-relaxed [&_code]:rounded [&_code]:border [&_code]:border-[#D7E4E1] [&_code]:dark:border-[#1E353A] [&_code]:bg-[#F4F8F7] [&_code]:dark:bg-[#091315] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-xs"
                       dangerouslySetInnerHTML={{
                         __html: String(msg.text || ""),
                       }}
                     />
                     {msg.from === "bot" && Array.isArray(msg.buttons) && msg.buttons.length > 0 && (
-                      <div className="mt-3 space-y-1.5 pt-2.5 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+                      <div className="mt-3 space-y-2 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
                         {msg.buttons.map((row, rIdx) => (
-                          <div key={rIdx} className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          <div key={rIdx} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {row.map((btn) => (
                               <button
                                 key={btn.callbackData}
                                 type="button"
                                 disabled={busy}
                                 onClick={() => sendPayload({ callbackData: btn.callbackData })}
-                                className="rounded-sm border border-[#A7BBAA] dark:border-[#6E8572] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-2 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors text-center"
+                                className="min-h-[42px] rounded-xl border border-teal-200 dark:border-teal-800 bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 text-xs font-semibold text-teal-800 dark:text-teal-200 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] transition-colors text-center"
                               >
                                 {btn.text}
                               </button>
@@ -589,21 +589,21 @@ function TelegramConsoleContent() {
             </div>
 
             {/* GPS & Quick Controls */}
-            <div className="border-t border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#242A27] px-4 py-2.5 flex flex-wrap items-center gap-2">
+            <div className="border-t border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-4 py-3 flex flex-wrap items-center gap-2">
               <GpsConsentButton
                 label={t.shareGpsBtn}
                 busy={busy}
-                className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-sm px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                className={`inline-flex min-h-[42px] items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-colors ${
                   lastBotMsg?.requestLocation
-                    ? "bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF] hover:bg-[#1B3A31]"
-                    : "border border-[#244C40] dark:border-[#A7BBAA] bg-[#FFFFFF] dark:bg-[#161A18] text-[#244C40] dark:text-[#A7BBAA] hover:bg-[#EFECE3] dark:hover:bg-[#242A27]"
+                    ? "bg-teal-700 dark:bg-teal-600 text-white hover:bg-teal-800"
+                    : "border border-teal-700 dark:border-teal-500 bg-white dark:bg-[#091315] text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-[#101E21]"
                 }`}
                 onLocationCaptured={({ latitude, longitude }) =>
                   sendPayload({ location: { latitude, longitude } })
                 }
                 onDeniedFallback={() => sendPayload({ location: QUICK_GPS_POINTS[0] })}
               />
-              <span className="text-[10px] text-[#525954] dark:text-[#B8C2BA]">{t.quickGpsLabel}</span>
+              <span className="text-xs text-slate-600 dark:text-slate-300">{t.quickGpsLabel}</span>
               {QUICK_GPS_POINTS.map((pt) => (
                 <button
                   key={pt.label}
@@ -612,9 +612,9 @@ function TelegramConsoleContent() {
                   onClick={() =>
                     sendPayload({ location: { latitude: pt.latitude, longitude: pt.longitude } })
                   }
-                  className="min-h-[34px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-2.5 py-1 text-[10px] font-medium text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors"
+                  className="min-h-[38px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-100 hover:border-teal-600 dark:hover:border-teal-400 transition-colors"
                 >
-                  <IconMapPin className="inline h-3 w-3 mr-0.5 text-[#244C40] dark:text-[#A7BBAA]" />
+                  <IconMapPin className="inline h-3.5 w-3.5 mr-1 text-teal-700 dark:text-teal-300" />
                   {pt.label}
                 </button>
               ))}
@@ -623,7 +623,7 @@ function TelegramConsoleContent() {
             {/* Composer */}
             <form
               onSubmit={handleSendText}
-              className="border-t border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-3 flex items-center gap-2"
+              className="border-t border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] p-3.5 flex items-center gap-2"
             >
               <label htmlFor="tg-msg-input" className="sr-only">
                 {t.inputPlaceholder}
@@ -634,15 +634,15 @@ function TelegramConsoleContent() {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={t.inputPlaceholder}
-                className="min-h-[42px] flex-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-xs text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"
+                className="min-h-[46px] flex-1 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"
               />
               <button
                 type="submit"
                 disabled={busy || !inputText.trim()}
-                className="inline-flex min-h-[42px] items-center gap-1.5 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-4 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-50 transition-colors"
+                className="inline-flex min-h-[46px] items-center gap-1.5 rounded-xl bg-teal-700 dark:bg-teal-600 px-4 sm:px-5 py-2 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all"
               >
-                <IconSend className="h-3.5 w-3.5" />
-                {t.sendBtn}
+                <IconSend className="h-4 w-4" />
+                <span className="hidden sm:inline">{t.sendBtn}</span>
               </button>
             </form>
           </div>
@@ -650,34 +650,34 @@ function TelegramConsoleContent() {
           {/* Right: Signed-in Link Card + Bot Connection Status & Commands Guide */}
           <div className="lg:col-span-4 space-y-5">
             {authUser && personalLink && (
-              <div className="rounded-sm border border-[#A7BBAA] dark:border-[#6E8572] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 space-y-3.5">
+              <div className="med-card p-5 space-y-4">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-2">
-                    <IconLink className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" />
+                  <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <IconLink className="h-5 w-5 text-teal-700 dark:text-teal-300" />
                     {t.myLinkTitle}
                   </h2>
                   <span
-                    className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold border ${
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                       personalLink.linked
-                        ? "border-[#244C40] bg-[#EFECE3] text-[#244C40] dark:border-[#A7BBAA] dark:bg-[#242A27] dark:text-[#A7BBAA]"
-                        : "border-[#DDD8CC] bg-[#F7F5EF] text-[#525954] dark:border-[#2F3733] dark:bg-[#161A18] dark:text-[#B8C2BA]"
+                        ? "border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
+                        : "border-[#D7E4E1] bg-[#F4F8F7] text-slate-600 dark:border-[#1E353A] dark:bg-[#091315] dark:text-slate-300"
                     }`}
                   >
                     {personalLink.linked ? t.myLinkStatusLinked : t.myLinkStatusUnlinked}
                   </span>
                 </div>
-                <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                   {t.myLinkDesc}
                 </p>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <button
                     type="button"
                     disabled={busy}
                     onClick={() => sendPayload({ action: "LINK_CURRENT_USER" })}
-                    className="w-full inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-3 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] transition-colors"
+                    className="w-full inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all"
                   >
-                    <IconUser className="h-3.5 w-3.5" />
+                    <IconUser className="h-4 w-4" />
                     {t.linkWebHereBtn}
                   </button>
                   {personalLink.telegramDeepLink && (
@@ -685,18 +685,18 @@ function TelegramConsoleContent() {
                       href={personalLink.telegramDeepLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-full inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors"
+                      className="w-full inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:border-teal-600 dark:hover:border-teal-400 transition-colors"
                     >
-                      <IconBrandTelegram className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]" />
+                      <IconBrandTelegram className="h-4 w-4 text-teal-700 dark:text-teal-300" />
                       <span>{t.openTgAppBtn}</span>
-                      <IconExternalLink className="h-3.5 w-3.5 text-[#525954]" />
+                      <IconExternalLink className="h-4 w-4 text-slate-400" />
                     </a>
                   )}
                 </div>
 
                 {personalLink.linkToken && (
-                  <div className="flex items-center justify-between gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-2">
-                    <code className="text-[10px] font-mono text-[#292E2B] dark:text-[#F3F0E8] truncate">
+                  <div className="flex items-center justify-between gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2.5">
+                    <code className="text-xs font-mono text-slate-900 dark:text-slate-100 truncate">
                       {`/link ${personalLink.linkToken}`}
                     </code>
                     <button
@@ -710,9 +710,9 @@ function TelegramConsoleContent() {
                           // ignore clipboard error
                         }
                       }}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-2 py-1 text-[10px] font-semibold text-[#244C40] dark:text-[#A7BBAA]"
+                      className="inline-flex min-h-[34px] shrink-0 items-center gap-1 rounded-lg border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-2.5 py-1 text-xs font-semibold text-teal-700 dark:text-teal-300"
                     >
-                      {copiedCmd ? <IconCheck className="h-3 w-3" /> : <IconCopy className="h-3 w-3" />}
+                      {copiedCmd ? <IconCheck className="h-3.5 w-3.5" /> : <IconCopy className="h-3.5 w-3.5" />}
                       <span>{copiedCmd ? t.copiedText : t.copyLinkCmdBtn}</span>
                     </button>
                   </div>
@@ -723,25 +723,25 @@ function TelegramConsoleContent() {
                     type="button"
                     disabled={busy}
                     onClick={handleUnlinkTelegram}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#7A2E2E] dark:text-[#F0C8C4] hover:underline underline-offset-4"
+                    className="inline-flex min-h-[36px] items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:underline underline-offset-4"
                   >
-                    <IconLinkOff className="h-3.5 w-3.5" />
+                    <IconLinkOff className="h-4 w-4" />
                     {t.unlinkBtn}
                   </button>
                 )}
               </div>
             )}
 
-            <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 space-y-4">
-              <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-2">
-                <IconBrandTelegram className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" />
+            <div className="med-card p-5 space-y-4">
+              <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <IconBrandTelegram className="h-5 w-5 text-teal-700 dark:text-teal-300" />
                 {t.botStatusTitle}
               </h2>
               <div
-                className={`border-l-4 px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 ${
+                className={`rounded-xl border px-3.5 py-3 text-sm font-semibold flex items-center gap-2 ${
                   botStatus?.configured
-                    ? "border-[#244C40] bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
-                    : "border-[#9A6B42] bg-[#F3EAE7] dark:bg-[#2E1E1D] text-[#7A2E2E] dark:text-[#F0C8C4]"
+                    ? "border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200"
+                    : "border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200"
                 }`}
               >
                 {botStatus?.configured ? (
@@ -753,53 +753,53 @@ function TelegramConsoleContent() {
               </div>
 
               {botStatus?.username && (
-                <div className="text-xs text-[#525954] dark:text-[#B8C2BA]">
+                <div className="text-sm text-slate-600 dark:text-slate-300">
                   Bot:{" "}
                   <a
                     href={`https://t.me/${botStatus.username}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4"
+                    className="font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4"
                   >
                     @{botStatus.username}
                   </a>
                 </div>
               )}
 
-              <div className="grid grid-cols-3 divide-x divide-[#DDD8CC] dark:divide-[#2F3733] border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18]">
+              <div className="grid grid-cols-3 divide-x divide-[#D7E4E1] dark:divide-[#1E353A] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] overflow-hidden">
                 <div className="p-3 text-center">
-                  <div className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8] tabular-nums">
+                  <div className="font-heading text-xl font-bold text-slate-900 dark:text-white tabular-nums">
                     {botStatus?.linkedPatients ?? 0}
                   </div>
-                  <div className="text-[10px] text-[#525954] dark:text-[#B8C2BA]">{t.linkedPatients}</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t.linkedPatients}</div>
                 </div>
                 <div className="p-3 text-center">
-                  <div className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8] tabular-nums">
+                  <div className="font-heading text-xl font-bold text-slate-900 dark:text-white tabular-nums">
                     {botStatus?.linkedDoctors ?? 0}
                   </div>
-                  <div className="text-[10px] text-[#525954] dark:text-[#B8C2BA]">{t.linkedDoctors}</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t.linkedDoctors}</div>
                 </div>
                 <div className="p-3 text-center">
-                  <div className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8] tabular-nums">
+                  <div className="font-heading text-xl font-bold text-slate-900 dark:text-white tabular-nums">
                     {botStatus?.sessionCount ?? 0}
                   </div>
-                  <div className="text-[10px] text-[#525954] dark:text-[#B8C2BA]">{t.sessionsCount}</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t.sessionsCount}</div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#1D221F] p-5 space-y-3">
-              <h3 className="font-heading text-xs font-semibold uppercase tracking-[0.08em] text-[#292E2B] dark:text-[#F3F0E8]">
+            <div className="rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#101E21] p-5 space-y-3">
+              <h3 className="font-heading text-sm font-bold uppercase tracking-[0.06em] text-slate-900 dark:text-white">
                 {t.howToConnectTitle}
               </h3>
-              <ol className="space-y-2 text-xs text-[#525954] dark:text-[#B8C2BA] list-decimal list-inside">
+              <ol className="space-y-2 text-sm text-slate-600 dark:text-slate-300 list-decimal list-inside">
                 {t.howToConnectSteps.map((st, idx) => (
                   <li key={idx} className="leading-relaxed">
                     {st}
                   </li>
                 ))}
               </ol>
-              <div className="pt-3 border-t border-[#DDD8CC] dark:border-[#2F3733] font-mono text-[11px] text-[#525954] dark:text-[#B8C2BA] space-y-1">
+              <div className="pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A] font-mono text-xs text-slate-600 dark:text-slate-300 space-y-1">
                 <div>
                   <code>/start</code> • <code>/profile</code> • <code>/account</code> • <code>/link</code> • <code>/delete_account</code>
                 </div>
@@ -822,7 +822,7 @@ export default function TelegramConsolePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F5EF] dark:bg-[#161A18] text-xs font-semibold text-[#525954] dark:text-[#B8C2BA]">
+        <div className="min-h-screen flex items-center justify-center bg-[#F4F8F7] dark:bg-[#091315] text-sm font-semibold text-slate-600 dark:text-slate-300">
           {loadingText}
         </div>
       }

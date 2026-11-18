@@ -3,40 +3,40 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #F7F5EF;
-  --foreground: #292E2B;
-  --oc-canvas: #F7F5EF;
+  --background: #F4F8F7;
+  --foreground: #0F172A;
+  --oc-canvas: #F4F8F7;
   --oc-surface: #FFFFFF;
-  --oc-subtle: #EFECE3;
-  --oc-ink: #292E2B;
-  --oc-ink-muted: #525954;
-  --oc-forest: #244C40;
-  --oc-forest-hover: #1A382F;
-  --oc-sage: #A7BBAA;
-  --oc-rose: #D9B8AE;
-  --oc-rose-soft: #F3EAE7;
-  --oc-rose-ink: #7A2E2E;
-  --oc-border: #DDD8CC;
-  --oc-border-strong: #C9C2B3;
+  --oc-subtle: #EDF5F3;
+  --oc-ink: #0F172A;
+  --oc-ink-muted: #334155;
+  --oc-forest: #0F766E;
+  --oc-forest-hover: #115E59;
+  --oc-sage: #5EEAD4;
+  --oc-rose: #FDA4AF;
+  --oc-rose-soft: #FFF1F2;
+  --oc-rose-ink: #BE123C;
+  --oc-border: #D7E4E1;
+  --oc-border-strong: #B8D0CB;
   color-scheme: light;
 }
 
 .dark {
-  --background: #161A18;
-  --foreground: #F3F0E8;
-  --oc-canvas: #161A18;
-  --oc-surface: #1D221F;
-  --oc-subtle: #242A27;
-  --oc-ink: #F3F0E8;
-  --oc-ink-muted: #B6BCB6;
-  --oc-forest: #2C5B4D;
-  --oc-forest-hover: #356D5C;
-  --oc-sage: #6E8572;
-  --oc-rose: #C89E92;
-  --oc-rose-soft: #2A201E;
-  --oc-rose-ink: #F4C9C2;
-  --oc-border: #2F3632;
-  --oc-border-strong: #404A44;
+  --background: #091315;
+  --foreground: #F1F5F9;
+  --oc-canvas: #091315;
+  --oc-surface: #101E21;
+  --oc-subtle: #16272B;
+  --oc-ink: #F1F5F9;
+  --oc-ink-muted: #CBD5E1;
+  --oc-forest: #14B8A6;
+  --oc-forest-hover: #2DD4BF;
+  --oc-sage: #2DD4BF;
+  --oc-rose: #FB7185;
+  --oc-rose-soft: #2B1218;
+  --oc-rose-ink: #FECDD3;
+  --oc-border: #1E353A;
+  --oc-border-strong: #2C4A51;
   color-scheme: dark;
 }
 
@@ -51,13 +51,17 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--oc-canvas);
   color: var(--oc-ink);
   font-family: var(--font-sans);
+  line-height: 1.55;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, .font-heading {
@@ -90,4 +94,132 @@ summary:focus-visible {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Prevent iOS Safari auto-zoom on form focus (< 16px inputs) */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Modern Clinical Surfaces & Smooth Animations */
+@keyframes ocFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ocFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ocSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ocModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.oc-fade-up {
+  animation: ocFadeUp 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.oc-fade-in {
+  animation: ocFadeIn 0.25s ease-out both;
+}
+
+.oc-slide-down {
+  animation: ocSlideDown 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.oc-modal-in {
+  animation: ocModalIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.med-card {
+  background-color: var(--oc-surface);
+  border: 1px solid var(--oc-border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px -10px rgba(15, 118, 110, 0.08);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.22s ease;
+}
+
+.med-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: var(--oc-border-strong);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06), 0 14px 28px -12px rgba(15, 118, 110, 0.14);
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+  opacity: 0;
+}
+
+.faq-grid[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.faq-grid > div {
+  overflow: hidden;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .oc-fade-up,
+  .oc-fade-in,
+  .oc-slide-down,
+  .oc-modal-in {
+    animation: none;
+  }
+  .med-card,
+  .med-card-interactive:hover,
+  .faq-grid {
+    transition: none;
+    transform: none;
+  }
+}
+
 

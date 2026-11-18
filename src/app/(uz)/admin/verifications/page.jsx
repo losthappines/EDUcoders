@@ -284,8 +284,8 @@ export default function AdminVerificationsPage() {
         if (role === "PSYCHOLOGIST") {
             return {
                 label: t.rolePsych,
-                icon: <IconHeartHandshake className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
-                pill: "bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] border-[#A7BBAA] dark:border-[#6E8572]",
+                icon: <IconHeartHandshake className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+                pill: "bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border-teal-200 dark:border-teal-800",
             };
         }
         return {
@@ -294,171 +294,171 @@ export default function AdminVerificationsPage() {
             pill: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
         };
     };
-    return (<div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    return (<div className="space-y-6 oc-fade-up">
+      <div className="med-card p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 dark:text-teal-400 hover:underline mb-2">
-            <IconArrowLeft className="h-3.5 w-3.5"/>
+          <Link href="/admin" className="inline-flex min-h-[36px] items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline mb-2">
+            <IconArrowLeft className="h-4 w-4"/>
             {t.backDash}
           </Link>
-          <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <IconUserCheck className="h-5 w-5 text-teal-600 dark:text-teal-400"/>
+          <h1 className="font-heading text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <IconUserCheck className="h-6 w-6 text-teal-700 dark:text-teal-300 shrink-0"/>
             {t.title}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
             {t.subtitle}
           </p>
         </div>
       </div>
 
       {/* Summary KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="rounded-xl border border-amber-200 dark:border-amber-800/70 bg-amber-50/70 dark:bg-amber-950/40 p-4">
-          <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-800/70 bg-amber-50/70 dark:bg-amber-950/40 p-4 sm:p-5">
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
             {t.pendingCard}
           </p>
-          <p className="text-2xl font-bold text-amber-900 dark:text-amber-200 mt-1">
+          <p className="text-2xl sm:text-3xl font-bold text-amber-900 dark:text-amber-200 mt-1 tabular-nums">
             {counts.pending}
           </p>
         </div>
-        <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/70 bg-emerald-50/70 dark:bg-emerald-950/40 p-4">
-          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+        <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800/70 bg-emerald-50/70 dark:bg-emerald-950/40 p-4 sm:p-5">
+          <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
             {t.verifiedCard}
           </p>
-          <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-200 mt-1">
+          <p className="text-2xl sm:text-3xl font-bold text-emerald-900 dark:text-emerald-200 mt-1 tabular-nums">
             {counts.verified}
           </p>
         </div>
-        <div className="rounded-xl border border-rose-200 dark:border-rose-800/70 bg-rose-50/70 dark:bg-rose-950/40 p-4">
-          <p className="text-xs font-semibold text-rose-800 dark:text-rose-300">
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-800/70 bg-rose-50/70 dark:bg-rose-950/40 p-4 sm:p-5">
+          <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
             {t.rejectedCard}
           </p>
-          <p className="text-2xl font-bold text-rose-900 dark:text-rose-200 mt-1">
+          <p className="text-2xl sm:text-3xl font-bold text-rose-900 dark:text-rose-200 mt-1 tabular-nums">
             {counts.rejected}
           </p>
         </div>
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-          <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+        <div className="med-card p-4 sm:p-5">
+          <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
             {t.totalCard}
           </p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+          <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1 tabular-nums">
             {counts.total}
           </p>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">
+      <section className="med-card p-5 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {[
             { key: "PENDING", label: `${t.tabPending} (${counts.pending})` },
             { key: "VERIFIED", label: `${t.tabVerified} (${counts.verified})` },
             { key: "REJECTED", label: `${t.tabRejected} (${counts.rejected})` },
             { key: "ALL", label: `${t.tabAll} (${counts.total})` },
-        ].map((tab) => (<button key={tab.key} type="button" onClick={() => setStatusFilter(tab.key)} className={`min-h-[36px] rounded-lg px-3 py-1.5 text-xs font-semibold border transition ${statusFilter === tab.key
+        ].map((tab) => (<button key={tab.key} type="button" onClick={() => setStatusFilter(tab.key)} className={`min-h-[42px] rounded-xl px-3.5 py-2 text-sm font-semibold border transition-colors ${statusFilter === tab.key
                 ? "bg-teal-700 text-white border-teal-700"
-                : "bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
+                : "bg-[#F4F8F7] dark:bg-[#091315] text-slate-700 dark:text-slate-200 border-[#D7E4E1] dark:border-[#1E353A] hover:border-teal-600"}`}>
                 {tab.label}
               </button>))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-0.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex flex-wrap rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-1 gap-1">
               {[
             { key: "ALL", label: t.roleAll },
             { key: "PATIENT", label: t.rolePatients },
             { key: "DOCTOR", label: t.roleDoctors },
             { key: "PSYCHOLOGIST", label: t.rolePsychologists },
-        ].map((rf) => (<button key={rf.key} type="button" onClick={() => setRoleFilter(rf.key)} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${roleFilter === rf.key
-                ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"}`}>
+        ].map((rf) => (<button key={rf.key} type="button" onClick={() => setRoleFilter(rf.key)} className={`min-h-[36px] rounded-lg px-3 py-1 text-xs font-semibold transition-colors ${roleFilter === rf.key
+                ? "bg-white dark:bg-[#101E21] text-slate-900 dark:text-white shadow-2xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}>
                   {rf.label}
                 </button>))}
             </div>
 
-            <div className="relative w-full sm:w-64">
-              <IconSearch className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"/>
-              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.searchPlaceholder} aria-label={t.searchPlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none"/>
+            <div className="relative w-full sm:w-72">
+              <IconSearch className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"/>
+              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.searchPlaceholder} aria-label={t.searchPlaceholder} className="min-h-[44px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] pl-10 pr-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none"/>
             </div>
           </div>
         </div>
 
         {/* Account Cards */}
-        {loadingList ? (<div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+        {loadingList ? (<div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-8 text-center text-sm text-slate-600 dark:text-slate-300">
             {t.loading}
-          </div>) : filtered.length === 0 ? (<div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+          </div>) : filtered.length === 0 ? (<div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-8 text-center text-sm text-slate-600 dark:text-slate-300">
             {t.empty}
-          </div>) : (<div className="space-y-3">
+          </div>) : (<div className="space-y-3.5">
             {filtered.map((acc) => {
                 const roleMeta = getRoleMeta(acc.role);
                 const isBusy = busyId === acc.id;
                 const isRejecting = rejectingId === acc.id;
                 const latVal = acc.latitude ?? acc.patientProfile?.latitude ?? null;
                 const lngVal = acc.longitude ?? acc.patientProfile?.longitude ?? null;
-                return (<div key={acc.id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 p-4 space-y-3">
+                return (<div key={acc.id} className="rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/70 dark:bg-[#091315]/70 p-4 sm:p-5 space-y-3">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-start gap-3.5 min-w-0">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A]">
                         {roleMeta.icon}
                       </div>
-                      <div className="min-w-0 space-y-1">
+                      <div className="min-w-0 space-y-1.5">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                          <h3 className="text-base font-bold text-slate-900 dark:text-white">
                             {acc.fullName}
                           </h3>
-                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${roleMeta.pill}`}>
+                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${roleMeta.pill}`}>
                             {roleMeta.label}
                           </span>
-                          {acc.role !== "PATIENT" && acc.specialty && (<span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                          {acc.role !== "PATIENT" && acc.specialty && (<span className="inline-flex items-center rounded-full border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">
                               {acc.specialty}
                             </span>)}
-                          {acc.role !== "PATIENT" && acc.expertiseArea && (<span className="inline-flex items-center rounded-full border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:text-indigo-300">
+                          {acc.role !== "PATIENT" && acc.expertiseArea && (<span className="inline-flex items-center rounded-full border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300">
                               {acc.expertiseArea}
                             </span>)}
-                          {acc.role !== "PATIENT" && typeof acc.experienceYears === "number" && (<span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                          {acc.role !== "PATIENT" && typeof acc.experienceYears === "number" && (<span className="inline-flex items-center rounded-full border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
                               {acc.experienceYears} {t.expWord}
                             </span>)}
-                          {acc.telegramLinked && (<span className="inline-flex items-center gap-1 rounded-full bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-2 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300">
-                              <IconBrandTelegram className="h-3 w-3"/>
+                          {acc.telegramLinked && (<span className="inline-flex items-center gap-1 rounded-full bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-2.5 py-0.5 text-xs font-semibold text-sky-700 dark:text-sky-300">
+                              <IconBrandTelegram className="h-3.5 w-3.5"/>
                               {t.telegramLinkedLabel}
                             </span>)}
-                          {acc.role === "PATIENT" && acc.subscriptionTier && acc.subscriptionTier !== "FREE" && (<span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
-                              <IconCrown className="h-3 w-3"/>
+                          {acc.role === "PATIENT" && acc.subscriptionTier && acc.subscriptionTier !== "FREE" && (<span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                              <IconCrown className="h-3.5 w-3.5"/>
                               {acc.subscriptionTier}
                             </span>)}
-                          {acc.verificationStatus === "PENDING" ? (<span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
-                              <IconClock className="h-3 w-3"/>
+                          {acc.verificationStatus === "PENDING" ? (<span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                              <IconClock className="h-3.5 w-3.5"/>
                               {t.statusPending}
-                            </span>) : acc.verificationStatus === "VERIFIED" ? (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
-                              <IconCircleCheck className="h-3 w-3"/>
+                            </span>) : acc.verificationStatus === "VERIFIED" ? (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                              <IconCircleCheck className="h-3.5 w-3.5"/>
                               {t.statusVerified}
-                            </span>) : (<span className="inline-flex items-center gap-1 rounded-full bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-700 px-2 py-0.5 text-[11px] font-semibold text-rose-800 dark:text-rose-300">
-                              <IconAlertTriangle className="h-3 w-3"/>
+                            </span>) : (<span className="inline-flex items-center gap-1 rounded-full bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-700 px-2.5 py-0.5 text-xs font-semibold text-rose-800 dark:text-rose-300">
+                              <IconAlertTriangle className="h-3.5 w-3.5"/>
                               {t.statusRejected}
                             </span>)}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
-                          <span className="inline-flex items-center gap-1 font-mono">
-                            <IconMail className="h-3.5 w-3.5 text-slate-400"/>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-600 dark:text-slate-300">
+                          <span className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm">
+                            <IconMail className="h-4 w-4 text-slate-400"/>
                             {acc.email}
                           </span>
-                          {acc.phone && (<span className="inline-flex items-center gap-1">
-                              <IconPhone className="h-3.5 w-3.5 text-slate-400"/>
+                          {acc.phone && (<span className="inline-flex items-center gap-1.5">
+                              <IconPhone className="h-4 w-4 text-slate-400"/>
                               {acc.phone}
                             </span>)}
-                          {acc.district && (<span className="inline-flex items-center gap-1">
-                              <IconMapPin className="h-3.5 w-3.5 text-slate-400"/>
+                          {acc.district && (<span className="inline-flex items-center gap-1.5">
+                              <IconMapPin className="h-4 w-4 text-slate-400"/>
                               {acc.district}
                               {acc.polyclinicName ? ` • ${acc.polyclinicName}` : ""}
                             </span>)}
-                          {latVal !== null && lngVal !== null && (<span className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-300">
+                          {latVal !== null && lngVal !== null && (<span className="inline-flex items-center gap-1 font-mono text-xs text-teal-700 dark:text-teal-300">
                               GPS: {Number(latVal).toFixed(4)}, {Number(lngVal).toFixed(4)}
                             </span>)}
                         </div>
 
-                        {acc.patientProfile && (<div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                        {acc.patientProfile && (<div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300 pt-0.5">
                             {acc.patientProfile.dateOfBirth && (<span>
                                 {t.dobLabel} <strong>{acc.patientProfile.dateOfBirth}</strong>
                               </span>)}
@@ -470,7 +470,7 @@ export default function AdminVerificationsPage() {
                               </span>)}
                           </div>)}
 
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {t.registeredLabel}{" "}
                           {new Date(acc.createdAt).toLocaleString("en-GB", {
                         day: "2-digit",
@@ -481,14 +481,14 @@ export default function AdminVerificationsPage() {
                     })}
                         </p>
 
-                        {acc.verificationNote && (<p className="text-xs text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 rounded-lg px-2.5 py-1 border border-rose-200 dark:border-rose-800 inline-block">
+                        {acc.verificationNote && (<p className="text-sm text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 rounded-xl px-3 py-1.5 border border-rose-200 dark:border-rose-800 inline-block">
                             {t.notePrefix} {acc.verificationNote}
                           </p>)}
                       </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 shrink-0">
-                      {acc.verificationStatus !== "VERIFIED" && (<button type="button" disabled={isBusy} onClick={() => handleDecision(acc.id, "APPROVE")} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 transition">
+                      {acc.verificationStatus !== "VERIFIED" && (<button type="button" disabled={isBusy} onClick={() => handleDecision(acc.id, "APPROVE")} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50 transition-all active:scale-[0.98]">
                           <IconCheck className="h-4 w-4"/>
                           {acc.verificationStatus === "REJECTED"
                             ? t.reapproveBtn
@@ -499,7 +499,7 @@ export default function AdminVerificationsPage() {
                             setDeletingId(null);
                             setRejectingId(acc.id);
                             setRejectNote("");
-                        }} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/60 disabled:opacity-50 transition">
+                        }} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-[#101E21] px-4 py-2 text-sm font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/60 disabled:opacity-50 transition-colors">
                           <IconX className="h-4 w-4"/>
                           {t.rejectBtn}
                         </button>)}
@@ -507,34 +507,34 @@ export default function AdminVerificationsPage() {
                       {deletingId !== acc.id && (<button type="button" disabled={isBusy} onClick={() => {
                             setRejectingId(null);
                             setDeletingId(acc.id);
-                        }} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-red-300 dark:border-red-900 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50 disabled:opacity-50 transition">
+                        }} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-red-300 dark:border-red-900 bg-white dark:bg-[#101E21] px-3.5 py-2 text-sm font-semibold text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50 disabled:opacity-50 transition-colors">
                           <IconTrash className="h-4 w-4"/>
                           {t.deleteBtn}
                         </button>)}
                     </div>
                   </div>
 
-                  {isRejecting && (<div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                      <input type="text" value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder={t.notePlaceholder} aria-label={t.notePlaceholder} className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:border-rose-500 focus:outline-none"/>
+                  {isRejecting && (<div className="oc-slide-down flex flex-col sm:flex-row gap-2.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+                      <input type="text" value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder={t.notePlaceholder} aria-label={t.notePlaceholder} className="min-h-[44px] flex-1 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-rose-500 focus:outline-none"/>
                       <div className="flex gap-2">
-                        <button type="button" disabled={isBusy} onClick={() => handleDecision(acc.id, "REJECT", rejectNote)} className="min-h-[40px] rounded-xl bg-rose-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-rose-800 disabled:opacity-50 transition">
+                        <button type="button" disabled={isBusy} onClick={() => handleDecision(acc.id, "REJECT", rejectNote)} className="min-h-[44px] rounded-xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-800 disabled:opacity-50 transition">
                           {t.confirmRejectBtn}
                         </button>
-                        <button type="button" disabled={isBusy} onClick={() => setRejectingId(null)} className="min-h-[40px] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <button type="button" disabled={isBusy} onClick={() => setRejectingId(null)} className="min-h-[44px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#16272B] transition">
                           {t.cancelBtn}
                         </button>
                       </div>
                     </div>)}
 
-                  {deletingId === acc.id && (<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-red-200 dark:border-red-900/70 bg-red-50/70 dark:bg-red-950/30 rounded-lg px-3 py-2.5">
-                      <p className="text-xs font-medium text-red-800 dark:text-red-200">
+                  {deletingId === acc.id && (<div className="oc-slide-down flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-red-200 dark:border-red-900/70 bg-red-50/70 dark:bg-red-950/30 rounded-xl px-4 py-3">
+                      <p className="text-sm font-medium text-red-800 dark:text-red-200">
                         {t.deleteConfirmPrompt}
                       </p>
                       <div className="flex gap-2 shrink-0">
-                        <button type="button" disabled={isBusy} onClick={() => handleDeleteAccount(acc.id)} className="min-h-[38px] rounded-xl bg-red-700 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-red-800 disabled:opacity-50 transition">
+                        <button type="button" disabled={isBusy} onClick={() => handleDeleteAccount(acc.id)} className="min-h-[42px] rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-50 transition">
                           {t.confirmDeleteBtn}
                         </button>
-                        <button type="button" disabled={isBusy} onClick={() => setDeletingId(null)} className="min-h-[38px] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <button type="button" disabled={isBusy} onClick={() => setDeletingId(null)} className="min-h-[42px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#16272B] transition">
                           {t.cancelBtn}
                         </button>
                       </div>

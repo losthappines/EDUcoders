@@ -158,45 +158,45 @@ export default function ForgotPasswordPage() {
             setBusy(false);
         }
     };
-    return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
+    return (<div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <PublicHeader />
 
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12 sm:py-16">
-        <div className="w-full max-w-md border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 sm:p-9 rounded-sm space-y-6">
-          <div className="border-b border-[#DDD8CC] dark:border-[#2F3733] pb-5">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#244C40] dark:text-[#A7BBAA]">
+      <main className="flex-1 flex items-center justify-center px-4 sm:px-8 py-10 sm:py-16">
+        <div className="w-full max-w-md med-card oc-fade-up p-6 sm:p-9 space-y-6">
+          <div className="border-b border-[#D7E4E1] dark:border-[#1E353A] pb-5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-teal-700 dark:text-teal-300">
               <IconLock className="h-3.5 w-3.5"/>
               {t.badge}
             </span>
-            <h1 className="font-heading mt-2 text-2xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8]">
+            <h1 className="font-heading mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               {t.title}
             </h1>
-            <p className="text-sm text-[#525954] dark:text-[#B8C2BA] mt-2 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
               {t.subtitle}
             </p>
           </div>
 
-          {error && (<div role="alert" className="flex items-center gap-2.5 border-l-4 border-[#9E4747] bg-[#F3EAE7] dark:bg-[#2E1E1D] px-4 py-3 text-xs font-semibold text-[#7A2E2E] dark:text-[#F0C8C4]">
-              <IconAlertTriangle className="h-4 w-4 shrink-0"/>
+          {error && (<div role="alert" className="oc-slide-down flex items-center gap-2.5 rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 px-4 py-3 text-sm font-semibold text-rose-700 dark:text-rose-200">
+              <IconAlertTriangle className="h-5 w-5 shrink-0"/>
               <span>{error}</span>
             </div>)}
 
-          {info && (<div className="border-l-4 border-[#244C40] bg-[#EFECE3] dark:bg-[#242A27] px-4 py-3 text-xs font-medium text-[#292E2B] dark:text-[#F3F0E8] space-y-1">
+          {info && (<div className="oc-slide-down rounded-xl border border-teal-200 dark:border-teal-800 bg-[#EDF5F3] dark:bg-[#16272B] px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 space-y-1">
               <p>{info}</p>
-              {demoCode && step === "RESET" && (<p className="font-mono text-xs text-[#244C40] dark:text-[#A7BBAA]">
+              {demoCode && step === "RESET" && (<p className="font-mono text-sm text-teal-700 dark:text-teal-300">
                   {t.demoNote} <strong>{demoCode}</strong>
                 </p>)}
             </div>)}
 
           {step === "REQUEST" && (<form onSubmit={handleRequestCode} className="space-y-4">
               <div>
-                <label htmlFor="forgot-email" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                <label htmlFor="forgot-email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                   {t.emailLabel}
                 </label>
-                <input id="forgot-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaceholder} className="w-full min-h-[44px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2.5 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                <input id="forgot-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaceholder} className="w-full min-h-[48px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
               </div>
 
-              <button type="submit" disabled={busy} className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-5 py-2.5 text-sm font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-50 transition-colors">
+              <button type="submit" disabled={busy} className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all shadow-sm">
                 <IconKey className="h-4 w-4"/>
                 {busy ? t.requesting : t.requestBtn}
               </button>
@@ -204,44 +204,44 @@ export default function ForgotPasswordPage() {
 
           {step === "RESET" && (<form onSubmit={handleResetPassword} className="space-y-4">
               <div>
-                <label htmlFor="reset-code" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                <label htmlFor="reset-code" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                   {t.codeLabel}
                 </label>
-                <input id="reset-code" name="code" type="text" inputMode="numeric" autoComplete="one-time-code" required maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} placeholder="123456" className="w-full min-h-[44px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2.5 font-mono text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                <input id="reset-code" name="code" type="text" inputMode="numeric" autoComplete="one-time-code" required maxLength={6} value={code} onChange={(e) => setCode(e.target.value)} placeholder="123456" className="w-full min-h-[48px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 font-mono text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
               </div>
 
               <div>
-                <label htmlFor="reset-new-password" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                <label htmlFor="reset-new-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                   {t.newPwLabel}
                 </label>
                 <div className="relative">
-                  <input id="reset-new-password" name="newPassword" type={showPw ? "text" : "password"} autoComplete="new-password" required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t.newPwPlaceholder} className="w-full min-h-[44px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2.5 pr-11 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
-                  <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center text-[#525954] hover:text-[#292E2B] dark:text-[#B8C2BA] dark:hover:text-[#F3F0E8]" aria-label={t.togglePw}>
-                    {showPw ? (<IconEyeOff className="h-4 w-4"/>) : (<IconEye className="h-4 w-4"/>)}
+                  <input id="reset-new-password" name="newPassword" type={showPw ? "text" : "password"} autoComplete="new-password" required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={t.newPwPlaceholder} className="w-full min-h-[48px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 pr-12 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
+                  <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white" aria-label={t.togglePw}>
+                    {showPw ? (<IconEyeOff className="h-5 w-5"/>) : (<IconEye className="h-5 w-5"/>)}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="reset-confirm-password" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                <label htmlFor="reset-confirm-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                   {t.confirmPwLabel}
                 </label>
-                <input id="reset-confirm-password" name="confirmPassword" type={showPw ? "text" : "password"} autoComplete="new-password" required minLength={6} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t.confirmPwPlaceholder} className="w-full min-h-[44px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2.5 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                <input id="reset-confirm-password" name="confirmPassword" type={showPw ? "text" : "password"} autoComplete="new-password" required minLength={6} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t.confirmPwPlaceholder} className="w-full min-h-[48px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
               </div>
 
-              <button type="submit" disabled={busy} className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-5 py-2.5 text-sm font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-50 transition-colors">
+              <button type="submit" disabled={busy} className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all shadow-sm">
                 <IconCheck className="h-4 w-4"/>
                 {busy ? t.resetting : t.resetBtn}
               </button>
             </form>)}
 
-          {step === "DONE" && (<Link href="/login" className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-5 py-2.5 text-sm font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] transition-colors">
+          {step === "DONE" && (<Link href="/login" className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 transition-colors">
               {t.backToLogin}
             </Link>)}
 
-          <div className="pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733] text-center">
-            <Link href="/login" className="inline-flex min-h-[36px] items-center gap-1.5 text-xs font-semibold text-[#525954] dark:text-[#B8C2BA] hover:text-[#244C40] dark:hover:text-[#F3F0E8]">
-              <IconArrowLeft className="h-3.5 w-3.5"/>
+          <div className="pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A] text-center">
+            <Link href="/login" className="inline-flex min-h-[40px] items-center gap-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-300">
+              <IconArrowLeft className="h-4 w-4"/>
               {t.backToLogin}
             </Link>
           </div>

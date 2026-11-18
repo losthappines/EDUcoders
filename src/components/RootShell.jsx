@@ -45,7 +45,7 @@ export function RootShell({ lang = "uz", children }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: CLIENT_PREFS_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-full bg-[#F7F5EF] text-[#292E2B] dark:bg-[#161A18] dark:text-[#F3F0E8] font-sans transition-colors duration-200">
+      <body className="min-h-full bg-[#F4F8F7] text-[#0F172A] dark:bg-[#091315] dark:text-[#F1F5F9] font-sans transition-colors duration-200">
         <SafeErrorBoundary>
           <RouteLanguageProvider initialLang={lang}>
             <PlatformProvider>

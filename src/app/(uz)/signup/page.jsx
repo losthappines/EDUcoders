@@ -32,7 +32,7 @@ const PERSONA_CARDS = [
             ru: "Кабинет пациента",
             en: "Patient portal",
         },
-        icon: <IconUser className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]"/>,
+        icon: <IconUser className="h-5 w-5 text-teal-700 dark:text-teal-300"/>,
     },
     {
         persona: "DOCTOR",
@@ -51,7 +51,7 @@ const PERSONA_CARDS = [
             ru: "Кабинет врача",
             en: "Doctor portal",
         },
-        icon: <IconStethoscope className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]"/>,
+        icon: <IconStethoscope className="h-5 w-5 text-teal-700 dark:text-teal-300"/>,
     },
     {
         persona: "NURSE",
@@ -70,7 +70,7 @@ const PERSONA_CARDS = [
             ru: "Наблюдение и уход",
             en: "Monitoring team",
         },
-        icon: <IconNurse className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]"/>,
+        icon: <IconNurse className="h-5 w-5 text-teal-700 dark:text-teal-300"/>,
     },
     {
         persona: "PSYCHOLOGIST",
@@ -89,7 +89,7 @@ const PERSONA_CARDS = [
             ru: "Кабинет психолога",
             en: "Psychologist portal",
         },
-        icon: <IconHeartHandshake className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]"/>,
+        icon: <IconHeartHandshake className="h-5 w-5 text-teal-700 dark:text-teal-300"/>,
     },
 ];
 const COPY = {
@@ -706,63 +706,63 @@ function SignupFormInner() {
     }, [selectedPersona, aiSessionKey]);
     if (pendingInfo) {
         const personaCard = PERSONA_CARDS.find((c) => c.persona === pendingInfo.persona);
-        return (<div className="w-full max-w-xl rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 sm:p-9 space-y-5 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
-          <IconClock className="h-6 w-6"/>
+        return (<div className="w-full max-w-xl med-card oc-fade-up p-6 sm:p-9 space-y-6 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EDF5F3] dark:bg-[#16272B] text-teal-700 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A]">
+          <IconClock className="h-7 w-7"/>
         </div>
-        <div className="space-y-2">
-          <span className="inline-flex items-center gap-1.5 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#A7BBAA] dark:border-[#6E8572]">
-            <IconCircleCheck className="h-3.5 w-3.5"/>
+        <div className="space-y-2.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 dark:bg-teal-950/60 px-3.5 py-1 text-xs font-semibold text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+            <IconCircleCheck className="h-4 w-4"/>
             {t.pendingStatusBadge}
           </span>
-          <h1 className="font-heading text-xl sm:text-2xl font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+          <h1 className="font-heading text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
             {t.pendingTitle}
           </h1>
-          <p className="text-xs sm:text-sm text-[#525954] dark:text-[#B8C2BA] leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
             {t.pendingDesc}
           </p>
         </div>
 
-        <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] p-4 text-left text-xs space-y-1.5">
-          <p className="font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+        <div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-4 text-left text-sm space-y-1.5">
+          <p className="font-bold text-slate-900 dark:text-white">
             {pendingInfo.fullName}
           </p>
-          <p className="text-[#525954] dark:text-[#B8C2BA] font-mono">
+          <p className="text-slate-600 dark:text-slate-300 font-mono text-xs sm:text-sm">
             {pendingInfo.email}
           </p>
-          {personaCard && (<p className="text-[#244C40] dark:text-[#A7BBAA] font-semibold">
+          {personaCard && (<p className="text-teal-700 dark:text-teal-300 font-semibold">
               {personaCard.title[lang]}
             </p>)}
         </div>
 
-        {pendingInfo.telegramLinkToken && (<div className="rounded-sm border border-[#A7BBAA] dark:border-[#6E8572] bg-[#EFECE3]/65 dark:bg-[#242A27] p-4 sm:p-5 text-left space-y-3">
-            <div className="flex items-start gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]">
-                <IconBrandTelegram className="h-4 w-4"/>
+        {pendingInfo.telegramLinkToken && (<div className="rounded-2xl border border-sky-200 dark:border-sky-800/80 bg-sky-50/70 dark:bg-sky-950/30 p-4 sm:p-5 text-left space-y-3.5">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-600 dark:bg-sky-700 text-white">
+                <IconBrandTelegram className="h-5 w-5"/>
               </div>
               <div className="min-w-0">
-                <h2 className="font-heading text-xs sm:text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                <h2 className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                   {t.tgLinkBoxTitle}
                 </h2>
-                <p className="mt-1 text-[11px] sm:text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">
+                <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                   {t.tgLinkBoxDesc}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Link href={`/telegram?link=${encodeURIComponent(pendingInfo.telegramLinkToken)}`} className="flex-1 inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-3.5 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] transition-colors">
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <Link href={`/telegram?link=${encodeURIComponent(pendingInfo.telegramLinkToken)}`} className="flex-1 inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all">
                 <IconBrandTelegram className="h-4 w-4 shrink-0"/>
                 <span>{t.tgOpenWebBot}</span>
               </Link>
-              {pendingInfo.telegramDeepLink && (<a href={pendingInfo.telegramDeepLink} target="_blank" rel="noreferrer" className="inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-3.5 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors">
+              {pendingInfo.telegramDeepLink && (<a href={pendingInfo.telegramDeepLink} target="_blank" rel="noreferrer" className="inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-4 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 dark:hover:border-teal-400 active:scale-[0.98] transition-all">
                   <span>{t.tgOpenApp}</span>
-                  <IconExternalLink className="h-3.5 w-3.5 shrink-0 text-[#244C40] dark:text-[#A7BBAA]"/>
+                  <IconExternalLink className="h-4 w-4 shrink-0 text-teal-700 dark:text-teal-300"/>
                 </a>)}
             </div>
 
-            <div className="flex items-center justify-between gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-2">
-              <code className="text-[11px] font-mono text-[#292E2B] dark:text-[#F3F0E8] truncate">
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5">
+              <code className="text-xs sm:text-sm font-mono text-slate-900 dark:text-slate-100 truncate">
                 {`/link ${pendingInfo.telegramLinkToken}`}
               </code>
               <button type="button" onClick={async () => {
@@ -774,58 +774,58 @@ function SignupFormInner() {
                     catch {
                         // ignore clipboard failure
                     }
-                }} className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#1D221F] px-2.5 py-1 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:border-[#244C40] transition-colors">
-                {copiedTg ? <IconCheck className="h-3.5 w-3.5"/> : <IconCopy className="h-3.5 w-3.5"/>}
+                }} className="inline-flex shrink-0 min-h-[38px] items-center gap-1.5 rounded-lg border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#101E21] px-3 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-300 hover:border-teal-600 active:scale-[0.98] transition-all">
+                {copiedTg ? <IconCheck className="h-4 w-4"/> : <IconCopy className="h-4 w-4"/>}
                 <span>{copiedTg ? t.tgCopied : t.tgCopyCmd}</span>
               </button>
             </div>
           </div>)}
 
-        <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
-          <Link href="/login" className="flex-1 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-4 py-2.5 text-sm font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] transition-colors">
+        <div className="flex flex-col sm:flex-row gap-3 pt-1">
+          <Link href="/login" className="flex-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all shadow-sm">
             {t.pendingGoLogin}
           </Link>
-          <Link href="/" className="flex-1 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-4 py-2.5 text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors">
+          <Link href="/" className="flex-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-5 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 dark:hover:border-teal-400 active:scale-[0.98] transition-all">
             {t.pendingBackHome}
           </Link>
         </div>
       </div>);
     }
-    return (<div className="w-full max-w-4xl rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 sm:p-9 space-y-7">
-      <div className="border-b border-[#DDD8CC] dark:border-[#2F3733] pb-5">
-        <h1 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8]">
+    return (<div className="w-full max-w-4xl med-card oc-fade-up p-5 sm:p-9 space-y-7">
+      <div className="border-b border-[#D7E4E1] dark:border-[#1E353A] pb-5">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
           {t.title}
         </h1>
-        <p className="text-xs sm:text-sm text-[#525954] dark:text-[#B8C2BA] mt-1.5 leading-relaxed">
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
           {t.subtitle}
         </p>
       </div>
 
       {/* Step 1: Who are you? (Patient / Doctor / Monitoring Nurse / Psychologist) */}
-      <fieldset className="space-y-3.5">
-        <legend className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#244C40] dark:text-[#A7BBAA]">
+      <fieldset className="space-y-4">
+        <legend className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700 dark:text-teal-300">
           {t.step1Title}
         </legend>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {PERSONA_CARDS.map((card) => {
             const active = selectedPersona === card.persona;
-            return (<button key={card.persona} type="button" aria-pressed={active} onClick={() => handleSelectPersona(card.persona)} className={`flex flex-col justify-between gap-3 rounded-sm border p-4 text-left transition-colors ${active
-                    ? "border-[#244C40] dark:border-[#A7BBAA] bg-[#EFECE3]/80 dark:bg-[#242A27] ring-1 ring-[#244C40] dark:ring-[#A7BBAA]"
-                    : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/50 dark:bg-[#161A18] hover:border-[#244C40]/60 dark:hover:border-[#A7BBAA]/60"}`}>
+            return (<button key={card.persona} type="button" aria-pressed={active} onClick={() => handleSelectPersona(card.persona)} className={`flex flex-col justify-between gap-3 rounded-2xl border p-4 text-left transition-all active:scale-[0.98] ${active
+                    ? "border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B] ring-1 ring-teal-600 dark:ring-teal-400 shadow-sm"
+                    : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] hover:border-teal-500/60 dark:hover:border-teal-400/60"}`}>
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] border border-[#DDD8CC] dark:border-[#2F3733]">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A]">
                     {card.icon}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                    <p className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                       {card.title[lang]}
                     </p>
-                    <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] leading-snug mt-1">
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-snug mt-1">
                       {card.desc[lang]}
                     </p>
                   </div>
                 </div>
-                <span className="self-start rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
+                <span className="self-start rounded-full bg-white dark:bg-[#101E21] px-2.5 py-0.5 text-xs font-semibold text-teal-700 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A]">
                   {card.tag[lang]}
                 </span>
               </button>);
@@ -833,46 +833,46 @@ function SignupFormInner() {
         </div>
 
         <div className="flex items-center justify-end">
-          <button type="button" onClick={() => handleSelectPersona("ADMIN_RECEPTION")} className={`inline-flex min-h-[36px] items-center gap-1.5 text-[11px] font-semibold transition-colors ${selectedPersona === "ADMIN_RECEPTION"
-            ? "text-[#244C40] dark:text-[#A7BBAA] underline underline-offset-4"
-            : "text-[#525954] dark:text-[#B8C2BA] hover:text-[#292E2B] dark:hover:text-[#F3F0E8]"}`}>
-            <IconShieldCheck className="h-3.5 w-3.5"/>
+          <button type="button" onClick={() => handleSelectPersona("ADMIN_RECEPTION")} className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-semibold transition-colors ${selectedPersona === "ADMIN_RECEPTION"
+            ? "text-teal-700 dark:text-teal-300 bg-[#EDF5F3] dark:bg-[#16272B] underline underline-offset-4"
+            : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"}`}>
+            <IconShieldCheck className="h-4 w-4"/>
             {selectedPersona === "ADMIN_RECEPTION" ? t.adminBadge : t.adminToggle}
           </button>
         </div>
       </fieldset>
 
       {/* Step 2 & 3 appear once a role is chosen */}
-      {selectedPersona && (<>
-          {selectedPersona !== "ADMIN_RECEPTION" && (<div className="flex items-start gap-2.5 border-l-4 border-[#A7BBAA] dark:border-[#6E8572] bg-[#EFECE3]/70 dark:bg-[#242A27] px-4 py-3 text-xs text-[#292E2B] dark:text-[#F3F0E8]">
-              <IconClock className="h-4 w-4 shrink-0 mt-0.5 text-[#244C40] dark:text-[#A7BBAA]"/>
-              <span>{t.verifyNotice}</span>
+      {selectedPersona && (<div className="space-y-6 oc-fade-up">
+          {selectedPersona !== "ADMIN_RECEPTION" && (<div className="flex items-start gap-3 rounded-xl border border-teal-200 dark:border-teal-800/80 bg-[#EDF5F3] dark:bg-[#16272B] px-4 py-3.5 text-sm text-slate-800 dark:text-slate-200">
+              <IconClock className="h-5 w-5 shrink-0 mt-0.5 text-teal-700 dark:text-teal-300"/>
+              <span className="leading-relaxed">{t.verifyNotice}</span>
             </div>)}
 
-          <fieldset className="space-y-3.5 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
-            <legend className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#244C40] dark:text-[#A7BBAA] pt-2">
+          <fieldset className="space-y-4 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+            <legend className="text-xs font-bold uppercase tracking-[0.1em] text-teal-700 dark:text-teal-300 pt-2">
               {t.step2Title}
             </legend>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <button type="button" aria-pressed={signupMethod === "ai"} onClick={() => {
                 setError(null);
                 setSignupMethod("ai");
-            }} className={`flex items-start gap-3 rounded-sm border p-4 text-left transition-colors ${signupMethod === "ai"
-                ? "border-[#244C40] dark:border-[#A7BBAA] bg-[#EFECE3]/80 dark:bg-[#242A27] ring-1 ring-[#244C40] dark:ring-[#A7BBAA]"
-                : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/50 dark:bg-[#161A18] hover:border-[#244C40]/60 dark:hover:border-[#A7BBAA]/60"}`}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]">
+            }} className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-all active:scale-[0.98] ${signupMethod === "ai"
+                ? "border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B] ring-1 ring-teal-600 dark:ring-teal-400 shadow-sm"
+                : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] hover:border-teal-500/60"}`}>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 text-white">
                   <IconSparkles className="h-5 w-5"/>
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <p className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                    <p className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                       {t.aiCardTitle}
                     </p>
-                    <span className="rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] px-2 py-0.5 text-[10px] font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#A7BBAA] dark:border-[#6E8572]">
+                    <span className="rounded-full bg-white dark:bg-[#101E21] px-2.5 py-0.5 text-xs font-semibold text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
                       {t.aiCardBadge}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] mt-1 leading-snug">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-snug">
                     {t.aiCardDesc}
                   </p>
                 </div>
@@ -881,36 +881,36 @@ function SignupFormInner() {
               <button type="button" aria-pressed={signupMethod === "traditional"} onClick={() => {
                 setError(null);
                 setSignupMethod("traditional");
-            }} className={`flex items-start gap-3 rounded-sm border p-4 text-left transition-colors ${signupMethod === "traditional"
-                ? "border-[#244C40] dark:border-[#A7BBAA] bg-[#EFECE3]/80 dark:bg-[#242A27] ring-1 ring-[#244C40] dark:ring-[#A7BBAA]"
-                : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/50 dark:bg-[#161A18] hover:border-[#244C40]/60 dark:hover:border-[#A7BBAA]/60"}`}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] border border-[#DDD8CC] dark:border-[#2F3733] text-[#292E2B] dark:text-[#F3F0E8]">
+            }} className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-all active:scale-[0.98] ${signupMethod === "traditional"
+                ? "border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B] ring-1 ring-teal-600 dark:ring-teal-400 shadow-sm"
+                : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] hover:border-teal-500/60"}`}>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100">
                   <IconClipboardText className="h-5 w-5"/>
                 </div>
                 <div className="min-w-0">
-                  <p className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                  <p className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                     {t.tradCardTitle}
                   </p>
-                  <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] mt-1 leading-snug">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-snug">
                     {t.tradCardDesc}
                   </p>
                 </div>
               </button>
 
-              <Link href="/telegram" className="flex items-start gap-3 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/40 dark:bg-[#161A18] p-4 text-left hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] border border-[#DDD8CC] dark:border-[#2F3733] text-[#244C40] dark:text-[#A7BBAA]">
+              <Link href="/telegram" className="flex items-start gap-3 rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] p-4 text-left hover:border-sky-500/70 dark:hover:border-sky-400/70 active:scale-[0.98] transition-all">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300">
                   <IconBrandTelegram className="h-5 w-5"/>
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <p className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                    <p className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                       {t.telegramCardTitle}
                     </p>
-                    <span className="rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] px-2 py-0.5 text-[10px] font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
+                    <span className="rounded-full bg-white dark:bg-[#101E21] px-2.5 py-0.5 text-xs font-semibold text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
                       {t.telegramCardBadge}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] mt-1 leading-snug">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-snug">
                     {t.telegramCardDesc}
                   </p>
                 </div>
@@ -922,27 +922,27 @@ function SignupFormInner() {
                     applyDraftToForm(draft);
                     setError(null);
                     setSignupMethod("traditional");
-                }} onCreateAccount={handleAiCreateAccount} onClearError={() => setError(null)}/>) : (<form onSubmit={handleTraditionalSubmit} className="space-y-5">
-              {error && (<div role="alert" className="flex items-center gap-2.5 border-l-4 border-[#9E4747] bg-[#F3EAE7] dark:bg-[#2E1E1D] px-4 py-3 text-xs font-semibold text-[#7A2E2E] dark:text-[#F0C8C4]">
-                  <IconAlertTriangle className="h-4 w-4 shrink-0"/>
+                }} onCreateAccount={handleAiCreateAccount} onClearError={() => setError(null)}/>) : (<form onSubmit={handleTraditionalSubmit} className="space-y-5 oc-fade-up">
+              {error && (<div role="alert" className="oc-slide-down flex items-center gap-2.5 rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 px-4 py-3 text-sm font-semibold text-rose-700 dark:text-rose-200">
+                  <IconAlertTriangle className="h-5 w-5 shrink-0"/>
                   <span>{error}</span>
                 </div>)}
 
               {selectedPersona === "DOCTOR" && (<div>
-                  <span className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-2">
+                  <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                     {t.doctorTypeLabel}
                   </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <button type="button" onClick={() => setDoctorSubRole("OVABMU_MD")} className={`flex min-h-[44px] items-center gap-2 rounded-sm border px-3.5 py-2.5 text-xs font-semibold transition-colors ${doctorSubRole === "OVABMU_MD"
-                        ? "border-[#244C40] dark:border-[#A7BBAA] bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
-                        : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/50 dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8]"}`}>
-                      <IconBuildingHospital className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button type="button" onClick={() => setDoctorSubRole("OVABMU_MD")} className={`flex min-h-[48px] items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] ${doctorSubRole === "OVABMU_MD"
+                        ? "border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B] text-teal-700 dark:text-teal-300 ring-1 ring-teal-600/30"
+                        : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-slate-800 dark:text-slate-100"}`}>
+                      <IconBuildingHospital className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
                       {t.doctorHospital}
                     </button>
-                    <button type="button" onClick={() => setDoctorSubRole("FAMILY_MD")} className={`flex min-h-[44px] items-center gap-2 rounded-sm border px-3.5 py-2.5 text-xs font-semibold transition-colors ${doctorSubRole === "FAMILY_MD"
-                        ? "border-[#244C40] dark:border-[#A7BBAA] bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
-                        : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/50 dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8]"}`}>
-                      <IconStethoscope className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+                    <button type="button" onClick={() => setDoctorSubRole("FAMILY_MD")} className={`flex min-h-[48px] items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] ${doctorSubRole === "FAMILY_MD"
+                        ? "border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B] text-teal-700 dark:text-teal-300 ring-1 ring-teal-600/30"
+                        : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-slate-800 dark:text-slate-100"}`}>
+                      <IconStethoscope className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
                       {t.doctorFamily}
                     </button>
                   </div>
@@ -950,84 +950,84 @@ function SignupFormInner() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="signup-fullname" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                  <label htmlFor="signup-fullname" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                     {t.fullName}
                   </label>
-                  <input id="signup-fullname" name="name" type="text" autoComplete="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t.fullNamePlaceholder} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                  <input id="signup-fullname" name="name" type="text" autoComplete="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t.fullNamePlaceholder} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
                 </div>
 
                 <div>
-                  <label htmlFor="signup-dob" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                  <label htmlFor="signup-dob" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                     {t.dob}
                   </label>
-                  <input id="signup-dob" name="bday" type="date" autoComplete="bday" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                  <input id="signup-dob" name="bday" type="date" autoComplete="bday" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
                 </div>
 
                 <div>
-                  <label htmlFor="signup-email" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                  <label htmlFor="signup-email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                     {t.email}
                   </label>
-                  <input id="signup-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaceholder} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                  <input id="signup-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaceholder} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
                 </div>
 
                 <div>
-                  <label htmlFor="signup-password" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                  <label htmlFor="signup-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                     {t.password}
                   </label>
                   <div className="relative">
-                    <input id="signup-password" name="password" type={showPw ? "text" : "password"} autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.passwordPlaceholder} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 pr-11 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
-                    <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-sm text-[#525954] hover:text-[#292E2B] dark:text-[#B8C2BA] dark:hover:text-[#F3F0E8]" aria-label={t.togglePw}>
-                      {showPw ? (<IconEyeOff className="h-4 w-4"/>) : (<IconEye className="h-4 w-4"/>)}
+                    <input id="signup-password" name="password" type={showPw ? "text" : "password"} autoComplete="new-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.passwordPlaceholder} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 pr-12 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
+                    <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors" aria-label={t.togglePw}>
+                      {showPw ? (<IconEyeOff className="h-5 w-5"/>) : (<IconEye className="h-5 w-5"/>)}
                     </button>
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="signup-phone" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                  <label htmlFor="signup-phone" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                     {t.phone}
                   </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input id="signup-phone" name="tel" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} placeholder="+998 90 123 45 67" className="min-h-[44px] flex-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
-                    {verifiedPhoneToken ? (<span className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#244C40] dark:border-[#A7BBAA] bg-[#EFECE3] dark:bg-[#242A27] px-3.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] shrink-0">
+                  <div className="flex flex-col sm:flex-row gap-2.5">
+                    <input id="signup-phone" name="tel" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} placeholder="+998 90 123 45 67" className="min-h-[48px] flex-1 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
+                    {verifiedPhoneToken ? (<span className="inline-flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B] px-4 text-sm font-semibold text-teal-700 dark:text-teal-300 shrink-0">
                         <IconCircleCheck className="h-4 w-4"/>
                         {t.phoneVerifiedBadge}
-                      </span>) : (<button type="button" disabled={otpBusy} onClick={handleRequestOtp} className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#244C40] dark:border-[#A7BBAA] bg-[#EFECE3] dark:bg-[#242A27] px-4 py-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:bg-[#DDD8CC]/70 dark:hover:bg-[#2F3733] disabled:opacity-50 transition-colors shrink-0">
+                      </span>) : (<button type="button" disabled={otpBusy} onClick={handleRequestOtp} className="inline-flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B] px-5 py-2.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:bg-teal-100/80 dark:hover:bg-teal-950/60 active:scale-[0.98] disabled:opacity-50 transition-all shrink-0">
                         {otpBusy ? t.sendingOtpBtn : t.sendOtpBtn}
                       </button>)}
                   </div>
 
-                  {otpToken && !verifiedPhoneToken && (<div className="mt-2 flex flex-wrap items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#242A27] p-3">
-                      <input type="text" inputMode="numeric" maxLength={6} aria-label={t.otpPlaceholder} value={otpCodeInput} onChange={(e) => setOtpCodeInput(e.target.value)} placeholder={t.otpPlaceholder} className="min-h-[40px] w-36 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-1.5 text-xs font-mono text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] focus:outline-none"/>
-                      <button type="button" disabled={otpBusy || otpCodeInput.trim().length < 6} onClick={handleVerifyOtp} className="inline-flex min-h-[40px] items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-4 py-1.5 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] disabled:opacity-50 transition-colors">
+                  {otpToken && !verifiedPhoneToken && (<div className="mt-2.5 oc-slide-down flex flex-wrap items-center gap-2.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] p-3.5">
+                      <input type="text" inputMode="numeric" maxLength={6} aria-label={t.otpPlaceholder} value={otpCodeInput} onChange={(e) => setOtpCodeInput(e.target.value)} placeholder={t.otpPlaceholder} className="min-h-[46px] w-40 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm font-mono text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"/>
+                      <button type="button" disabled={otpBusy || otpCodeInput.trim().length < 6} onClick={handleVerifyOtp} className="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
                         {otpBusy ? t.verifyingOtpBtn : t.verifyOtpBtn}
                       </button>
-                      {smsPreviewCode && (<span className="rounded-sm bg-[#FFFFFF] dark:bg-[#161A18] px-2.5 py-1 text-[11px] font-mono font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
+                      {smsPreviewCode && (<span className="rounded-lg bg-white dark:bg-[#091315] px-3 py-1.5 text-xs sm:text-sm font-mono font-semibold text-teal-700 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A]">
                           {t.otpDemoHint} {smsPreviewCode}
                         </span>)}
                     </div>)}
-                  {otpError && (<p role="alert" className="mt-1.5 text-xs font-semibold text-[#7A2E2E] dark:text-[#F0C8C4]">
+                  {otpError && (<p role="alert" className="mt-1.5 text-sm font-semibold text-rose-700 dark:text-rose-300">
                       {otpError}
                     </p>)}
                 </div>
 
                 {(selectedPersona === "DOCTOR" || selectedPersona === "NURSE" || selectedPersona === "PSYCHOLOGIST") && (<>
                     <div>
-                      <label htmlFor="signup-specialty" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                      <label htmlFor="signup-specialty" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.specialtyLabel}
                       </label>
-                      <input id="signup-specialty" name="specialty" type="text" required value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder={t.specialtyPlaceholder} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                      <input id="signup-specialty" name="specialty" type="text" required value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder={t.specialtyPlaceholder} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
                     </div>
                     <div>
-                      <label htmlFor="signup-expertise" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                      <label htmlFor="signup-expertise" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.expertiseLabel}
                       </label>
-                      <input id="signup-expertise" name="expertiseArea" type="text" required value={expertiseArea} onChange={(e) => setExpertiseArea(e.target.value)} placeholder={t.expertisePlaceholder} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                      <input id="signup-expertise" name="expertiseArea" type="text" required value={expertiseArea} onChange={(e) => setExpertiseArea(e.target.value)} placeholder={t.expertisePlaceholder} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
                     </div>
                     <div>
-                      <label htmlFor="signup-experience" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                      <label htmlFor="signup-experience" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.experienceLabel}
                       </label>
-                      <input id="signup-experience" name="experienceYears" type="number" min={0} max={65} required value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} placeholder={t.experiencePlaceholder} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                      <input id="signup-experience" name="experienceYears" type="number" min={0} max={65} required value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} placeholder={t.experiencePlaceholder} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
                     </div>
                   </>)}
 
@@ -1038,16 +1038,16 @@ function SignupFormInner() {
                 {selectedPersona === "PATIENT" && (<>
                     <div>
                       <SearchableCombobox id="signup-mahalla" name="address-line1" label={t.mahalla} value={mahalla} onChange={setMahalla} options={mahallaSuggestions} placeholder={t.mahallaPlaceholder} autoComplete="street-address" emptyText={t.emptySearch} customHint={t.customHint} allowCustom/>
-                      <p className="mt-1 text-[11px] text-[#525954] dark:text-[#B8C2BA]">
+                      <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300">
                         <InfoTooltip label="MFY" explanation={t.mahallaTooltip}/>
                       </p>
                     </div>
 
                     <div>
-                      <label htmlFor="signup-blood-type" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                      <label htmlFor="signup-blood-type" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.bloodType}
                       </label>
-                      <select id="signup-blood-type" name="bloodType" value={bloodType} onChange={(e) => setBloodType(e.target.value)} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors">
+                      <select id="signup-blood-type" name="bloodType" value={bloodType} onChange={(e) => setBloodType(e.target.value)} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors">
                         <option value="">{t.bloodPlaceholder}</option>
                         {BLOOD_TYPE_OPTIONS.map((bt) => (<option key={bt.value} value={bt.value}>
                             {lang === "ru"
@@ -1060,21 +1060,21 @@ function SignupFormInner() {
                     </div>
 
                     <div>
-                      <label htmlFor="signup-delivery-date" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                      <label htmlFor="signup-delivery-date" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.deliveryDate}
                       </label>
-                      <input id="signup-delivery-date" name="deliveryDate" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                      <input id="signup-delivery-date" name="deliveryDate" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
                     </div>
                   </>)}
               </div>
 
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#242A27] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="text-xs text-[#292E2B] dark:text-[#F3F0E8] space-y-0.5">
+              <div className="rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3]/70 dark:bg-[#16272B] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-sm text-slate-900 dark:text-slate-100 space-y-1">
                   <p className="font-semibold inline-flex items-center gap-1.5">
-                    <IconMapPin className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+                    <IconMapPin className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
                     {t.gpsLabel}
                   </p>
-                  <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] font-mono">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 font-mono">
                     {typeof latitude === "number" && typeof longitude === "number"
                     ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
                     : (gpsMessage || t.gpsFallbackText)}
@@ -1091,28 +1091,28 @@ function SignupFormInner() {
                 />
               </div>
 
-              <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 {t.legalPrefix}{" "}
-                <Link href="/privacy" className="font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
+                <Link href="/privacy" className="font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4">
                   {t.privacyLink}
                 </Link>{" "}
                 &bull;{" "}
-                <Link href="/terms" className="font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
+                <Link href="/terms" className="font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4">
                   {t.termsLink}
                 </Link>{" "}
                 {t.legalSuffix}
               </p>
 
-              <button type="submit" disabled={busy} className="w-full inline-flex min-h-[48px] items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-5 py-3 text-sm font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-50 transition-colors">
-                <IconUserPlus className="h-4 w-4"/>
+              <button type="submit" disabled={busy} className="w-full inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-3 text-base sm:text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all shadow-sm">
+                <IconUserPlus className="h-5 w-5"/>
                 {busy ? t.submitting : t.submit}
               </button>
             </form>)}
-        </>)}
+        </div>)}
 
-      <p className="text-xs text-[#525954] dark:text-[#B8C2BA] text-center pt-3 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+      <p className="text-sm text-slate-600 dark:text-slate-300 text-center pt-4 border-t border-[#D7E4E1] dark:border-[#1E353A]">
         {t.already}{" "}
-        <Link href="/login" className="font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
+        <Link href="/login" className="font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4">
           {t.signInHere}
         </Link>
       </p>
@@ -1120,14 +1120,14 @@ function SignupFormInner() {
 }
 function SignupFallback() {
     const { lang } = useLanguage();
-    return (<div className="w-full max-w-4xl rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-8 text-center text-xs text-[#525954] dark:text-[#B8C2BA]">
+    return (<div className="w-full max-w-4xl med-card p-8 text-center text-sm text-slate-600 dark:text-slate-300">
       {COPY[lang].loadingForm}
     </div>);
 }
 export default function SignupPage() {
-    return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
+    return (<div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <PublicHeader />
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 sm:py-12">
+      <main className="flex-1 flex items-center justify-center px-4 sm:px-8 py-8 sm:py-12">
         <Suspense fallback={<SignupFallback />}>
           <SignupFormInner />
         </Suspense>

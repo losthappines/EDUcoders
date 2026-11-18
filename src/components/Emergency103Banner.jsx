@@ -31,23 +31,25 @@ export function Emergency103Banner({ className = "" }) {
   return (
     <aside
       aria-label={t.badge}
-      className={`border-l-4 border-[#9E4747] dark:border-[#C89E92] border-y border-r border-[#E4D3CD] dark:border-[#3E2E2B] bg-[#F3EAE7] dark:bg-[#2A201E] px-5 py-4 text-[#292E2B] dark:text-[#F3F0E8] rounded-sm ${className}`}
+      className={`rounded-2xl border border-rose-200 dark:border-rose-900/70 bg-rose-50/90 dark:bg-rose-950/35 px-4 sm:px-5 py-4 text-slate-900 dark:text-slate-100 shadow-xs ${className}`}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <IconAlertTriangle className="h-5 w-5 shrink-0 text-[#7A2E2E] dark:text-[#D9B8AE] mt-0.5" aria-hidden="true" />
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-200">
+            <IconAlertTriangle className="h-5 w-5" aria-hidden="true" />
+          </div>
           <div className="space-y-1">
-            <p className="font-heading text-sm font-bold text-[#7A2E2E] dark:text-[#F4C9C2]">
+            <p className="font-heading text-base font-bold text-rose-800 dark:text-rose-200">
               {t.headline}
             </p>
-            <p className="text-xs text-[#292E2B]/85 dark:text-[#F3F0E8]/85 leading-relaxed max-w-3xl">
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl">
               {t.body}
             </p>
           </div>
         </div>
         <a
           href="tel:103"
-          className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-sm bg-[#7A2E2E] hover:bg-[#622222] dark:bg-[#9E4747] dark:hover:bg-[#8A3B3B] px-4 py-2.5 text-xs font-semibold text-[#F7F5EF] transition-colors whitespace-nowrap"
+          className="inline-flex min-h-[46px] w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-xl bg-rose-700 hover:bg-rose-800 dark:bg-rose-600 dark:hover:bg-rose-500 px-5 py-2.5 text-sm font-bold text-white shadow-sm active:scale-[0.98] transition-all whitespace-nowrap"
         >
           <IconPhoneCall className="h-4 w-4" aria-hidden="true" />
           {t.cta}

@@ -45,12 +45,12 @@ export function ThemeToggle({ className = "" }) {
         window.dispatchEvent(new Event(THEME_EVENT));
     };
     const isDark = isClient && theme === "dark";
-    return (<button type="button" onClick={toggleTheme} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} title={isDark ? "Yorug' rejim (Light mode)" : "Tungi rejim (Dark mode)"} className={`inline-flex min-h-[40px] min-w-[40px] sm:min-h-[34px] sm:min-w-0 items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] bg-[#FFFFFF] px-2.5 py-1.5 text-xs font-medium text-[#292E2B] hover:bg-[#EFECE3] dark:border-[#2F3632] dark:bg-[#1D221F] dark:text-[#F3F0E8] dark:hover:bg-[#242A27] transition-colors ${className}`}>
+    return (<button type="button" onClick={toggleTheme} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"} title={isDark ? "Yorug' rejim (Light mode)" : "Tungi rejim (Dark mode)"} className={`inline-flex min-h-[44px] min-w-[44px] sm:min-h-[38px] sm:min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[#D7E4E1] bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-[#EDF5F3] dark:border-[#1E353A] dark:bg-[#16272B] dark:text-slate-100 dark:hover:bg-[#1E353A] active:scale-[0.97] transition-all ${className}`}>
       {!isClient ? (<span className="h-4 w-4 inline-block" aria-hidden="true"/>) : isDark ? (<>
-          <IconSun className="h-4 w-4 text-[#D9B8AE]"/>
+          <IconSun className="h-4 w-4 text-amber-300"/>
           <span className="hidden sm:inline">Light</span>
         </>) : (<>
-          <IconMoon className="h-4 w-4 text-[#244C40]"/>
+          <IconMoon className="h-4 w-4 text-teal-700"/>
           <span className="hidden sm:inline">Dark</span>
         </>)}
     </button>);

@@ -328,7 +328,7 @@ function MiniAppInner() {
   const showSignInForm = status === "not_in_tg" || status === "not_linked" || status === "error";
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] px-4 py-6">
+    <div className="min-h-screen flex flex-col justify-between bg-[#F4F8F7] dark:bg-[#091315] text-slate-900 dark:text-slate-100 px-4 py-6">
       <Script
         src="https://telegram.org/js/telegram-web-app.js"
         strategy="afterInteractive"
@@ -343,10 +343,10 @@ function MiniAppInner() {
       <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 font-heading text-base font-bold text-[#244C40] dark:text-[#F3F0E8]"
+          className="inline-flex items-center gap-2.5 font-heading text-lg font-bold text-slate-900 dark:text-white"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#244C40] text-[#F7F5EF]">
-            <IconHeartHandshake className="h-4 w-4" />
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-700 text-white shadow-sm">
+            <IconHeartHandshake className="h-5 w-5" />
           </span>
           <span>OnaCare</span>
         </Link>
@@ -356,55 +356,55 @@ function MiniAppInner() {
         </div>
       </div>
 
-      <main className="mx-auto my-6 w-full max-w-md">
-        <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 sm:p-6 space-y-5">
-          <div className="flex items-center gap-3">
+      <main className="mx-auto my-6 w-full max-w-md oc-fade-up">
+        <div className="med-card p-6 space-y-5">
+          <div className="flex items-center gap-3.5">
             <div
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border ${
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${
                 status === "ready"
-                  ? "border-[#A7BBAA] bg-[#EFECE3] text-[#244C40]"
+                  ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
                   : status === "pending"
-                    ? "border-[#DDD8CC] bg-[#EFECE3] text-[#9A6B42]"
+                    ? "border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"
                     : status === "rejected" || status === "error"
-                      ? "border-[#D9B8AE] bg-[#F3EAE7] text-[#9E4747]"
-                      : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
+                      ? "border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+                      : "border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300"
               }`}
             >
               {status === "ready" ? (
-                <IconCheck className="h-5 w-5" />
+                <IconCheck className="h-6 w-6" />
               ) : status === "pending" ? (
-                <IconClock className="h-5 w-5" />
+                <IconClock className="h-6 w-6" />
               ) : status === "rejected" || status === "error" ? (
-                <IconAlertTriangle className="h-5 w-5" />
+                <IconAlertTriangle className="h-6 w-6" />
               ) : (
-                <IconBrandTelegram className="h-5 w-5" />
+                <IconBrandTelegram className="h-6 w-6" />
               )}
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#525954] dark:text-[#B8C2BA]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                 {t.eyebrow}
               </p>
-              <h1 className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+              <h1 className="font-heading text-xl font-bold text-slate-900 dark:text-white leading-snug">
                 {title}
               </h1>
             </div>
           </div>
 
-          <p className="text-xs leading-relaxed text-[#525954] dark:text-[#B8C2BA]">{subtitle}</p>
+          <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{subtitle}</p>
 
           {status === "checking" && (
-            <div className="flex items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3.5 py-2.5 text-xs text-[#244C40] dark:text-[#A7BBAA]">
-              <IconShieldCheck className="h-4 w-4 animate-pulse" />
+            <div className="flex items-center gap-2.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-4 py-3 text-sm font-medium text-teal-800 dark:text-teal-200">
+              <IconShieldCheck className="h-5 w-5 animate-pulse" />
               <span>HMAC-SHA256</span>
             </div>
           )}
 
           {showSignInForm && (
-            <form onSubmit={handleInlineSignIn} className="space-y-3 pt-1">
+            <form onSubmit={handleInlineSignIn} className="space-y-4 pt-1">
               <div>
                 <label
                   htmlFor="tg-login-email"
-                  className="block text-[11px] font-semibold text-[#292E2B] dark:text-[#F3F0E8] mb-1"
+                  className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5"
                 >
                   {t.emailLabel}
                 </label>
@@ -416,14 +416,14 @@ function MiniAppInner() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t.emailPlaceholder}
-                  className="min-h-[42px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] focus:outline-none"
+                  className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="tg-login-password"
-                  className="block text-[11px] font-semibold text-[#292E2B] dark:text-[#F3F0E8] mb-1"
+                  className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5"
                 >
                   {t.passwordLabel}
                 </label>
@@ -436,21 +436,21 @@ function MiniAppInner() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={t.passwordPlaceholder}
-                    className="min-h-[42px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 pr-10 py-2 text-xs text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] focus:outline-none"
+                    className="min-h-[48px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 pr-12 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#525954] hover:text-[#292E2B] dark:text-[#B8C2BA]"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400"
                   >
-                    {showPassword ? <IconEyeOff className="h-4 w-4" /> : <IconEye className="h-4 w-4" />}
+                    {showPassword ? <IconEyeOff className="h-5 w-5" /> : <IconEye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
 
               {loginError && (
-                <p className="rounded-sm border border-[#D9B8AE] bg-[#F3EAE7] px-3 py-2 text-[11px] font-semibold text-[#7A2E2E]">
+                <p className="oc-slide-down rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 px-4 py-2.5 text-sm font-semibold text-rose-700 dark:text-rose-200">
                   {loginError}
                 </p>
               )}
@@ -458,32 +458,32 @@ function MiniAppInner() {
               <button
                 type="submit"
                 disabled={submittingLogin || !email.trim() || !password}
-                className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] px-4 py-2.5 text-xs font-semibold text-[#F7F5EF] transition-colors disabled:opacity-50"
+                className="w-full min-h-[50px] inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500 px-5 py-3 text-base sm:text-sm font-semibold text-white active:scale-[0.98] transition-all disabled:opacity-50 shadow-sm"
               >
-                <IconLogin className="h-4 w-4" />
+                <IconLogin className="h-5 w-5" />
                 <span>{submittingLogin ? t.signingInBtn : t.signInSubmitBtn}</span>
-                <IconArrowRight className="h-3.5 w-3.5" />
+                <IconArrowRight className="h-4 w-4" />
               </button>
             </form>
           )}
 
           {status !== "checking" && status !== "ready" && (
-            <div className="space-y-2.5 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-3 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <Link
                   href="/signup?role=PATIENT"
-                  className="min-h-[42px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40]"
+                  className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:border-teal-600 transition-colors"
                 >
-                  <IconUserPlus className="h-3.5 w-3.5" />
+                  <IconUserPlus className="h-4 w-4 text-teal-700 dark:text-teal-300" />
                   <span>{t.signupBtn}</span>
                 </Link>
                 <a
                   href={`https://t.me/${botUsername}?start=webapp`}
                   target="_blank"
                   rel="noreferrer"
-                  className="min-h-[42px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:border-[#244C40]"
+                  className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:border-teal-600 transition-colors"
                 >
-                  <IconBrandTelegram className="h-3.5 w-3.5" />
+                  <IconBrandTelegram className="h-4 w-4" />
                   <span>{t.openBotBtn}</span>
                 </a>
               </div>
@@ -491,22 +491,22 @@ function MiniAppInner() {
               <div className="flex items-center justify-between pt-1">
                 <Link
                   href="/hamjamiyat"
-                  className="text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4"
+                  className="text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4"
                 >
                   {t.communityBtn} →
                 </Link>
                 <button
                   type="button"
                   onClick={() => authenticate(false)}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-[#525954] dark:text-[#B8C2BA] hover:text-[#244C40]"
+                  className="inline-flex min-h-[40px] items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-teal-700 transition-colors"
                 >
-                  <IconRefresh className="h-3.5 w-3.5" />
+                  <IconRefresh className="h-4 w-4" />
                   <span>{t.retryBtn}</span>
                 </button>
               </div>
 
-              <p className="flex items-center gap-1.5 text-[10px] text-[#525954] dark:text-[#B8C2BA]">
-                <IconLock className="h-3 w-3 shrink-0" />
+              <p className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <IconLock className="h-3.5 w-3.5 shrink-0" />
                 <span>HTTPS + HMAC-SHA256</span>
               </p>
             </div>
@@ -515,7 +515,7 @@ function MiniAppInner() {
       </main>
 
       <footer className="mx-auto w-full max-w-md text-center">
-        <p className="rounded-sm border border-[#D9B8AE] dark:border-[#6B3A3A] bg-[#F3EAE7]/80 dark:bg-[#2E1E1D]/60 px-3 py-2 text-[11px] font-medium text-[#7A2E2E] dark:text-[#F0C8C4]">
+        <p className="rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 px-4 py-2.5 text-xs font-semibold text-rose-700 dark:text-rose-200">
           {t.emergencyNote}
         </p>
       </footer>
@@ -527,7 +527,7 @@ export default function TelegramMiniAppPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F5EF] text-xs text-[#525954]">
+        <div className="min-h-screen flex items-center justify-center bg-[#F4F8F7] dark:bg-[#091315] text-sm font-medium text-slate-600 dark:text-slate-300">
           OnaCare Telegram Mini App...
         </div>
       }

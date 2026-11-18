@@ -932,7 +932,7 @@ export default function PatientPortalPage() {
         }
     };
     if (loading) {
-        return (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+        return (<div className="med-card oc-fade-up p-8 text-center text-base text-slate-600 dark:text-slate-300">
         {t.loading}
       </div>);
     }
@@ -942,41 +942,41 @@ export default function PatientPortalPage() {
     const hasWellbeingToday = Boolean(todayTashkent) && (ownPatient?.wellbeingCheckins ?? []).some((w) => String(w.createdAt || "").slice(0, 10) === todayTashkent);
     const scheduledMeds = activePrescriptions.filter((rx) => rx.active !== false && rx.remindersEnabled !== false && (rx.reminderTimes ?? []).length > 0);
     const upcomingPsych = psychSessions.filter((s) => s.status === "SCHEDULED" || s.status === "CONFIRMED");
-    return (<div className="mx-auto max-w-3xl space-y-4">
+    return (<div className="mx-auto max-w-3xl space-y-5 oc-fade-up">
       <Emergency103Banner />
 
       {/* Top Language & Personal Profile Banner */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="med-card p-5 space-y-3.5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.title}</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400">{t.subtitle}</p>
+            <h1 className="font-heading text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">{t.title}</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{t.subtitle}</p>
           </div>
           <LanguageSwitcher />
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A] text-sm">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
-              <IconUser className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+            <span className="inline-flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
+              <IconUser className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
               {ownPatient?.fullName ?? authUser?.fullName}
             </span>
-            {effectiveLat !== null && effectiveLng !== null && (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[10px] font-mono text-emerald-700 dark:text-emerald-300">
-                <IconMapPin className="h-3 w-3"/>
+            {effectiveLat !== null && effectiveLng !== null && (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 text-xs font-mono text-emerald-700 dark:text-emerald-300">
+                <IconMapPin className="h-3.5 w-3.5"/>
                 {Number(effectiveLat).toFixed(4)}, {Number(effectiveLng).toFixed(4)}
               </span>)}
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
-              <IconCrown className="h-3 w-3"/>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+              <IconCrown className="h-3.5 w-3.5"/>
               {currentSubTier}
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {ownPatient && (<span className="text-slate-600 dark:text-slate-400">
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+            {ownPatient && (<span className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                 {ownPatient.district}
                 {ownPatient.mahalla ? `, ${ownPatient.mahalla}` : ""} • {ownPatient.polyclinicName}
               </span>)}
-            <Link href="/telegram" className="inline-flex min-h-[36px] items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-2.5 py-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60">
-              <IconBrandTelegram className="h-3.5 w-3.5"/>
+            <Link href="/telegram" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-3.5 py-2 text-xs sm:text-sm font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 active:scale-[0.98] transition-all">
+              <IconBrandTelegram className="h-4 w-4"/>
               {t.telegramCta}
             </Link>
           </div>
@@ -984,79 +984,79 @@ export default function PatientPortalPage() {
       </div>
 
       {/* Patient Portal Tabs: Dashboard vs AI Chatbot */}
-      <div role="tablist" aria-label="Patient sections" className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5">
-        <button type="button" role="tab" aria-selected={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition ${activeTab === "dashboard"
-            ? "bg-teal-700 text-white shadow-sm"
-            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
-          <IconHeartbeat className="h-4 w-4"/>
+      <div role="tablist" aria-label="Patient sections" className="sticky top-[68px] z-20 sm:static grid grid-cols-2 gap-2 med-card p-1.5 shadow-sm">
+        <button type="button" role="tab" aria-selected={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "dashboard"
+            ? "bg-teal-700 dark:bg-teal-600 text-white shadow-sm"
+            : "text-slate-600 dark:text-slate-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B]"}`}>
+          <IconHeartbeat className="h-5 w-5"/>
           <span>{t.tabDashboard}</span>
         </button>
-        <button type="button" role="tab" aria-selected={activeTab === "chatbot"} onClick={() => setActiveTab("chatbot")} className={`inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition ${activeTab === "chatbot"
-            ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
-            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
-          <IconRobot className="h-4 w-4"/>
+        <button type="button" role="tab" aria-selected={activeTab === "chatbot"} onClick={() => setActiveTab("chatbot")} className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "chatbot"
+            ? "bg-slate-900 dark:bg-teal-500 text-white dark:text-slate-950 shadow-sm"
+            : "text-slate-600 dark:text-slate-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B]"}`}>
+          <IconRobot className="h-5 w-5"/>
           <span>{t.tabAiChat}</span>
         </button>
       </div>
 
       {/* AI Chatbot Tab */}
-      {activeTab === "chatbot" && (<section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 space-y-4">
-          <div className="space-y-1">
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <IconRobot className="h-5 w-5 text-teal-600 dark:text-teal-400"/>
+      {activeTab === "chatbot" && (<section key="tab-chatbot" className="med-card oc-fade-up p-4 sm:p-6 space-y-4">
+          <div className="space-y-1.5">
+            <h2 className="font-heading text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconRobot className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
               <span>{t.aiTitle}</span>
             </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400">{t.aiSubtitle}</p>
-            <p className="rounded-xl border border-amber-200 dark:border-amber-800/80 bg-amber-50/70 dark:bg-amber-950/30 px-3 py-2 text-[11px] font-medium text-amber-900 dark:text-amber-200">
+            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{t.aiSubtitle}</p>
+            <p className="rounded-xl border border-amber-200 dark:border-amber-800/80 bg-amber-50/70 dark:bg-amber-950/30 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-200 leading-relaxed">
               {t.aiDisclaimer}
             </p>
           </div>
 
           {/* Chat Conversation History */}
-          <div className="max-h-[380px] min-h-[210px] overflow-y-auto space-y-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3.5">
-            {aiMessages.length === 0 ? (<div className="space-y-3 py-2">
+          <div className="max-h-[420px] min-h-[240px] overflow-y-auto space-y-3.5 rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-4">
+            {aiMessages.length === 0 ? (<div className="space-y-3.5 py-3">
                 <div className="text-center space-y-1">
-                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{t.aiEmptyTitle}</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.aiEmptySub}</p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.aiEmptyTitle}</p>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{t.aiEmptySub}</p>
                 </div>
-                <div className="flex flex-wrap justify-center gap-1.5">
-                  {(t.aiStarters || []).map((q, idx) => (<button key={idx} type="button" disabled={aiBusy} onClick={() => handleAiChatSubmit({ prompt: q, mode: "Ask", modelId: "gemini-3.5-flash", modelName: "Gemini 3.5 Flash", effort: "High", attachedFiles: [] })} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-left text-[11px] font-medium text-slate-700 dark:text-slate-200 hover:border-teal-500 hover:bg-teal-50/40 dark:hover:bg-teal-950/40 transition disabled:opacity-50">
+                <div className="flex flex-wrap justify-center gap-2">
+                  {(t.aiStarters || []).map((q, idx) => (<button key={idx} type="button" disabled={aiBusy} onClick={() => handleAiChatSubmit({ prompt: q, mode: "Ask", modelId: "gemini-3.5-flash", modelName: "Gemini 3.5 Flash", effort: "High", attachedFiles: [] })} className="min-h-[44px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2.5 text-left text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-teal-600 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] active:scale-[0.98] transition-all disabled:opacity-50">
                       {q}
                     </button>))}
                 </div>
               </div>) : (aiMessages.map((msg) => {
                 const isUser = msg.sender === "user";
-                return (<div key={msg.id} className={`flex flex-col gap-1 ${isUser ? "items-end" : "items-start"}`}>
-                    <div className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${isUser
-                        ? "bg-teal-700 text-white"
-                        : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200"}`}>
-                      <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[10px] opacity-75">
+                return (<div key={msg.id} className={`flex flex-col gap-1.5 oc-fade-in ${isUser ? "items-end" : "items-start"}`}>
+                    <div className={`max-w-[92%] sm:max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${isUser
+                        ? "bg-teal-700 dark:bg-teal-600 text-white"
+                        : "bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100 shadow-xs"}`}>
+                      <div className="mb-1 flex flex-wrap items-center gap-1.5 text-xs opacity-80">
                         <span className="font-bold">{isUser ? (ownPatient?.fullName ?? authUser?.fullName ?? "You") : "OnaCare AI"}</span>
                         {isUser && msg.mode && <span>• {msg.mode}</span>}
                         {!isUser && msg.modelUsed && <span className="font-mono">• {msg.modelUsed}</span>}
                       </div>
                       <p>{msg.text}</p>
-                      {msg.attachedFiles && msg.attachedFiles.length > 0 && (<div className="mt-1.5 flex flex-wrap gap-1">
-                          {msg.attachedFiles.map((f) => (<span key={f} className="rounded bg-black/20 px-1.5 py-0.5 text-[10px] font-mono">
+                      {msg.attachedFiles && msg.attachedFiles.length > 0 && (<div className="mt-2 flex flex-wrap gap-1.5">
+                          {msg.attachedFiles.map((f) => (<span key={f} className="rounded-md bg-black/20 px-2 py-0.5 text-xs font-mono">
                               📎 {f}
                             </span>))}
                         </div>)}
                     </div>
 
-                    {!isUser && msg.urgentAlert103 && (<a href="tel:103" className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-rose-700">
-                        <IconPhoneCall className="h-3.5 w-3.5"/>
+                    {!isUser && msg.urgentAlert103 && (<a href="tel:103" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-700 active:scale-[0.98] transition-all">
+                        <IconPhoneCall className="h-4 w-4"/>
                         {t.aiUrgentBtn}
                       </a>)}
 
-                    {!isUser && msg.suggestedQuestions && msg.suggestedQuestions.length > 0 && (<div className="flex flex-wrap gap-1.5 pt-0.5">
-                        {msg.suggestedQuestions.map((sq, sIdx) => (<button key={sIdx} type="button" disabled={aiBusy} onClick={() => handleAiChatSubmit({ prompt: sq, mode: "Ask", modelId: "gemini-3.5-flash", modelName: "Gemini 3.5 Flash", effort: "High", attachedFiles: [] })} className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-[10px] font-semibold text-teal-800 dark:text-teal-300 hover:border-teal-500 disabled:opacity-50">
+                    {!isUser && msg.suggestedQuestions && msg.suggestedQuestions.length > 0 && (<div className="flex flex-wrap gap-2 pt-0.5">
+                        {msg.suggestedQuestions.map((sq, sIdx) => (<button key={sIdx} type="button" disabled={aiBusy} onClick={() => handleAiChatSubmit({ prompt: sq, mode: "Ask", modelId: "gemini-3.5-flash", modelName: "Gemini 3.5 Flash", effort: "High", attachedFiles: [] })} className="min-h-[40px] rounded-full border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:border-teal-600 active:scale-[0.98] transition-all disabled:opacity-50">
                             {sq}
                           </button>))}
                       </div>)}
                   </div>);
             }))}
-            {aiBusy && (<div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 px-1">
-                <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse"/>
+            {aiBusy && (<div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 px-1">
+                <span className="h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse"/>
                 <span>{t.aiThinking}</span>
               </div>)}
             <div ref={aiEndRef}/>
@@ -1076,59 +1076,59 @@ export default function PatientPortalPage() {
           />
         </section>)}
 
-      {activeTab === "dashboard" && (<>
+      {activeTab === "dashboard" && (<div key="tab-dashboard" className="space-y-5 oc-fade-up">
 
       {/* Bugungi Eslatmalar / Today's Reminders Card */}
-      <section className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-2.5">
+      <section className="med-card p-5 space-y-3.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-heading text-sm font-bold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-1.5">
-            <IconBell className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+          <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <IconBell className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
             <span>{t.remindersTitle}</span>
           </h2>
-          <a href="#doctor-direct-chat" className="text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
+          <a href="#doctor-direct-chat" className="inline-flex min-h-[36px] items-center text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4">
             {t.remindersGoChat}
           </a>
         </div>
 
-        <div className="space-y-2 text-xs">
-          <div className={`rounded-sm border px-3 py-2 font-medium ${hasWellbeingToday
-            ? "border-[#A7BBAA] bg-[#EFECE3]/70 dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
-            : "border-[#D9B8AE] bg-[#F3EAE7]/70 dark:bg-[#2E1E1D]/60 text-[#7A2E2E] dark:text-[#F0C8C4]"}`}>
+        <div className="space-y-2.5 text-sm">
+          <div className={`rounded-xl border px-4 py-3 font-medium ${hasWellbeingToday
+            ? "border-teal-200 dark:border-teal-800 bg-[#EDF5F3] dark:bg-[#16272B] text-teal-800 dark:text-teal-200"
+            : "border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200"}`}>
             {hasWellbeingToday ? t.remindersWbDone : t.remindersWbTodo}
           </div>
 
-          {call && call.status !== "COMPLETED" && (<div className="rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 flex flex-wrap items-center justify-between gap-2">
-              <span className="font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+          {call && call.status !== "COMPLETED" && (<div className="rounded-xl border border-teal-200 dark:border-teal-800 bg-[#F4F8F7] dark:bg-[#091315] px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+              <span className="font-semibold text-slate-900 dark:text-white">
                 {t.remindersVisitItem} {call.assignedDoctor?.fullName} •{" "}
                 {new Date(call.scheduledWindowStart).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                 –
                 {new Date(call.scheduledWindowEnd).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
               </span>
-              <span className="font-mono font-bold text-[#244C40] dark:text-[#A7BBAA]">
+              <span className="font-mono font-bold text-teal-700 dark:text-teal-300 bg-white dark:bg-[#101E21] px-2.5 py-1 rounded-lg border border-[#D7E4E1] dark:border-[#1E353A]">
                 OTP: {call.patientOtpCode}
               </span>
             </div>)}
 
-          {scheduledMeds.map((rx) => (<div key={`rem-${rx.id}`} className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+          {scheduledMeds.map((rx) => (<div key={`rem-${rx.id}`} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-3 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <span className="font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                <span className="font-semibold text-slate-900 dark:text-white">
                   {t.remindersMedItem} {rx.medicationName} ({rx.dosage})
                 </span>
-                <span className="ml-2 font-mono text-[11px] text-[#244C40] dark:text-[#A7BBAA]">
+                <span className="ml-2 font-mono text-xs sm:text-sm text-teal-700 dark:text-teal-300">
                   {(rx.reminderTimes ?? []).join(", ")}
                 </span>
               </div>
-              <button type="button" onClick={() => handleAdherence(rx.id)} className="inline-flex items-center gap-1 rounded-sm bg-[#244C40] px-2.5 py-1 text-[11px] font-semibold text-[#F7F5EF] hover:bg-[#1A382F]">
-                <IconCheck className="h-3 w-3"/>
+              <button type="button" onClick={() => handleAdherence(rx.id)} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all">
+                <IconCheck className="h-4 w-4"/>
                 {t.takenBtn}
               </button>
             </div>))}
 
-          {upcomingPsych.map((s) => (<div key={`rem-psych-${s.id}`} className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 flex flex-wrap items-center justify-between gap-2">
-              <span className="font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+          {upcomingPsych.map((s) => (<div key={`rem-psych-${s.id}`} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+              <span className="font-semibold text-slate-900 dark:text-white">
                 {t.remindersPsychItem} {s.psychologist?.fullName || "Psychologist"}
               </span>
-              <span className="font-mono text-[11px] text-[#525954] dark:text-[#B8C2BA]">
+              <span className="font-mono text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                 {new Date(s.scheduledAt).toLocaleString("en-GB", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
               </span>
             </div>))}
@@ -1136,33 +1136,33 @@ export default function PatientPortalPage() {
       </section>
 
       {/* Daily Wellbeing & EPDS Check-in Card (Phase 1) */}
-      <section className="rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 space-y-4">
+      <section className="med-card border-teal-200 dark:border-teal-800/80 p-5 space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h2 className="font-heading text-sm font-bold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-1.5">
-              <IconHeartHandshake className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+            <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconHeartHandshake className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
               <span>{t.wbTitle}</span>
             </h2>
-            <p className="text-xs text-[#525954] dark:text-[#B8C2BA] mt-0.5">{t.wbSub}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{t.wbSub}</p>
           </div>
-          {ownPatient?.deliveryDate && (<span className="rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-1 text-[10px] font-mono font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+          {ownPatient?.deliveryDate && (<span className="rounded-full bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A] px-3 py-1 text-xs font-mono font-semibold text-teal-700 dark:text-teal-300">
               {String(ownPatient.deliveryDate).slice(0, 10)}
             </span>)}
         </div>
 
-        <form onSubmit={handleWellbeingSubmit} className="space-y-3">
-          <div className="space-y-1.5">
-            <span className="block text-[11px] font-semibold text-[#525954] dark:text-[#B8C2BA]">
+        <form onSubmit={handleWellbeingSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
               {t.wbMoodLabel}
             </span>
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-5 gap-2">
               {MOOD_SCALE.map((m) => {
                 const active = wbMood === m.value;
-                return (<button key={m.value} type="button" onClick={() => setWbMood(m.value)} className={`flex flex-col items-center justify-center gap-0.5 rounded-sm border py-2 px-1 text-center transition-colors ${active
-                        ? "border-[#244C40] bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] ring-1 ring-[#244C40]"
-                        : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] text-[#525954]"}`}>
-                    <span className="text-lg leading-none">{m.emoji}</span>
-                    <span className="text-[10px] font-semibold truncate max-w-full">
+                return (<button key={m.value} type="button" onClick={() => setWbMood(m.value)} className={`flex min-h-[60px] flex-col items-center justify-center gap-1 rounded-xl border py-2.5 px-1.5 text-center transition-all active:scale-[0.97] ${active
+                        ? "border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B] text-teal-800 dark:text-teal-200 ring-1 ring-teal-600 dark:ring-teal-400 shadow-xs"
+                        : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-slate-600 dark:text-slate-300 hover:border-teal-500/50"}`}>
+                    <span className="text-xl sm:text-2xl leading-none">{m.emoji}</span>
+                    <span className="text-xs font-semibold truncate max-w-full">
                       {lang === "ru" ? m.ru : lang === "en" ? m.en : m.uz}
                     </span>
                   </button>);
@@ -1170,25 +1170,25 @@ export default function PatientPortalPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[11px] font-semibold text-[#525954] mb-1">{t.wbPainLabel}</label>
-              <select value={wbMotherPain} onChange={(e) => setWbMotherPain(e.target.value)} className="min-h-[38px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-1.5 text-xs">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{t.wbPainLabel}</label>
+              <select value={wbMotherPain} onChange={(e) => setWbMotherPain(e.target.value)} className="min-h-[46px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none">
                 <option value="none">Yo&apos;q / None</option>
                 <option value="mild">Biroz / Mild</option>
                 <option value="severe">Kuchli / Severe</option>
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-[#525954] mb-1">{t.wbBleedingLabel}</label>
-              <select value={wbMotherBleeding} onChange={(e) => setWbMotherBleeding(e.target.value)} className="min-h-[38px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-1.5 text-xs">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{t.wbBleedingLabel}</label>
+              <select value={wbMotherBleeding} onChange={(e) => setWbMotherBleeding(e.target.value)} className="min-h-[46px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none">
                 <option value="normal">Me&apos;yorda / Normal</option>
                 <option value="heavy">Ko&apos;p / Heavy</option>
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-[#525954] mb-1">{t.wbFeedLabel}</label>
-              <select value={wbBabyFeeding} onChange={(e) => setWbBabyFeeding(e.target.value)} className="min-h-[38px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-1.5 text-xs">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{t.wbFeedLabel}</label>
+              <select value={wbBabyFeeding} onChange={(e) => setWbBabyFeeding(e.target.value)} className="min-h-[46px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none">
                 <option value="good">Yaxshi / Good</option>
                 <option value="less">Kam / Less</option>
                 <option value="refusing">Rad etmoqda / Refusing</option>
@@ -1196,46 +1196,46 @@ export default function PatientPortalPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <label className="inline-flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={wbMotherFever} onChange={(e) => setWbMotherFever(e.target.checked)} className="h-4 w-4 rounded border-[#DDD8CC]"/>
+          <div className="flex flex-wrap items-center gap-2.5 text-sm">
+            <label className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 cursor-pointer text-slate-800 dark:text-slate-200">
+              <input type="checkbox" checked={wbMotherFever} onChange={(e) => setWbMotherFever(e.target.checked)} className="h-5 w-5 rounded border-slate-300 accent-teal-700"/>
               <span>{t.wbFeverLabel}</span>
             </label>
-            <label className="inline-flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={wbBabyJaundice} onChange={(e) => setWbBabyJaundice(e.target.checked)} className="h-4 w-4 rounded border-[#DDD8CC]"/>
+            <label className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 cursor-pointer text-slate-800 dark:text-slate-200">
+              <input type="checkbox" checked={wbBabyJaundice} onChange={(e) => setWbBabyJaundice(e.target.checked)} className="h-5 w-5 rounded border-slate-300 accent-teal-700"/>
               <span>{t.wbJaundiceLabel}</span>
             </label>
-            <label className="inline-flex items-center gap-1.5 cursor-pointer">
-              <input type="checkbox" checked={wbBabyTempHigh} onChange={(e) => setWbBabyTempHigh(e.target.checked)} className="h-4 w-4 rounded border-[#DDD8CC]"/>
+            <label className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 cursor-pointer text-slate-800 dark:text-slate-200">
+              <input type="checkbox" checked={wbBabyTempHigh} onChange={(e) => setWbBabyTempHigh(e.target.checked)} className="h-5 w-5 rounded border-slate-300 accent-teal-700"/>
               <span>{t.wbBabyTempLabel}</span>
             </label>
           </div>
 
           {!ownPatient?.deliveryDate && (<div>
-              <label htmlFor="wb-delivery" className="block text-[11px] font-semibold text-[#525954] mb-1">
+              <label htmlFor="wb-delivery" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 {t.wbDeliveryLabel}
               </label>
-              <input id="wb-delivery" type="date" value={wbDeliveryDate} onChange={(e) => setWbDeliveryDate(e.target.value)} className="min-h-[38px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"/>
+              <input id="wb-delivery" type="date" value={wbDeliveryDate} onChange={(e) => setWbDeliveryDate(e.target.value)} className="min-h-[46px] w-full sm:w-auto rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"/>
             </div>)}
 
-          <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] overflow-hidden">
-            <button type="button" onClick={() => setWbEpdsOpen((v) => !v)} className="w-full flex items-center justify-between px-3.5 py-2.5 text-left text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+          <div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] overflow-hidden">
+            <button type="button" onClick={() => setWbEpdsOpen((v) => !v)} className="w-full min-h-[48px] flex items-center justify-between px-4 py-3 text-left text-sm font-semibold text-teal-700 dark:text-teal-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] transition-colors">
               <span>
                 {t.wbEpdsToggle}{wbEpdsPreview ? ` (${wbEpdsPreview.totalScore}/30)` : ""}
               </span>
-              {wbEpdsOpen ? <IconChevronUp className="h-4 w-4"/> : <IconChevronDown className="h-4 w-4"/>}
+              {wbEpdsOpen ? <IconChevronUp className="h-5 w-5"/> : <IconChevronDown className="h-5 w-5"/>}
             </button>
-            {wbEpdsOpen && (<div className="border-t border-[#DDD8CC] dark:border-[#2F3733] p-3 space-y-3">
-                {EPDS_QUESTIONS.map((q, qIdx) => (<div key={q.index} className="space-y-1.5">
-                    <p className="text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+            {wbEpdsOpen && (<div className="border-t border-[#D7E4E1] dark:border-[#1E353A] p-4 space-y-4 oc-slide-down">
+                {EPDS_QUESTIONS.map((q, qIdx) => (<div key={q.index} className="space-y-2">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
                       {lang === "ru" ? q.ru : lang === "en" ? q.en : q.uz}
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {q.options.map((opt) => {
                         const selected = wbEpdsAnswers[qIdx] === opt.score;
-                        return (<button key={opt.score} type="button" onClick={() => setWbEpdsAnswers((prev) => prev.map((v, idx) => (idx === qIdx ? opt.score : v)))} className={`text-left rounded-sm border px-2.5 py-1.5 text-[11px] transition-colors ${selected
-                                ? "border-[#244C40] bg-[#244C40] text-[#F7F5EF] font-semibold"
-                                : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F]"}`}>
+                        return (<button key={opt.score} type="button" onClick={() => setWbEpdsAnswers((prev) => prev.map((v, idx) => (idx === qIdx ? opt.score : v)))} className={`text-left min-h-[44px] rounded-xl border px-3.5 py-2 text-sm transition-all active:scale-[0.98] ${selected
+                                ? "border-teal-700 bg-teal-700 text-white font-semibold shadow-xs"
+                                : "border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] text-slate-700 dark:text-slate-200"}`}>
                             {lang === "ru" ? opt.ru : lang === "en" ? opt.en : opt.uz}
                           </button>);
                     })}
@@ -1244,24 +1244,24 @@ export default function PatientPortalPage() {
               </div>)}
           </div>
 
-          <button type="submit" disabled={submittingWb} className="w-full min-h-[42px] rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] py-2 text-xs font-semibold text-[#F7F5EF] disabled:opacity-50">
+          <button type="submit" disabled={submittingWb} className="w-full min-h-[50px] rounded-xl bg-teal-700 dark:bg-teal-600 hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] py-3 text-base sm:text-sm font-bold text-white disabled:opacity-50 transition-all shadow-sm">
             {submittingWb ? "..." : t.wbSubmitBtn}
           </button>
         </form>
 
-        {wbResult && (<div className="space-y-2">
-            {(wbResult.epdsSelfHarmFlag || wbResult.hasPhysicalRedFlag) && (<div className="rounded-sm border border-[#9E4747] bg-[#F3EAE7] p-3 text-xs text-[#7A2E2E] space-y-1.5">
+        {wbResult && (<div className="space-y-2.5 oc-fade-in">
+            {(wbResult.epdsSelfHarmFlag || wbResult.hasPhysicalRedFlag) && (<div className="rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 p-4 text-sm text-rose-800 dark:text-rose-200 space-y-2.5">
                 <p className="font-bold">{t.wbUrgent103}</p>
-                <div className="flex flex-wrap gap-2">
-                  <a href="tel:103" className="inline-flex items-center gap-1 rounded-sm bg-[#9E4747] px-3 py-1 font-semibold text-white">
-                    <IconPhoneCall className="h-3.5 w-3.5"/> 103
+                <div className="flex flex-wrap gap-2.5">
+                  <a href="tel:103" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 font-bold text-white hover:bg-rose-700">
+                    <IconPhoneCall className="h-4 w-4"/> 103
                   </a>
-                  <a href="#symptom-checkin-section" className="inline-flex items-center rounded-sm border border-[#9E4747] bg-white px-3 py-1 font-semibold text-[#7A2E2E]">
+                  <a href="#symptom-checkin-section" className="inline-flex min-h-[44px] items-center rounded-xl border border-rose-300 bg-white px-4 py-2 font-semibold text-rose-800">
                     {t.wbJumpSymptom}
                   </a>
                 </div>
               </div>)}
-            {wbResult.suggestPsychologist && (<a href="#psychologist-support" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline">
+            {wbResult.suggestPsychologist && (<a href="#psychologist-support" className="inline-flex min-h-[40px] items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline">
                 {t.wbSuggestPsych}
               </a>)}
           </div>)}
@@ -1270,31 +1270,31 @@ export default function PatientPortalPage() {
       </section>
 
       {/* Complaint Submission + Paramedic Destination & GPS */}
-      <section id="symptom-checkin-section" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-        <div className="flex flex-wrap items-start justify-between gap-2">
+      <section id="symptom-checkin-section" className="med-card p-5 space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <IconStethoscope className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+            <h2 className="font-heading text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconStethoscope className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
               {t.complaintCardTitle}
             </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t.complaintCardSub}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{t.complaintCardSub}</p>
           </div>
           <GpsConsentButton
             label={sharingGps ? "..." : t.shareGpsBtn}
             busy={sharingGps}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-teal-600 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/60 px-3.5 py-2 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/60 disabled:opacity-50 shrink-0"
+            className="inline-flex min-h-[46px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-teal-600 dark:border-teal-500 bg-[#EDF5F3] dark:bg-[#16272B] px-4 py-2.5 text-sm font-semibold text-teal-800 dark:text-teal-200 hover:bg-teal-100/80 dark:hover:bg-teal-900/60 active:scale-[0.98] transition-all disabled:opacity-50 shrink-0"
             onLocationCaptured={handleLocationCaptured}
             onError={() => showToast("error", "Could not access browser GPS location")}
           />
         </div>
 
-        <form onSubmit={handleComplaintSubmit} className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <form onSubmit={handleComplaintSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label htmlFor="comp-category" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              <label htmlFor="comp-category" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 {t.complaintCategoryLabel}
               </label>
-              <select id="comp-category" value={complaintCategory} onChange={(e) => setComplaintCategory(e.target.value)} className="min-h-[40px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100">
+              <select id="comp-category" value={complaintCategory} onChange={(e) => setComplaintCategory(e.target.value)} className="min-h-[46px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none">
                 <option value="POSTPARTUM">Postpartum / Tug&apos;ruqdan keyingi</option>
                 <option value="CARDIO">Cardio / Qon bosimi</option>
                 <option value="PEDIATRIC">Pediatric / Chaqaloq parvarishi</option>
@@ -1304,10 +1304,10 @@ export default function PatientPortalPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="comp-severity" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              <label htmlFor="comp-severity" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 {t.complaintSeverityLabel}
               </label>
-              <select id="comp-severity" value={complaintSeverity} onChange={(e) => setComplaintSeverity(e.target.value)} className="min-h-[40px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100">
+              <select id="comp-severity" value={complaintSeverity} onChange={(e) => setComplaintSeverity(e.target.value)} className="min-h-[46px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none">
                 <option value="MILD">MILD</option>
                 <option value="MODERATE">MODERATE</option>
                 <option value="SEVERE">SEVERE</option>
@@ -1316,17 +1316,17 @@ export default function PatientPortalPage() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <span className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+          <div className="space-y-2">
+            <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
               {t.complaintDestLabel}
             </span>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {VISIT_DESTINATION_OPTIONS.map((opt) => {
             const active = complaintDest === opt.value;
             const label = lang === "ru" ? opt.ru : lang === "en" ? opt.en : opt.uz;
-            return (<button key={opt.value} type="button" onClick={() => setComplaintDest(opt.value)} className={`min-h-[38px] rounded-xl border px-3 py-1.5 text-[11px] font-semibold transition ${active
-                    ? "border-teal-700 bg-teal-700 text-white"
-                    : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
+            return (<button key={opt.value} type="button" onClick={() => setComplaintDest(opt.value)} className={`min-h-[44px] rounded-xl border px-3.5 py-2 text-sm font-semibold transition-all active:scale-[0.98] ${active
+                    ? "border-teal-700 bg-teal-700 dark:bg-teal-600 text-white shadow-xs"
+                    : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-slate-700 dark:text-slate-200 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B]"}`}>
                     {label}
                   </button>);
         })}
@@ -1334,38 +1334,38 @@ export default function PatientPortalPage() {
           </div>
 
           <div>
-            <label htmlFor="comp-address" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            <label htmlFor="comp-address" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
               {t.complaintAddrLabel}
             </label>
-            <input id="comp-address" type="text" value={complaintAddr} onChange={(e) => setComplaintAddr(e.target.value)} placeholder={ownPatient?.address || t.complaintAddrPlaceholder} className="min-h-[40px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+            <input id="comp-address" type="text" value={complaintAddr} onChange={(e) => setComplaintAddr(e.target.value)} placeholder={ownPatient?.address || t.complaintAddrPlaceholder} className="min-h-[46px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none"/>
           </div>
 
           <div>
-            <label htmlFor="comp-desc" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+            <label htmlFor="comp-desc" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
               {t.complaintDescLabel}
             </label>
-            <textarea id="comp-desc" rows={2} value={complaintDesc} onChange={(e) => setComplaintDesc(e.target.value)} placeholder={t.complaintDescPlaceholder} required className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+            <textarea id="comp-desc" rows={3} value={complaintDesc} onChange={(e) => setComplaintDesc(e.target.value)} placeholder={t.complaintDescPlaceholder} required className="min-h-[88px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none"/>
           </div>
 
-          <button type="submit" disabled={submittingComplaint || !complaintDesc.trim()} className="w-full inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-teal-700 py-2.5 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50 transition">
-            <IconSend className="h-3.5 w-3.5"/>
+          <button type="submit" disabled={submittingComplaint || !complaintDesc.trim()} className="w-full inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 py-3 text-base sm:text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all shadow-sm">
+            <IconSend className="h-4 w-4"/>
             {submittingComplaint ? t.complaintSubmitting : t.complaintSubmitBtn}
           </button>
         </form>
 
-        {complaints.length > 0 && (<div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+        {complaints.length > 0 && (<div className="pt-4 border-t border-[#D7E4E1] dark:border-[#1E353A] space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {t.complaintsListTitle} ({complaints.length})
             </h3>
-            {complaints.map((c) => (<div key={c.id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3 space-y-2 text-xs">
+            {complaints.map((c) => (<div key={c.id} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-4 space-y-2 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="font-bold text-slate-900 dark:text-slate-100">{c.title}</span>
-                    <span className="rounded-full bg-slate-200/80 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-slate-900 dark:text-white">{c.title}</span>
+                    <span className="rounded-full bg-slate-200/80 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
                       {c.category} • {c.severity}
                     </span>
                   </div>
-                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${c.status === "VERIFIED_COMPLETED"
+                  <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${c.status === "VERIFIED_COMPLETED"
                     ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
                     : c.status === "EN_ROUTE" || c.status === "ARRIVED"
                         ? "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"
@@ -1373,10 +1373,10 @@ export default function PatientPortalPage() {
                     {c.status}
                   </span>
                 </div>
-                <p className="text-slate-700 dark:text-slate-300">{c.description}</p>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{c.description}</p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                   <span>
-                    <IconMapPin className="inline h-3 w-3 mr-0.5"/>
+                    <IconMapPin className="inline h-3.5 w-3.5 mr-1"/>
                     {c.visitDestination}: {c.visitAddress}
                   </span>
                   {c.visitOtpCode && (<span className="font-mono font-bold text-teal-700 dark:text-teal-300">
@@ -1386,8 +1386,8 @@ export default function PatientPortalPage() {
                       {t.distanceLabel} <strong>{c.distanceKm} km</strong>
                     </span>)}
                 </div>
-                {c.assignedDoctor && (<div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 text-[11px]">
-                    <span className="font-semibold text-slate-700 dark:text-slate-200">
+                {c.assignedDoctor && (<div className="rounded-xl bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] p-3 text-xs sm:text-sm">
+                    <span className="font-semibold text-slate-800 dark:text-slate-100">
                       {t.matchedDocLabel} {c.assignedDoctor.fullName}
                     </span>{" "}
                     {c.assignedDoctor.specialty ? `(${c.assignedDoctor.specialty})` : ""}
@@ -1395,76 +1395,76 @@ export default function PatientPortalPage() {
                     {typeof c.assignedDoctor.experienceYears === "number"
                         ? ` • ${c.assignedDoctor.experienceYears} ${t.expYearsWord}`
                         : ""}
-                    {c.doctorResponse && (<p className="mt-1 text-teal-800 dark:text-teal-300 font-medium">
+                    {c.doctorResponse && (<p className="mt-1.5 text-teal-800 dark:text-teal-300 font-medium">
                         {t.docReplyLabel} {c.doctorResponse}
                       </p>)}
                   </div>)}
-                {c.status === "VERIFIED_COMPLETED" && (<div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 p-2 text-[11px] text-emerald-800 dark:text-emerald-300">
-                    <p className="font-bold flex items-center gap-1">
-                      <IconCircleCheck className="h-3.5 w-3.5"/>
+                {c.status === "VERIFIED_COMPLETED" && (<div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 p-3 text-xs sm:text-sm text-emerald-800 dark:text-emerald-300">
+                    <p className="font-bold flex items-center gap-1.5">
+                      <IconCircleCheck className="h-4 w-4"/>
                       {t.verifiedBanner}
                     </p>
-                    {c.verifiedVitals && (<p className="font-mono mt-0.5">
+                    {c.verifiedVitals && (<p className="font-mono mt-1">
                         BP {c.verifiedVitals.systolicBp}/{c.verifiedVitals.diastolicBp} • HR {c.verifiedVitals.heartRate} • {c.verifiedVitals.tempC}°C • SpO2 {c.verifiedVitals.spo2}%
                       </p>)}
-                    {c.visitVerificationNote && <p className="mt-0.5">{c.visitVerificationNote}</p>}
+                    {c.visitVerificationNote && <p className="mt-1">{c.visitVerificationNote}</p>}
                   </div>)}
               </div>))}
           </div>)}
       </section>
 
       {/* Direct Advice Chat with Assigned Doctor */}
-      <section id="doctor-direct-chat" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+      <section id="doctor-direct-chat" className="med-card p-5 space-y-3.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <IconMessageCircle className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+            <h2 className="font-heading text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconMessageCircle className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
               {t.chatTitle}
             </h2>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.chatSub}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">{t.chatSub}</p>
           </div>
-          <Link href="/telegram" className="text-[11px] font-semibold text-sky-700 dark:text-sky-400 hover:underline">
+          <Link href="/telegram" className="inline-flex min-h-[40px] items-center text-sm font-semibold text-sky-700 dark:text-sky-300 hover:underline">
             {t.telegramCta} →
           </Link>
         </div>
 
-        <div className="max-h-56 overflow-y-auto space-y-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3">
-          {doctorChatMessages.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 text-center py-3">
+        <div className="max-h-64 overflow-y-auto space-y-2.5 rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-3.5">
+          {doctorChatMessages.length === 0 ? (<p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
               {t.chatEmpty}
             </p>) : (doctorChatMessages.map((msg) => {
             const isMine = msg.senderUserId === authUser?.id || msg.senderRole === "PATIENT";
-            return (<div key={msg.id} className={`rounded-xl p-2.5 text-xs max-w-[88%] ${isMine
-                    ? "ml-auto bg-teal-600 text-white"
-                    : "mr-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"}`}>
-                  <div className="flex items-center justify-between gap-2 text-[10px] opacity-80 mb-0.5">
+            return (<div key={msg.id} className={`rounded-2xl px-3.5 py-2.5 text-sm max-w-[88%] ${isMine
+                    ? "ml-auto bg-teal-700 dark:bg-teal-600 text-white"
+                    : "mr-auto bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100"}`}>
+                  <div className="flex items-center justify-between gap-2 text-xs opacity-80 mb-0.5">
                     <span className="font-bold">{msg.senderName}</span>
                     <span>[{msg.channel}]</span>
                   </div>
-                  <p>{msg.body}</p>
+                  <p className="leading-relaxed">{msg.body}</p>
                 </div>);
         }))}
         </div>
 
-        <form onSubmit={handleSendChat} className="flex gap-2">
-          <input type="text" value={chatBody} onChange={(e) => setChatBody(e.target.value)} placeholder={t.chatPlaceholder} className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"/>
-          <button type="submit" disabled={sendingChat || !chatBody.trim()} className="inline-flex items-center gap-1 rounded-xl bg-slate-900 dark:bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50">
-            <IconSend className="h-3.5 w-3.5"/>
+        <form onSubmit={handleSendChat} className="flex flex-col sm:flex-row gap-2.5">
+          <input type="text" value={chatBody} onChange={(e) => setChatBody(e.target.value)} placeholder={t.chatPlaceholder} className="min-h-[46px] flex-1 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"/>
+          <button type="submit" disabled={sendingChat || !chatBody.trim()} className="inline-flex min-h-[46px] items-center justify-center gap-1.5 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all disabled:opacity-50">
+            <IconSend className="h-4 w-4"/>
             {t.chatSendBtn}
           </button>
         </form>
       </section>
 
       {/* Patient Subscription Plans */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <section className="med-card p-5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <IconCrown className="h-4 w-4 text-amber-500"/>
+            <h2 className="font-heading text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconCrown className="h-5 w-5 text-amber-500"/>
               {t.subTitle}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{t.subSub}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">{t.subSub}</p>
           </div>
-          <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)} aria-label="Payment method" className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs text-slate-800 dark:text-slate-200">
+          <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)} aria-label="Payment method" className="min-h-[44px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-800 dark:text-slate-100">
             <option value="PAYME">Payme</option>
             <option value="CLICK">Click</option>
             <option value="UZCARD">Uzcard</option>
@@ -1472,30 +1472,30 @@ export default function PatientPortalPage() {
           </select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           {PATIENT_PLANS.map((plan) => {
             const isCurrent = currentSubTier === plan.code;
             const title = lang === "ru" ? plan.nameRu : lang === "en" ? plan.nameEn : plan.nameUz;
             const badge = lang === "ru" ? plan.badgeRu : lang === "en" ? plan.badgeEn : plan.badgeUz;
             const feats = lang === "ru" ? plan.featuresRu : lang === "en" ? plan.featuresEn : plan.featuresUz;
-            return (<div key={plan.code} className={`rounded-xl border p-3.5 flex flex-col justify-between space-y-3 ${isCurrent
-                    ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/40"
-                    : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50"}`}>
-                <div className="space-y-1.5">
-                  <span className="inline-block rounded-full bg-amber-100 dark:bg-amber-950/70 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+            return (<div key={plan.code} className={`rounded-2xl border p-4 flex flex-col justify-between space-y-3.5 transition-all ${isCurrent
+                    ? "border-teal-600 dark:border-teal-400 bg-[#EDF5F3] dark:bg-[#16272B]"
+                    : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/70 dark:bg-[#091315]"}`}>
+                <div className="space-y-2">
+                  <span className="inline-block rounded-full bg-amber-100 dark:bg-amber-950/70 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
                     {badge}
                   </span>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">{title}</h3>
-                  <ul className="space-y-1 text-[11px] text-slate-600 dark:text-slate-300">
-                    {feats.map((f, idx) => (<li key={idx} className="flex items-start gap-1">
-                        <IconCheck className="h-3.5 w-3.5 text-teal-600 shrink-0 mt-0.5"/>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">{title}</h3>
+                  <ul className="space-y-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                    {feats.map((f, idx) => (<li key={idx} className="flex items-start gap-1.5">
+                        <IconCheck className="h-4 w-4 text-teal-600 shrink-0 mt-0.5"/>
                         <span>{f}</span>
                       </li>))}
                   </ul>
                 </div>
-                <button type="button" disabled={isCurrent || buyingPlanCode === plan.code} onClick={() => handleBuySubscription(plan.code)} className={`w-full rounded-lg py-2 text-xs font-bold transition ${isCurrent
+                <button type="button" disabled={isCurrent || buyingPlanCode === plan.code} onClick={() => handleBuySubscription(plan.code)} className={`w-full min-h-[46px] rounded-xl py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${isCurrent
                     ? "bg-emerald-600 text-white opacity-90"
-                    : "bg-slate-900 dark:bg-teal-600 text-white hover:bg-slate-800 dark:hover:bg-teal-500"} disabled:opacity-60`}>
+                    : "bg-teal-700 dark:bg-teal-600 text-white hover:bg-teal-800 dark:hover:bg-teal-500"} disabled:opacity-60`}>
                   {isCurrent ? t.subActiveBtn : buyingPlanCode === plan.code ? "..." : t.subBuyBtn}
                 </button>
               </div>);
@@ -1503,29 +1503,29 @@ export default function PatientPortalPage() {
         </div>
       </section>
 
-      {!call ? (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center text-xs text-slate-500 dark:text-slate-400">
+      {!call ? (<div className="med-card p-6 text-center text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
           {t.noCall}
         </div>) : (<>
           {/* Assigned Family Doctor & 24h Visit Window */}
-          <section className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/30 p-4 space-y-3">
+          <section className="med-card border-teal-200 dark:border-teal-800/80 bg-[#EDF5F3]/80 dark:bg-teal-950/30 p-4 sm:p-5 space-y-3.5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                   {t.doctorTitle}
                 </p>
-                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+                <h2 className="font-heading text-lg font-bold text-slate-900 dark:text-white mt-0.5">
                   {call.assignedDoctor.fullName}
                 </h2>
-                <p className="text-xs text-slate-600 dark:text-slate-300">
+                <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">
                   {call.polyclinicName} • {call.assignedDoctor.phone}
                 </p>
               </div>
               {data?.simState && (<SlaCountdownBadge dischargedAt={call.dischargedAt} slaDeadlineAt={call.slaDeadlineAt} simulatedNow={data.simState.simulatedNow} dataLoadedAtMs={dataLoadedAtMs} status={call.status} plainMode/>)}
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white dark:bg-slate-900 p-3 border border-teal-100 dark:border-teal-900 text-xs text-slate-700 dark:text-slate-300">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl bg-white dark:bg-[#101E21] p-3.5 border border-[#D7E4E1] dark:border-[#1E353A] text-sm text-slate-700 dark:text-slate-200">
               <span>
                 {t.visitWindow}{" "}
-                <strong className="text-slate-900 dark:text-slate-100">
+                <strong className="text-slate-900 dark:text-white">
                   {new Date(call.scheduledWindowStart).toLocaleTimeString("en-GB", {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -1537,8 +1537,8 @@ export default function PatientPortalPage() {
             })}
                 </strong>
               </span>
-              <span className="inline-flex items-center gap-1.5 font-mono font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 rounded-lg border border-teal-200 dark:border-teal-800">
-                <IconKey className="h-3.5 w-3.5"/>
+              <span className="inline-flex items-center gap-1.5 font-mono text-sm font-bold text-teal-800 dark:text-teal-200 bg-[#EDF5F3] dark:bg-teal-950/60 px-3 py-1.5 rounded-xl border border-[#D7E4E1] dark:border-teal-800">
+                <IconKey className="h-4 w-4"/>
                 <InfoTooltip label={`${t.visitCodeLabel}:`} explanation={t.visitCodeTip}/>
                 {call.patientOtpCode}
               </span>
@@ -1546,12 +1546,12 @@ export default function PatientPortalPage() {
           </section>
 
           {/* Home Care Guide */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <IconShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+          <section className="med-card p-4 sm:p-5 space-y-3.5">
+            <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
               {t.guideTitle}
             </h2>
-            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950/60 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed bg-[#F4F8F7] dark:bg-[#091315] rounded-xl p-3.5 border border-[#D7E4E1] dark:border-[#1E353A]">
               {lang === "ru"
                 ? call.patientGuide.summaryRu
                 : lang === "en"
@@ -1560,25 +1560,25 @@ export default function PatientPortalPage() {
             </p>
 
             <div>
-              <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">{t.rulesTitle}</h3>
-              <ul className="space-y-1.5">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-2">{t.rulesTitle}</h3>
+              <ul className="space-y-2">
                 {(lang === "ru"
                 ? call.patientGuide.dailyRulesRu
                 : lang === "en"
                     ? call.patientGuide.dailyRulesEn
-                    : call.patientGuide.dailyRulesUz)?.map((rule, idx) => (<li key={idx} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300">
-                    <IconCircleCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"/>
+                    : call.patientGuide.dailyRulesUz)?.map((rule, idx) => (<li key={idx} className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                    <IconCircleCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"/>
                     <span>{rule}</span>
                   </li>))}
               </ul>
             </div>
 
-            <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/70 dark:bg-rose-950/40 p-3">
-              <h3 className="text-xs font-bold text-rose-800 dark:text-rose-300 mb-1.5 flex items-center gap-1.5">
-                <IconPhoneCall className="h-3.5 w-3.5"/>
+            <div className="rounded-xl border border-rose-200 dark:border-rose-800/80 bg-rose-50/80 dark:bg-rose-950/40 p-3.5">
+              <h3 className="text-sm font-bold text-rose-800 dark:text-rose-200 mb-2 flex items-center gap-2">
+                <IconPhoneCall className="h-4 w-4"/>
                 {t.dangerTitle}
               </h3>
-              <ul className="space-y-1 text-xs text-rose-900 dark:text-rose-200 list-disc pl-4">
+              <ul className="space-y-1.5 text-sm text-rose-900 dark:text-rose-200 list-disc pl-5 leading-relaxed">
                 {(lang === "ru"
                 ? call.patientGuide.emergencySignsRu
                 : lang === "en"
@@ -1589,14 +1589,14 @@ export default function PatientPortalPage() {
           </section>
 
           {/* Daily Symptom Check-in */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <IconHeartbeat className="h-4 w-4 text-rose-600 dark:text-rose-400"/>
+          <section className="med-card p-4 sm:p-5 space-y-4">
+            <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconHeartbeat className="h-5 w-5 text-rose-600 dark:text-rose-400"/>
               {t.checkinTitle}
             </h2>
-            <form onSubmit={handleSymptomSubmit} className="space-y-3">
+            <form onSubmit={handleSymptomSubmit} className="space-y-3.5">
               {/* Primary 4 Red-Flag Checkboxes */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {PRIMARY_RED_FLAG_SYMPTOMS.map((sym) => {
                 const stateMap = {
                     fever: { checked: fever, set: setFever },
@@ -1605,50 +1605,50 @@ export default function PatientPortalPage() {
                     swelling: { checked: swelling, set: setSwelling },
                 };
                 const ctrl = stateMap[sym.key];
-                return (<label key={sym.key} className={`flex items-center gap-2.5 rounded-xl border p-3 text-xs font-medium cursor-pointer transition ${ctrl.checked
-                        ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
-                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300"}`}>
-                      <input type="checkbox" checked={ctrl.checked} onChange={(e) => ctrl.set(e.target.checked)} className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-rose-600"/>
+                return (<label key={sym.key} className={`min-h-[48px] flex items-center gap-3 rounded-xl border p-3.5 text-sm font-medium cursor-pointer transition-all ${ctrl.checked
+                        ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-100 shadow-xs"
+                        : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-slate-700 dark:text-slate-200 hover:border-teal-500/60"}`}>
+                      <input type="checkbox" checked={ctrl.checked} onChange={(e) => ctrl.set(e.target.checked)} className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-rose-600 accent-rose-600 shrink-0"/>
                       <span>{lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}</span>
                     </label>);
             })}
               </div>
 
               {/* Collapsible Extended Illnesses & Symptoms List */}
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 overflow-hidden">
-                <button type="button" aria-expanded={extendedOpen} onClick={() => setExtendedOpen((v) => !v)} className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-left text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-900/60 transition">
+              <div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/80 dark:bg-[#091315] overflow-hidden">
+                <button type="button" aria-expanded={extendedOpen} onClick={() => setExtendedOpen((v) => !v)} className="w-full min-h-[48px] flex items-center justify-between gap-2 px-4 py-3 text-left text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] transition-colors">
                   <span className="flex flex-wrap items-center gap-2">
                     <span>
                       {t.moreConditionsTitle} ({EXTENDED_SYMPTOMS_CATALOG.length})
                     </span>
-                    {additionalSymptoms.length > 0 && (<span className="rounded-full bg-teal-100 dark:bg-teal-950/80 border border-teal-300 dark:border-teal-800 px-2 py-0.5 text-[10px] font-bold text-teal-800 dark:text-teal-300">
+                    {additionalSymptoms.length > 0 && (<span className="rounded-full bg-teal-100 dark:bg-teal-950/80 border border-teal-300 dark:border-teal-800 px-2.5 py-0.5 text-xs font-bold text-teal-800 dark:text-teal-300">
                         {additionalSymptoms.length} {t.selectedCountLabel}
                       </span>)}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700 dark:text-teal-400 shrink-0">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 dark:text-teal-300 shrink-0">
                     {extendedOpen ? t.moreConditionsToggleHide : t.moreConditionsToggleShow}
                     {extendedOpen ? (<IconChevronUp className="h-4 w-4"/>) : (<IconChevronDown className="h-4 w-4"/>)}
                   </span>
                 </button>
 
-                {extendedOpen && (<div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-3">
+                {extendedOpen && (<div className="border-t border-[#D7E4E1] dark:border-[#1E353A] p-3.5 space-y-4 oc-slide-down">
                     {/* Sub-group 1: Physical & Postpartum Symptoms */}
-                    <div className="space-y-2">
-                      <button type="button" aria-expanded={physicalGroupOpen} onClick={() => setPhysicalGroupOpen((v) => !v)} className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                    <div className="space-y-2.5">
+                      <button type="button" aria-expanded={physicalGroupOpen} onClick={() => setPhysicalGroupOpen((v) => !v)} className="w-full min-h-[40px] flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
                         <span>
                           {t.physicalGroupTitle} ({physicalSymptoms.length})
                         </span>
-                        {physicalGroupOpen ? (<IconChevronUp className="h-3.5 w-3.5"/>) : (<IconChevronDown className="h-3.5 w-3.5"/>)}
+                        {physicalGroupOpen ? (<IconChevronUp className="h-4 w-4"/>) : (<IconChevronDown className="h-4 w-4"/>)}
                       </button>
-                      {physicalGroupOpen && (<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {physicalGroupOpen && (<div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           {physicalSymptoms.map((sym) => {
                         const checked = additionalSymptoms.includes(sym.id);
-                        return (<label key={sym.id} className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-xs font-medium cursor-pointer transition ${checked
+                        return (<label key={sym.id} className={`min-h-[44px] flex items-center gap-2.5 rounded-xl border p-3 text-sm font-medium cursor-pointer transition-all ${checked
                                 ? sym.triage === "CRITICAL"
-                                    ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
-                                    : "border-teal-400 dark:border-teal-700 bg-teal-50/70 dark:bg-teal-950/50 text-teal-900 dark:text-teal-200"
-                                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"}`}>
-                                <input type="checkbox" checked={checked} onChange={() => toggleAdditionalSymptom(sym.id)} className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600"/>
+                                    ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-100"
+                                    : "border-teal-500 dark:border-teal-600 bg-[#EDF5F3] dark:bg-teal-950/50 text-teal-900 dark:text-teal-100"
+                                : "border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] text-slate-700 dark:text-slate-200"}`}>
+                                <input type="checkbox" checked={checked} onChange={() => toggleAdditionalSymptom(sym.id)} className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 accent-teal-600 shrink-0"/>
                                 <span>
                                   {lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}
                                 </span>
@@ -1658,20 +1658,20 @@ export default function PatientPortalPage() {
                     </div>
 
                     {/* Sub-group 2: Illnesses & Other Health Conditions */}
-                    <div className="space-y-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
-                      <button type="button" aria-expanded={illnessGroupOpen} onClick={() => setIllnessGroupOpen((v) => !v)} className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                    <div className="space-y-2.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+                      <button type="button" aria-expanded={illnessGroupOpen} onClick={() => setIllnessGroupOpen((v) => !v)} className="w-full min-h-[40px] flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
                         <span>
                           {t.illnessGroupTitle} ({illnessConditions.length})
                         </span>
-                        {illnessGroupOpen ? (<IconChevronUp className="h-3.5 w-3.5"/>) : (<IconChevronDown className="h-3.5 w-3.5"/>)}
+                        {illnessGroupOpen ? (<IconChevronUp className="h-4 w-4"/>) : (<IconChevronDown className="h-4 w-4"/>)}
                       </button>
-                      {illnessGroupOpen && (<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {illnessGroupOpen && (<div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           {illnessConditions.map((sym) => {
                         const checked = additionalSymptoms.includes(sym.id);
-                        return (<label key={sym.id} className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-xs font-medium cursor-pointer transition ${checked
-                                ? "border-teal-400 dark:border-teal-700 bg-teal-50/70 dark:bg-teal-950/50 text-teal-900 dark:text-teal-200"
-                                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"}`}>
-                                <input type="checkbox" checked={checked} onChange={() => toggleAdditionalSymptom(sym.id)} className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600"/>
+                        return (<label key={sym.id} className={`min-h-[44px] flex items-center gap-2.5 rounded-xl border p-3 text-sm font-medium cursor-pointer transition-all ${checked
+                                ? "border-teal-500 dark:border-teal-600 bg-[#EDF5F3] dark:bg-teal-950/50 text-teal-900 dark:text-teal-100"
+                                : "border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] text-slate-700 dark:text-slate-200"}`}>
+                                <input type="checkbox" checked={checked} onChange={() => toggleAdditionalSymptom(sym.id)} className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 accent-teal-600 shrink-0"/>
                                 <span>
                                   {lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}
                                 </span>
@@ -1683,19 +1683,19 @@ export default function PatientPortalPage() {
               </div>
 
               {/* Collapsible Write-Your-Own Condition / Illness + Seriousness Rating */}
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 overflow-hidden">
-                <button type="button" aria-expanded={customSectionOpen} onClick={() => setCustomSectionOpen((v) => !v)} className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 text-left text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-900/60 transition">
+              <div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/80 dark:bg-[#091315] overflow-hidden">
+                <button type="button" aria-expanded={customSectionOpen} onClick={() => setCustomSectionOpen((v) => !v)} className="w-full min-h-[48px] flex items-center justify-between gap-2 px-4 py-3 text-left text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] transition-colors">
                   <span className="flex flex-wrap items-center gap-2">
                     <span>{t.customSectionTitle}</span>
-                    {customConditions.length > 0 && (<span className="rounded-full bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-800 px-2 py-0.5 text-[10px] font-bold text-indigo-800 dark:text-indigo-300">
+                    {customConditions.length > 0 && (<span className="rounded-full bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-800 px-2.5 py-0.5 text-xs font-bold text-indigo-800 dark:text-indigo-300">
                         {customConditions.length}
                       </span>)}
                   </span>
                   {customSectionOpen ? (<IconChevronUp className="h-4 w-4 text-slate-500 shrink-0"/>) : (<IconChevronDown className="h-4 w-4 text-slate-500 shrink-0"/>)}
                 </button>
 
-                {customSectionOpen && (<div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-2.5">
-                    <div className="flex flex-col sm:flex-row gap-2">
+                {customSectionOpen && (<div className="border-t border-[#D7E4E1] dark:border-[#1E353A] p-3.5 space-y-3 oc-slide-down">
+                    <div className="flex flex-col sm:flex-row gap-2.5">
                       <div className="flex-1">
                         <label htmlFor="custom-condition-name" className="sr-only">
                           {t.customNameLabel}
@@ -1705,32 +1705,32 @@ export default function PatientPortalPage() {
                         e.preventDefault();
                         handleAddCustomCondition();
                     }
-                }} placeholder={t.customNamePlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
+                }} placeholder={t.customNamePlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
                       </div>
-                      <button type="button" disabled={!customConditionName.trim()} onClick={handleAddCustomCondition} className="inline-flex items-center justify-center gap-1 rounded-xl border border-teal-600 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/60 px-3.5 py-2 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/60 disabled:opacity-40 transition shrink-0">
-                        <IconPlus className="h-3.5 w-3.5"/>
+                      <button type="button" disabled={!customConditionName.trim()} onClick={handleAddCustomCondition} className="min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-teal-600 dark:border-teal-700 bg-[#EDF5F3] dark:bg-teal-950/60 px-4 py-2.5 text-sm font-semibold text-teal-800 dark:text-teal-200 hover:bg-teal-100 dark:hover:bg-teal-900/60 disabled:opacity-40 active:scale-[0.98] transition-all shrink-0">
+                        <IconPlus className="h-4 w-4"/>
                         {t.customAddBtn}
                       </button>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <span className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    <div className="space-y-2">
+                      <span className="block text-xs font-semibold text-slate-600 dark:text-slate-300">
                         {t.customSeverityLabel}
                       </span>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {CONDITION_SEVERITY_OPTIONS.map((opt) => {
                     const active = customConditionSeverity === opt.value;
                     const label = lang === "ru" ? opt.ru : lang === "en" ? opt.en : opt.uz;
-                    return (<button key={opt.value} type="button" aria-pressed={active} onClick={() => setCustomConditionSeverity(opt.value)} className={`rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold text-center transition ${active
+                    return (<button key={opt.value} type="button" aria-pressed={active} onClick={() => setCustomConditionSeverity(opt.value)} className={`min-h-[44px] rounded-xl border px-3 py-2 text-xs font-semibold text-center transition-all active:scale-[0.98] ${active
                             ? `${opt.badgeClass} ring-2 ring-teal-500/40`
-                            : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"}`}>
+                            : "border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] text-slate-600 dark:text-slate-300 hover:border-teal-500/50"}`}>
                               {label}
                             </button>);
                 })}
                       </div>
                     </div>
 
-                    {customConditions.length > 0 && (<div className="flex flex-wrap gap-1.5 pt-1">
+                    {customConditions.length > 0 && (<div className="flex flex-wrap gap-2 pt-1">
                         {customConditions.map((entry) => {
                         const sevMeta = getSeverityMeta(entry.severity);
                         const sevLabel = lang === "ru"
@@ -1738,11 +1738,11 @@ export default function PatientPortalPage() {
                             : lang === "en"
                                 ? sevMeta.en
                                 : sevMeta.uz;
-                        return (<span key={entry.id} className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${sevMeta.badgeClass}`}>
+                        return (<span key={entry.id} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${sevMeta.badgeClass}`}>
                               <span>{entry.name}</span>
                               <span className="opacity-75">({sevLabel})</span>
-                              <button type="button" aria-label={`${t.customRemoveAria}: ${entry.name}`} onClick={() => handleRemoveCustomCondition(entry.id)} className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10">
-                                <IconX className="h-3 w-3"/>
+                              <button type="button" aria-label={`${t.customRemoveAria}: ${entry.name}`} onClick={() => handleRemoveCustomCondition(entry.id)} className="rounded-full p-1 hover:bg-black/10 dark:hover:bg-white/10">
+                                <IconX className="h-3.5 w-3.5"/>
                               </button>
                             </span>);
                     })}
@@ -1750,39 +1750,39 @@ export default function PatientPortalPage() {
                   </div>)}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="patient-bp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                  <label htmlFor="patient-bp" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                     <InfoTooltip label={t.bpLabel} explanation={t.bpTip}/>
                   </label>
-                  <input id="patient-bp" name="bpReading" type="text" value={bpReading} onChange={(e) => setBpReading(e.target.value)} placeholder="120/80" className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono text-xs text-slate-900 dark:text-slate-100 focus:border-teal-600 focus:outline-none"/>
+                  <input id="patient-bp" name="bpReading" type="text" value={bpReading} onChange={(e) => setBpReading(e.target.value)} placeholder="120/80" className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 font-mono text-base sm:text-sm text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"/>
                 </div>
                 <div>
-                  <label htmlFor="patient-notes" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                  <label htmlFor="patient-notes" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                     {t.notesLabel}
                   </label>
-                  <input id="patient-notes" name="notes" type="text" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.notesPlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
+                  <input id="patient-notes" name="notes" type="text" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.notesPlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
                 </div>
               </div>
 
-              <button type="submit" disabled={submittingSym} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-teal-600 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50 transition">
-                <IconSend className="h-3.5 w-3.5"/>
+              <button type="submit" disabled={submittingSym} className="w-full min-h-[48px] inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 py-3 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
+                <IconSend className="h-4 w-4"/>
                 {submittingSym ? t.checkinSending : t.checkinBtn}
               </button>
             </form>
 
-            {call.symptomCheckins.length > 0 && (<div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            {call.symptomCheckins.length > 0 && (<div className="space-y-2.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
                 {call.symptomCheckins.map((sc) => {
                     const extraList = sc.additionalSymptoms ?? [];
                     const customList = sc.customConditions ?? [];
-                    return (<div key={sc.id} className={`rounded-xl border p-3 text-xs space-y-1.5 ${sc.aiTriageLevel === "RED_EMERGENCY"
+                    return (<div key={sc.id} className={`rounded-xl border p-3.5 text-sm space-y-2 ${sc.aiTriageLevel === "RED_EMERGENCY"
                             ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
                             : sc.aiTriageLevel === "YELLOW"
                                 ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
                                 : "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200"}`}>
                       <div className="flex items-center justify-between font-bold">
-                        <span className="inline-flex items-center gap-1">
-                          <IconAlertOctagon className="h-3.5 w-3.5"/>
+                        <span className="inline-flex items-center gap-1.5">
+                          <IconAlertOctagon className="h-4 w-4"/>
                           {sc.aiTriageLevel === "RED_EMERGENCY"
                             ? t.statusUrgent
                             : sc.aiTriageLevel === "YELLOW"
@@ -1790,55 +1790,55 @@ export default function PatientPortalPage() {
                                 : t.statusNormal}{" "}
                           ({sc.bpReading})
                         </span>
-                        <span className="font-mono text-[10px]">
+                        <span className="font-mono text-xs">
                           {new Date(sc.createdAt).toLocaleTimeString("en-GB", {
                             hour: "2-digit",
                             minute: "2-digit",
                         })}
                         </span>
                       </div>
-                      <p>
+                      <p className="leading-relaxed">
                         {lang === "ru"
                             ? sc.aiAdviceRu
                             : lang === "en"
                                 ? sc.aiAdviceEn
                                 : sc.aiAdviceUz}
                       </p>
-                      {(extraList.length > 0 || customList.length > 0) && (<div className="flex flex-wrap gap-1 pt-1">
-                          {extraList.map((id) => (<span key={id} className="rounded-full bg-white/80 dark:bg-slate-900/70 border border-current/20 px-2 py-0.5 text-[10px] font-semibold">
+                      {(extraList.length > 0 || customList.length > 0) && (<div className="flex flex-wrap gap-1.5 pt-1">
+                          {extraList.map((id) => (<span key={id} className="rounded-full bg-white/85 dark:bg-[#101E21]/80 border border-current/20 px-2.5 py-0.5 text-xs font-semibold">
                               {getSymptomLabel(id, lang)}
                             </span>))}
                           {customList.map((c) => {
                                 const sev = getSeverityMeta(c.severity);
                                 const sevLabel = lang === "ru" ? sev.ru : lang === "en" ? sev.en : sev.uz;
-                                return (<span key={c.id} className="rounded-full bg-white/90 dark:bg-slate-900/80 border border-current/25 px-2 py-0.5 text-[10px] font-semibold">
+                                return (<span key={c.id} className="rounded-full bg-white/95 dark:bg-[#101E21]/90 border border-current/25 px-2.5 py-0.5 text-xs font-semibold">
                                 {c.name} • {sevLabel}
                               </span>);
                             })}
                         </div>)}
-                      {sc.notes && (<p className="text-[11px] opacity-85 italic">{sc.notes}</p>)}
+                      {sc.notes && (<p className="text-xs opacity-85 italic">{sc.notes}</p>)}
                     </div>);
                 })}
               </div>)}
           </section>
 
           {/* Hospital Results */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <IconFlask className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+          <section className="med-card p-4 sm:p-5 space-y-3">
+            <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconFlask className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
               <InfoTooltip label={t.labsTitle} explanation={t.labsTip}/>
             </h2>
-            {(call.patient?.labReports ?? []).map((lab) => (<div key={lab.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-1.5">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{lab.panelName}</p>
+            {(call.patient?.labReports ?? []).map((lab) => (<div key={lab.id} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] p-3.5 space-y-2">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{lab.panelName}</p>
                 {(lab.results ?? []).map((r, idx) => {
                     const labTip = getLabTooltip(r.testName, lang);
-                    return (<div key={idx} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                    return (<div key={idx} className="flex items-center justify-between gap-2 text-sm py-1.5 border-b border-[#D7E4E1]/70 dark:border-[#1E353A] last:border-0">
                       <span className="text-slate-600 dark:text-slate-300">
                         {labTip ? (<InfoTooltip label={r.testName} explanation={labTip}/>) : (r.testName)}
                       </span>
-                      <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                      <span className="font-mono font-bold text-slate-900 dark:text-white">
                         {r.value} {r.unit}{" "}
-                        {r.flag !== "NORMAL" && (<span className="ml-1 text-[10px] text-rose-600 dark:text-rose-400">
+                        {r.flag !== "NORMAL" && (<span className="ml-1 text-xs text-rose-600 dark:text-rose-400">
                             ({t.flagAbnormal})
                           </span>)}
                       </span>
@@ -1848,25 +1848,27 @@ export default function PatientPortalPage() {
           </section>
 
           {/* 4-Digit Code / 1-Tap Visit Confirmation */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">{t.confirmTitle}</h2>
-            {call.status === "COMPLETED" ? (<div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                <IconCircleCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400"/>
-                {t.confirmedPrefix}{" "}
-                {call.visitVerifiedAt
+          <section className="med-card p-4 sm:p-5 space-y-3.5">
+            <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white">{t.confirmTitle}</h2>
+            {call.status === "COMPLETED" ? (<div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 p-3.5 text-sm font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                <IconCircleCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0"/>
+                <span>
+                  {t.confirmedPrefix}{" "}
+                  {call.visitVerifiedAt
                     ? new Date(call.visitVerifiedAt).toLocaleString("en-GB")
                     : ""}
-              </div>) : (<div className="space-y-2.5">
-                <div className="flex flex-col sm:flex-row gap-2">
+                </span>
+              </div>) : (<div className="space-y-3">
+                <div className="flex flex-col sm:flex-row gap-2.5">
                   <label htmlFor="patient-otp" className="sr-only">
                     {t.visitCodeLabel}
                   </label>
-                  <input id="patient-otp" name="otp" type="text" inputMode="numeric" autoComplete="one-time-code" value={otpInput} onChange={(e) => setOtpInput(e.target.value)} placeholder={`${t.otpPlaceholder} ${call.patientOtpCode})`} maxLength={4} className="min-h-[44px] flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
-                  <button onClick={() => handleConfirmVisit("OTP_4DIGIT")} disabled={confirming || otpInput.length !== 4} className="min-h-[44px] rounded-xl bg-teal-700 px-4 py-2 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50">
+                  <input id="patient-otp" name="otp" type="text" inputMode="numeric" autoComplete="one-time-code" value={otpInput} onChange={(e) => setOtpInput(e.target.value)} placeholder={`${t.otpPlaceholder} ${call.patientOtpCode})`} maxLength={4} className="min-h-[46px] flex-1 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 font-mono text-base sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
+                  <button onClick={() => handleConfirmVisit("OTP_4DIGIT")} disabled={confirming || otpInput.length !== 4} className="min-h-[46px] rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
                     {t.otpBtn}
                   </button>
                 </div>
-                <button onClick={() => handleConfirmVisit("ONE_TAP_PORTAL")} disabled={confirming} className="w-full min-h-[44px] rounded-xl border border-teal-600 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/50 py-2.5 text-xs font-bold text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 disabled:opacity-50">
+                <button onClick={() => handleConfirmVisit("ONE_TAP_PORTAL")} disabled={confirming} className="w-full min-h-[48px] rounded-xl border border-teal-600 dark:border-teal-700 bg-[#EDF5F3] dark:bg-teal-950/50 py-3 text-sm font-bold text-teal-800 dark:text-teal-200 hover:bg-teal-100 dark:hover:bg-teal-900/50 active:scale-[0.98] disabled:opacity-50 transition-all">
                   {t.oneTapBtn}
                 </button>
               </div>)}
@@ -1874,23 +1876,23 @@ export default function PatientPortalPage() {
         </>)}
 
       {/* Active Medicines, Adherence & Telegram Reminders */}
-      {activePrescriptions.length > 0 && (<section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-            <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+      {activePrescriptions.length > 0 && (<section className="med-card p-4 sm:p-5 space-y-3.5">
+          <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <IconPill className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
             {t.rxTitle}
           </h2>
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {activePrescriptions.map((rx) => {
                 const draft = rxReminderDrafts[rx.id];
                 const timesText = draft?.timesText ?? (rx.reminderTimes ?? []).join(", ");
                 const remindersEnabled = draft?.enabled ?? rx.remindersEnabled !== false;
-                return (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-2.5">
+                return (<div key={rx.id} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] p-3.5 space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">
                         {rx.medicationName} — {rx.dosage}
                       </p>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
                         {rx.frequency} •{" "}
                         {lang === "ru"
                         ? rx.instructionsRu
@@ -1898,26 +1900,26 @@ export default function PatientPortalPage() {
                             ? rx.instructionsEn
                             : rx.instructionsUz}
                       </p>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         {t.loggedDoses} {(rx.adherenceLogs ?? []).length}
                       </p>
                     </div>
-                    <button type="button" onClick={() => handleAdherence(rx.id)} className="inline-flex items-center gap-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 px-3 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/60">
-                      <IconCheck className="h-3.5 w-3.5"/>
+                    <button type="button" onClick={() => handleAdherence(rx.id)} className="min-h-[44px] inline-flex items-center gap-1.5 rounded-xl bg-[#EDF5F3] dark:bg-teal-950/60 px-4 py-2 text-sm font-semibold text-teal-800 dark:text-teal-200 border border-[#D7E4E1] dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/60 active:scale-[0.98] transition-all">
+                      <IconCheck className="h-4 w-4"/>
                       {t.takenBtn}
                     </button>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                  <div className="flex flex-wrap items-center gap-2.5 pt-2.5 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+                    <label className="min-h-[40px] inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
                       <input type="checkbox" checked={remindersEnabled} onChange={(e) => setRxReminderDrafts((prev) => ({
                         ...prev,
                         [rx.id]: {
                             timesText,
                             enabled: e.target.checked,
                         },
-                    }))} className="h-3.5 w-3.5 accent-teal-600"/>
-                      <IconBell className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                    }))} className="h-4 w-4 accent-teal-600"/>
+                      <IconBell className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
                       <span>{t.rxReminderLabel}</span>
                     </label>
                     <input type="text" value={timesText} onChange={(e) => setRxReminderDrafts((prev) => ({
@@ -1926,8 +1928,8 @@ export default function PatientPortalPage() {
                             timesText: e.target.value,
                             enabled: remindersEnabled,
                         },
-                    }))} placeholder="08:00, 20:00" className="flex-1 min-w-[140px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs font-mono text-slate-900 dark:text-slate-100"/>
-                    <button type="button" disabled={savingRxId === rx.id} onClick={() => handleSaveRxReminder(rx)} className="rounded-lg bg-slate-900 dark:bg-teal-600 px-3 py-1 text-[11px] font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50">
+                    }))} placeholder="08:00, 20:00" className="flex-1 min-w-[150px] min-h-[44px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-2 text-base sm:text-sm font-mono text-slate-900 dark:text-white"/>
+                    <button type="button" disabled={savingRxId === rx.id} onClick={() => handleSaveRxReminder(rx)} className="min-h-[44px] rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
                       {savingRxId === rx.id ? "..." : t.rxSaveReminderBtn}
                     </button>
                   </div>
@@ -1937,39 +1939,39 @@ export default function PatientPortalPage() {
         </section>)}
 
       {/* Perinatal Psychologist Support, Consent, Sessions & Direct Chat */}
-      <section id="psychologist-support" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-4">
+      <section id="psychologist-support" className="med-card p-4 sm:p-5 space-y-4">
         <div>
-          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-            <IconHeartHandshake className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+          <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <IconHeartHandshake className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
             {t.psychTitle}
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t.psychSub}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{t.psychSub}</p>
         </div>
 
-        {psychologists.length === 0 ? (<p className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3 text-xs text-slate-500 dark:text-slate-400">
+        {psychologists.length === 0 ? (<p className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-4 text-sm text-slate-600 dark:text-slate-300">
             {t.psychEmpty}
           </p>) : (<>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {psychologists.map((psych) => {
                     const isSelected = psych.id === activePsychId;
                     const hasConsent = psychConsents.some((c) => c.psychologistId === psych.id && c.status === "ACTIVE");
-                    return (<div key={psych.id} className={`rounded-xl border p-3 space-y-2 transition ${isSelected
-                            ? "border-teal-600 bg-teal-50/40 dark:bg-teal-950/30"
-                            : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40"}`}>
+                    return (<div key={psych.id} className={`rounded-xl border p-3.5 space-y-2.5 transition-all ${isSelected
+                            ? "border-teal-600 bg-[#EDF5F3] dark:bg-teal-950/30 ring-1 ring-teal-500/40"
+                            : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315]"}`}>
                       <div className="flex items-start justify-between gap-2">
                         <button type="button" onClick={() => setSelectedPsychId(psych.id)} className="text-left">
-                          <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{psych.fullName}</p>
-                          <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">{psych.fullName}</p>
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
                             {psych.specialty || psych.expertiseArea || "Perinatal"} • {psych.district}
                             {psych.experienceYears ? ` • ${psych.experienceYears} ${t.expYearsWord}` : ""}
                           </p>
                         </button>
-                        {hasConsent && (<span className="rounded-full bg-emerald-100 dark:bg-emerald-950/70 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                        {hasConsent && (<span className="rounded-full bg-emerald-100 dark:bg-emerald-950/70 px-2.5 py-0.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 shrink-0">
                             ACTIVE
                           </span>)}
                       </div>
-                      <button type="button" disabled={psychActionBusy} onClick={() => handlePsychConsent(psych.id, !hasConsent)} className={`w-full rounded-lg px-2.5 py-1.5 text-[11px] font-bold border transition disabled:opacity-50 ${hasConsent
-                            ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100"
+                      <button type="button" disabled={psychActionBusy} onClick={() => handlePsychConsent(psych.id, !hasConsent)} className={`w-full min-h-[44px] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold border transition-all active:scale-[0.98] disabled:opacity-50 ${hasConsent
+                            ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-200 hover:bg-rose-100"
                             : "border-teal-600 bg-teal-700 text-white hover:bg-teal-800"}`}>
                         {hasConsent ? t.psychConsentWithdraw : t.psychConsentGrant}
                       </button>
@@ -1979,72 +1981,72 @@ export default function PatientPortalPage() {
 
             {activePsychId && (() => {
                     const selectedConsentActive = psychConsents.some((c) => c.psychologistId === activePsychId && c.status === "ACTIVE");
-                    return (<div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <form onSubmit={handleBookPsychSession} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50 p-3 space-y-2">
-                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                      <IconCalendarEvent className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                    return (<div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+                  <form onSubmit={handleBookPsychSession} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/80 dark:bg-[#091315] p-3.5 space-y-2.5">
+                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                      <IconCalendarEvent className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
                       {t.psychBookBtn}
                     </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <select value={psychSessionType} onChange={(e) => setPsychSessionType(e.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <select value={psychSessionType} onChange={(e) => setPsychSessionType(e.target.value)} className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-2 text-base sm:text-sm text-slate-900 dark:text-white">
                         <option value="CHAT">Chat</option>
                         <option value="VOICE">Voice</option>
                         <option value="VIDEO">Video</option>
                         <option value="TELEGRAM_CALL">Telegram Call</option>
                       </select>
-                      <input type="datetime-local" value={psychSessionAt} onChange={(e) => setPsychSessionAt(e.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
+                      <input type="datetime-local" value={psychSessionAt} onChange={(e) => setPsychSessionAt(e.target.value)} className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-2 text-base sm:text-sm text-slate-900 dark:text-white"/>
                     </div>
-                    <input type="text" value={psychTopic} onChange={(e) => setPsychTopic(e.target.value)} placeholder={t.psychTopicPlaceholder} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
-                    <button type="submit" disabled={psychActionBusy || !selectedConsentActive} className="w-full rounded-lg bg-slate-900 dark:bg-teal-600 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50">
+                    <input type="text" value={psychTopic} onChange={(e) => setPsychTopic(e.target.value)} placeholder={t.psychTopicPlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"/>
+                    <button type="submit" disabled={psychActionBusy || !selectedConsentActive} className="w-full min-h-[46px] rounded-xl bg-teal-700 dark:bg-teal-600 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
                       {t.psychBookBtn}
                     </button>
                   </form>
 
-                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50 p-3 space-y-2">
-                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{t.psychChatTitle}</p>
-                    {!selectedConsentActive && (<p className="text-[11px] text-amber-700 dark:text-amber-300">
+                  <div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/80 dark:bg-[#091315] p-3.5 space-y-2.5">
+                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.psychChatTitle}</p>
+                    {!selectedConsentActive && (<p className="text-xs sm:text-sm text-amber-700 dark:text-amber-300">
                         {t.psychConsentGrant}
                       </p>)}
-                    <div className="max-h-36 overflow-y-auto space-y-1.5">
-                      {psychChatMessages.length === 0 ? (<p className="text-[11px] text-slate-500 dark:text-slate-400">—</p>) : (psychChatMessages.map((m) => {
+                    <div className="max-h-44 overflow-y-auto space-y-2">
+                      {psychChatMessages.length === 0 ? (<p className="text-sm text-slate-500 dark:text-slate-400">—</p>) : (psychChatMessages.map((m) => {
                             const isMine = m.senderUserId === authUser?.id || m.senderRole === "PATIENT";
-                            return (<div key={m.id} className={`rounded-lg px-2.5 py-1.5 text-[11px] max-w-[90%] ${isMine
-                                    ? "ml-auto bg-teal-600 text-white"
-                                    : "mr-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"}`}>
-                              <p className="font-bold text-[10px] opacity-80">{m.senderName}</p>
+                            return (<div key={m.id} className={`rounded-xl px-3.5 py-2.5 text-sm max-w-[90%] leading-relaxed ${isMine
+                                    ? "ml-auto bg-teal-700 dark:bg-teal-600 text-white"
+                                    : "mr-auto bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100"}`}>
+                              <p className="font-bold text-xs opacity-80">{m.senderName}</p>
                               <p>{m.body}</p>
                             </div>);
                         }))}
                     </div>
-                    <form onSubmit={handleSendPsychChat} className="flex gap-1.5">
-                      <input type="text" value={psychChatBody} onChange={(e) => setPsychChatBody(e.target.value)} disabled={!selectedConsentActive} placeholder={t.psychChatPlaceholder} className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 disabled:opacity-50"/>
-                      <button type="submit" disabled={sendingPsychChat || !selectedConsentActive || !psychChatBody.trim()} className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50">
-                        <IconSend className="h-3.5 w-3.5"/>
+                    <form onSubmit={handleSendPsychChat} className="flex gap-2">
+                      <input type="text" value={psychChatBody} onChange={(e) => setPsychChatBody(e.target.value)} disabled={!selectedConsentActive} placeholder={t.psychChatPlaceholder} className="flex-1 min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white disabled:opacity-50"/>
+                      <button type="submit" disabled={sendingPsychChat || !selectedConsentActive || !psychChatBody.trim()} className="min-h-[46px] min-w-[46px] inline-flex items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
+                        <IconSend className="h-4 w-4"/>
                       </button>
                     </form>
                   </div>
                 </div>);
                 })()}
 
-            {psychSessions.length > 0 && (<div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{t.psychSessionsTitle}</p>
-                {psychSessions.map((s) => (<div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-2 text-xs">
+            {psychSessions.length > 0 && (<div className="space-y-2 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.psychSessionsTitle}</p>
+                {psychSessions.map((s) => (<div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] px-3.5 py-2.5 text-sm">
                     <div>
-                      <span className="font-bold text-slate-900 dark:text-slate-100">
+                      <span className="font-bold text-slate-900 dark:text-white">
                         {s.psychologist?.fullName || "Psychologist"}
                       </span>{" "}
-                      <span className="text-slate-500 dark:text-slate-400">
+                      <span className="text-slate-600 dark:text-slate-300">
                         • {s.sessionType} • {new Date(s.scheduledAt).toLocaleString("en-GB")}
                       </span>
-                      {s.topic && <p className="text-[11px] text-slate-600 dark:text-slate-300">{s.topic}</p>}
+                      {s.topic && <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">{s.topic}</p>}
                     </div>
-                    <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                    <span className="rounded-full bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A] px-2.5 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-200">
                       {s.status}
                     </span>
                   </div>))}
               </div>)}
           </>)}
       </section>
-      </>)}
+      </div>)}
     </div>);
 }

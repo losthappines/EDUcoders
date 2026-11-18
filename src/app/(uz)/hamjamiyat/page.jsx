@@ -339,72 +339,72 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8]">
+    <div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] text-slate-900 dark:text-slate-100">
       <PublicHeader />
 
       <main className="flex-1">
         {/* Emergency 103 top bar */}
-        <div className="border-b border-[#D9B8AE] dark:border-[#6B3A3A] bg-[#F3EAE7] dark:bg-[#2A201E]">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 sm:px-8 py-2.5 text-xs text-[#7A2E2E] dark:text-[#F4C9C2]">
+        <div className="border-b border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40">
+          <div className="mx-auto flex max-w-7xl flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-4 sm:px-8 py-3 text-sm text-rose-800 dark:text-rose-200">
             <p className="font-medium leading-snug">{t.emergencyBanner}</p>
             <a
               href="tel:103"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-[#7A2E2E] px-3 py-1.5 text-[11px] font-semibold text-[#F7F5EF] hover:bg-[#5E2121]"
+              className="inline-flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl bg-rose-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-rose-800 transition-colors"
             >
-              <IconPhoneCall className="h-3.5 w-3.5" />
+              <IconPhoneCall className="h-4 w-4" />
               103
             </a>
           </div>
         </div>
 
         {/* Hero */}
-        <section className="border-b border-[#DDD8CC] dark:border-[#2F3733] py-14 sm:py-20">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            <div className="lg:col-span-7 space-y-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+        <section className="border-b border-[#D7E4E1] dark:border-[#1E353A] py-12 sm:py-20 bg-linear-to-b from-white via-[#F4F8F7] to-[#EDF5F3] dark:from-[#101E21] dark:via-[#091315] dark:to-[#091315]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start oc-fade-up">
+            <div className="lg:col-span-7 space-y-5">
+              <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-3.5 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-teal-700 dark:text-teal-300">
                 {t.eyebrow}
-              </p>
-              <h1 className="font-heading text-3xl sm:text-5xl font-bold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-[1.12]">
+              </span>
+              <h1 className="font-heading text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-[1.15]">
                 {t.heroTitle}
               </h1>
-              <p className="text-sm sm:text-base text-[#525954] dark:text-[#B8C2BA] leading-relaxed max-w-2xl">
+              <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
                 {t.heroDesc}
               </p>
 
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 pt-2">
                 <Link
                   href={authUser?.role === "PATIENT" ? "/patient#psychologist-support" : "/signup?role=PATIENT"}
-                  className="inline-flex min-h-[46px] items-center gap-2 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] px-5 py-2.5 text-xs font-semibold text-[#F7F5EF] transition-colors"
+                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500 px-6 py-3 text-sm font-semibold text-white active:scale-[0.98] transition-all shadow-sm"
                 >
-                  <IconHeartHandshake className="h-4 w-4" />
+                  <IconHeartHandshake className="h-5 w-5" />
                   <span>{t.primaryCta}</span>
-                  <IconArrowRight className="h-3.5 w-3.5" />
+                  <IconArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/signup?role=PSYCHOLOGIST"
-                  className="inline-flex min-h-[46px] items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-5 py-2.5 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] transition-colors"
+                  className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-6 py-3 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:border-teal-600 transition-colors"
                 >
                   <span>{t.psychCta}</span>
                 </Link>
               </div>
             </div>
 
-            <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-px bg-[#DDD8CC] dark:bg-[#2F3733] border border-[#DDD8CC] dark:border-[#2F3733]">
-              <div className="bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex items-baseline justify-between gap-2">
-                <span className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.metricsMothers}</span>
-                <span className="font-heading text-2xl font-bold text-[#244C40] dark:text-[#A7BBAA]">
+            <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+              <div className="med-card p-5 flex items-baseline justify-between gap-2">
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{t.metricsMothers}</span>
+                <span className="font-heading text-3xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">
                   {overview?.totalVerifiedMothers ?? 0}
                 </span>
               </div>
-              <div className="bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex items-baseline justify-between gap-2">
-                <span className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.metricsSessions}</span>
-                <span className="font-heading text-2xl font-bold text-[#244C40] dark:text-[#A7BBAA]">
+              <div className="med-card p-5 flex items-baseline justify-between gap-2">
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{t.metricsSessions}</span>
+                <span className="font-heading text-3xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">
                   {overview?.totalCompletedOrBookedSessions ?? 0}
                 </span>
               </div>
-              <div className="bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex items-baseline justify-between gap-2">
-                <span className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.metricsSpecialists}</span>
-                <span className="font-heading text-2xl font-bold text-[#244C40] dark:text-[#A7BBAA]">
+              <div className="med-card p-5 flex items-baseline justify-between gap-2">
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{t.metricsSpecialists}</span>
+                <span className="font-heading text-3xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">
                   {overview?.specialists?.length ?? 0}
                 </span>
               </div>
@@ -413,14 +413,14 @@ export default function CommunityPage() {
         </section>
 
         {/* Newborn Age Cohorts */}
-        <section className="border-b border-[#DDD8CC] dark:border-[#2F3733] py-14">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 space-y-8">
+        <section className="border-b border-[#D7E4E1] dark:border-[#1E353A] py-12 sm:py-14">
+          <div className="mx-auto max-w-7xl px-4 sm:px-8 space-y-8">
             <div className="max-w-2xl space-y-2">
-              <h2 className="font-heading text-2xl font-bold tracking-tight flex items-center gap-2">
-                <IconUsersGroup className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2.5 text-slate-900 dark:text-white">
+                <IconUsersGroup className="h-6 w-6 text-teal-700 dark:text-teal-300" />
                 <span>{t.cohortsTitle}</span>
               </h2>
-              <p className="text-xs sm:text-sm text-[#525954] dark:text-[#B8C2BA]">{t.cohortsSub}</p>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">{t.cohortsSub}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -429,23 +429,23 @@ export default function CommunityPage() {
                 return (
                   <div
                     key={cohort.key}
-                    className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex flex-col justify-between gap-4"
+                    className="med-card med-card-interactive p-5 flex flex-col justify-between gap-4"
                   >
-                    <div className="space-y-1.5">
-                      <span className="inline-block rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-0.5 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+                    <div className="space-y-2">
+                      <span className="inline-block rounded-full bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-1 text-xs font-semibold text-teal-700 dark:text-teal-300">
                         {cohort.label}
                       </span>
-                      <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                         {cohort.desc}
                       </p>
                     </div>
-                    <div className="flex items-baseline justify-between border-t border-[#DDD8CC] dark:border-[#2F3733] pt-3">
-                      <span className="font-heading text-xl font-bold text-[#292E2B] dark:text-[#F3F0E8]">
+                    <div className="flex items-baseline justify-between border-t border-[#D7E4E1] dark:border-[#1E353A] pt-3">
+                      <span className="font-heading text-xl font-bold text-slate-900 dark:text-white">
                         {count} {t.mothersWord}
                       </span>
                       <Link
                         href="/signup?role=PATIENT"
-                        className="text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline"
+                        className="inline-flex min-h-[36px] items-center px-2 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline"
                       >
                         →
                       </Link>
@@ -458,15 +458,15 @@ export default function CommunityPage() {
         </section>
 
         {/* Audio Circles + Interactive Voice Check-in Preview */}
-        <section className="border-b border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#1D221F]/60 py-14">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <section className="border-b border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#101E21]/60 py-12 sm:py-14">
+          <div className="mx-auto max-w-7xl px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-6 space-y-4">
-              <div className="space-y-1">
-                <h2 className="font-heading text-xl font-bold flex items-center gap-2">
-                  <IconHeadphones className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+              <div className="space-y-1.5">
+                <h2 className="font-heading text-xl sm:text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                  <IconHeadphones className="h-6 w-6 text-teal-700 dark:text-teal-300" />
                   <span>{t.circlesTitle}</span>
                 </h2>
-                <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.circlesSub}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{t.circlesSub}</p>
               </div>
               <div className="space-y-3">
                 {AUDIO_CIRCLES.map((circle) => {
@@ -477,23 +477,23 @@ export default function CommunityPage() {
                   return (
                     <div
                       key={circle.id}
-                      className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      className="med-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
-                      <div className="space-y-1">
-                        <p className="text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] flex items-center gap-1.5">
-                          <IconCalendarEvent className="h-3.5 w-3.5" />
+                      <div className="space-y-1.5">
+                        <p className="text-xs font-semibold text-teal-700 dark:text-teal-300 flex items-center gap-1.5">
+                          <IconCalendarEvent className="h-4 w-4" />
                           <span>{day}</span>
                         </p>
-                        <h3 className="text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">{title}</h3>
-                        <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA]">{circle.host}</p>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">{title}</h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">{circle.host}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => toggleRsvp(circle.id)}
-                        className={`min-h-[40px] shrink-0 rounded-sm px-4 py-2 text-xs font-semibold transition-colors ${
+                        className={`min-h-[44px] shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition-all active:scale-[0.98] ${
                           reserved
-                            ? "bg-[#EFECE3] dark:bg-[#242A27] border border-[#244C40] text-[#244C40] dark:text-[#A7BBAA]"
-                            : "bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF] hover:bg-[#1A382F]"
+                            ? "bg-[#EDF5F3] dark:bg-[#16272B] border border-teal-600 text-teal-700 dark:text-teal-300"
+                            : "bg-teal-700 dark:bg-teal-600 text-white hover:bg-teal-800"
                         }`}
                       >
                         {reserved ? t.rsvpedBtn : t.rsvpBtn}
@@ -504,13 +504,13 @@ export default function CommunityPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-6 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 space-y-4">
-              <div className="space-y-1">
-                <h2 className="font-heading text-lg font-bold flex items-center gap-2">
-                  <IconMicrophone className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+            <div className="lg:col-span-6 med-card p-6 space-y-4">
+              <div className="space-y-1.5">
+                <h2 className="font-heading text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                  <IconMicrophone className="h-5 w-5 text-teal-700 dark:text-teal-300" />
                   <span>{t.voicePreviewTitle}</span>
                 </h2>
-                <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.voicePreviewSub}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">{t.voicePreviewSub}</p>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -519,10 +519,10 @@ export default function CommunityPage() {
                     key={sample.id}
                     type="button"
                     onClick={() => setSelectedSampleId(sample.id)}
-                    className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    className={`min-h-[42px] rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
                       activeSample.id === sample.id
-                        ? "border-[#244C40] bg-[#244C40] text-[#F7F5EF]"
-                        : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8]"
+                        ? "border-teal-700 bg-teal-700 text-white"
+                        : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-slate-800 dark:text-slate-100"
                     }`}
                   >
                     {sample.label}
@@ -530,12 +530,12 @@ export default function CommunityPage() {
                 ))}
               </div>
 
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] p-4 space-y-3">
-                <p className="font-serif italic text-xs text-[#292E2B] dark:text-[#F3F0E8] leading-relaxed">
+              <div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-4 space-y-3">
+                <p className="italic text-sm text-slate-900 dark:text-slate-100 leading-relaxed">
                   &ldquo;{activeSample.transcript}&rdquo;
                 </p>
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
-                  <span className="inline-flex items-center gap-1.5 rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] border border-[#DDD8CC] dark:border-[#2F3733] px-2.5 py-1 text-xs font-semibold">
+                <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] px-3 py-1 text-xs font-semibold">
                     <span>{sampleMood.emoji}</span>
                     <span>
                       {sampleMood.value}/5 ({lang === "ru" ? sampleMood.ru : lang === "en" ? sampleMood.en : sampleMood.uz})
@@ -544,10 +544,10 @@ export default function CommunityPage() {
                   {activeSample.tags.map((tag) => (
                     <span
                       key={tag}
-                      className={`rounded-sm px-2.5 py-1 text-[11px] font-semibold ${
+                      className={`rounded-full px-3 py-1 text-xs font-semibold border ${
                         activeSample.flag === "PSYCH_RISK"
-                          ? "bg-[#F3EAE7] text-[#7A2E2E] border border-[#D9B8AE]"
-                          : "bg-[#EFECE3] text-[#244C40] border border-[#A7BBAA]"
+                          ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-200 border-rose-200 dark:border-rose-800"
+                          : "bg-teal-50 dark:bg-teal-950/50 text-teal-800 dark:text-teal-200 border-teal-200 dark:border-teal-800"
                       }`}
                     >
                       {tag}
@@ -560,18 +560,18 @@ export default function CommunityPage() {
         </section>
 
         {/* Verified Specialists Directory */}
-        <section className="border-b border-[#DDD8CC] dark:border-[#2F3733] py-14">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 space-y-6">
-            <div className="max-w-2xl space-y-1.5">
-              <h2 className="font-heading text-2xl font-bold flex items-center gap-2">
-                <IconStethoscope className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+        <section className="border-b border-[#D7E4E1] dark:border-[#1E353A] py-12 sm:py-14">
+          <div className="mx-auto max-w-7xl px-4 sm:px-8 space-y-6">
+            <div className="max-w-2xl space-y-2">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                <IconStethoscope className="h-6 w-6 text-teal-700 dark:text-teal-300" />
                 <span>{t.specialistsTitle}</span>
               </h2>
-              <p className="text-xs sm:text-sm text-[#525954] dark:text-[#B8C2BA]">{t.specialistsSub}</p>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">{t.specialistsSub}</p>
             </div>
 
             {!overview?.specialists || overview.specialists.length === 0 ? (
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 text-xs text-[#525954] dark:text-[#B8C2BA]">
+              <div className="med-card p-6 text-sm text-slate-600 dark:text-slate-300">
                 {t.specialistsEmpty}
               </div>
             ) : (
@@ -579,37 +579,37 @@ export default function CommunityPage() {
                 {overview.specialists.map((spec) => (
                   <div
                     key={spec.id}
-                    className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex flex-col justify-between gap-4"
+                    className="med-card med-card-interactive p-5 flex flex-col justify-between gap-4"
                   >
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2 py-0.5 text-[10px] font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+                        <span className="rounded-full bg-[#EDF5F3] dark:bg-[#16272B] px-2.5 py-0.5 text-xs font-semibold text-teal-700 dark:text-teal-300">
                           {spec.role === "PSYCHOLOGIST" ? "PSYCHOLOGIST" : "FAMILY_MD"}
                         </span>
                         {typeof spec.experienceYears === "number" && (
-                          <span className="text-[11px] font-mono text-[#525954] dark:text-[#B8C2BA]">
+                          <span className="text-xs font-mono text-slate-600 dark:text-slate-400">
                             {spec.experienceYears} {t.expWord}
                           </span>
                         )}
                       </div>
-                      <h3 className="font-heading text-base font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                      <h3 className="font-heading text-lg font-bold text-slate-900 dark:text-white">
                         {spec.fullName}
                       </h3>
-                      <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">
+                      <p className="text-sm text-slate-600 dark:text-slate-300">
                         {[spec.specialty, spec.expertiseArea, spec.district].filter(Boolean).join(" • ")}
                       </p>
                       {spec.bioSummary && (
-                        <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed pt-1">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
                           {spec.bioSummary}
                         </p>
                       )}
                     </div>
                     <Link
                       href={authUser?.role === "PATIENT" ? "/patient#psychologist-support" : "/signup?role=PATIENT"}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4"
+                      className="inline-flex min-h-[40px] items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4"
                     >
                       <span>{t.bookConsult}</span>
-                      <IconArrowRight className="h-3.5 w-3.5" />
+                      <IconArrowRight className="h-4 w-4" />
                     </Link>
                   </div>
                 ))}
@@ -619,31 +619,31 @@ export default function CommunityPage() {
         </section>
 
         {/* Privacy Guarantee + Telegram Invite + FAQ */}
-        <section className="py-14">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <section className="py-12 sm:py-14">
+          <div className="mx-auto max-w-7xl px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-6 space-y-6">
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 space-y-4">
-                <h2 className="font-heading text-lg font-bold flex items-center gap-2">
-                  <IconLock className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+              <div className="med-card p-6 space-y-4">
+                <h2 className="font-heading text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                  <IconLock className="h-5 w-5 text-teal-700 dark:text-teal-300" />
                   <span>{t.privacyTitle}</span>
                 </h2>
-                <ul className="space-y-2.5 text-xs text-[#525954] dark:text-[#B8C2BA]">
+                <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
                   {t.privacyPoints.map((pt, idx) => (
-                    <li key={idx} className="flex items-start gap-2 leading-relaxed">
-                      <IconShieldCheck className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA] shrink-0 mt-0.5" />
+                    <li key={idx} className="flex items-start gap-2.5 leading-relaxed">
+                      <IconShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-300 shrink-0 mt-0.5" />
                       <span>{pt}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 space-y-4">
-                <h2 className="font-heading text-lg font-bold">{t.faqTitle}</h2>
-                <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3733]">
+              <div className="med-card p-6 space-y-4">
+                <h2 className="font-heading text-xl font-bold text-slate-900 dark:text-white">{t.faqTitle}</h2>
+                <div className="divide-y divide-[#D7E4E1] dark:divide-[#1E353A]">
                   {t.faqs.map((item, idx) => (
-                    <div key={idx} className="py-3 first:pt-0 last:pb-0 space-y-1">
-                      <h3 className="text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8]">{item.q}</h3>
-                      <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">{item.a}</p>
+                    <div key={idx} className="py-3.5 first:pt-0 last:pb-0 space-y-1.5">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">{item.q}</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{item.a}</p>
                     </div>
                   ))}
                 </div>
@@ -651,38 +651,38 @@ export default function CommunityPage() {
             </div>
 
             <div className="lg:col-span-6">
-              <div className="rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#EFECE3] dark:bg-[#1D221F] p-6 space-y-5">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#244C40] text-[#F7F5EF]">
+              <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-[#EDF5F3] dark:bg-[#101E21] p-6 space-y-5 shadow-xs">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
                     <IconBrandTelegram className="h-5 w-5" />
                   </div>
                   <div className="space-y-1">
-                    <h2 className="font-heading text-lg font-bold">{t.tgTitle}</h2>
-                    <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">{t.tgSub}</p>
+                    <h2 className="font-heading text-xl font-bold text-slate-900 dark:text-white">{t.tgTitle}</h2>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{t.tgSub}</p>
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] p-4">
+                <div className="flex flex-col sm:flex-row items-center gap-5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] p-4">
                   {/* Minimal geometric QR badge */}
                   <div
-                    className="h-24 w-24 shrink-0 rounded-sm border border-[#DDD8CC] bg-[#F7F5EF] p-2 flex items-center justify-center"
+                    className="h-24 w-24 shrink-0 rounded-xl border border-[#D7E4E1] bg-[#F4F8F7] p-2 flex items-center justify-center"
                     aria-label="Telegram QR preview"
                   >
-                    <svg viewBox="0 0 24 24" className="h-full w-full text-[#244C40]" fill="currentColor">
+                    <svg viewBox="0 0 24 24" className="h-full w-full text-teal-700" fill="currentColor">
                       <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h2v2h-2v-2zm4 0h4v2h-4v-2zm-4 4h4v2h-4v-2zm2 4h6v-4h-2v2h-4v2zm4-6h2v2h-2v-2z" />
                     </svg>
                   </div>
-                  <div className="flex-1 space-y-2.5 w-full">
-                    <div className="flex items-center gap-2 text-xs text-[#525954] dark:text-[#B8C2BA]">
-                      <IconBell className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA] shrink-0" />
+                  <div className="flex-1 space-y-3 w-full">
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                      <IconBell className="h-4 w-4 text-teal-700 dark:text-teal-300 shrink-0" />
                       <span className="font-mono truncate">{tgInviteUrl}</span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-2">
                       <a
                         href={tgInviteUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex min-h-[40px] items-center gap-1.5 rounded-sm bg-[#244C40] px-4 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1A382F]"
+                        className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 px-4 py-2 text-sm font-semibold text-white transition-all active:scale-[0.98]"
                       >
                         <IconBrandTelegram className="h-4 w-4" />
                         <span>{t.tgOpen}</span>
@@ -690,9 +690,9 @@ export default function CommunityPage() {
                       <button
                         type="button"
                         onClick={handleCopyTg}
-                        className="inline-flex min-h-[40px] items-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#1D221F] px-3.5 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8]"
+                        className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#101E21] px-4 py-2 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 transition-colors"
                       >
-                        {copiedTg ? <IconCheck className="h-3.5 w-3.5" /> : <IconCopy className="h-3.5 w-3.5" />}
+                        {copiedTg ? <IconCheck className="h-4 w-4 text-teal-700" /> : <IconCopy className="h-4 w-4" />}
                         <span>{copiedTg ? t.tgCopied : t.tgCopy}</span>
                       </button>
                     </div>

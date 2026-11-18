@@ -779,44 +779,44 @@ export default function ClinicalDashboardPage() {
             setRxSubmitting(false);
         }
     };
-    return (<div className="space-y-5">
+    return (<div className="space-y-6 oc-fade-up">
       {/* Role-Specific Clinical Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-        <div className="space-y-1">
-          <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+      <div className="med-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <h1 className="font-heading text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
             {isOvabmu ? t.ovabmuTitle : t.familyTitle}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
             {isOvabmu ? t.ovabmuSub : t.familySub}
           </p>
-          <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
-            {authUser?.expertiseArea && (<span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-semibold text-slate-700 dark:text-slate-200">
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+            {authUser?.expertiseArea && (<span className="rounded-full bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A] px-3 py-1 font-semibold text-slate-700 dark:text-slate-200">
                 {authUser.specialty ? `${authUser.specialty} • ` : ""}{authUser.expertiseArea}
               </span>)}
-            {typeof authUser?.experienceYears === "number" && (<span className="rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 px-2.5 py-0.5 font-semibold text-indigo-700 dark:text-indigo-300">
+            {typeof authUser?.experienceYears === "number" && (<span className="rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 px-3 py-1 font-semibold text-indigo-700 dark:text-indigo-300">
                 {authUser.experienceYears} yil
               </span>)}
-            {activeDocLat !== null && activeDocLng !== null && (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 font-mono text-emerald-700 dark:text-emerald-300">
-                <IconMapPin className="h-3 w-3"/>
+            {activeDocLat !== null && activeDocLng !== null && (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-3 py-1 font-mono text-emerald-700 dark:text-emerald-300">
+                <IconMapPin className="h-3.5 w-3.5"/>
                 {Number(activeDocLat).toFixed(4)}, {Number(activeDocLng).toFixed(4)}
               </span>)}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setProfileOpen((v) => !v)} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
-            <IconCurrentLocation className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button type="button" onClick={() => setProfileOpen((v) => !v)} className="min-h-[44px] inline-flex items-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] active:scale-[0.98] transition-all">
+            <IconCurrentLocation className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
             {t.profileToggle}
           </button>
-          <Link href="/telegram" className="inline-flex items-center gap-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-3 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60">
-            <IconBrandTelegram className="h-3.5 w-3.5"/>
+          <Link href="/telegram" className="min-h-[44px] inline-flex items-center gap-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-4 py-2 text-sm font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 active:scale-[0.98] transition-all">
+            <IconBrandTelegram className="h-4 w-4"/>
             {t.telegramCta}
           </Link>
-          <div className="inline-flex items-center gap-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 px-3.5 py-2 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+          <div className="min-h-[44px] inline-flex items-center gap-2 rounded-xl bg-[#EDF5F3] dark:bg-teal-950/60 px-4 py-2 text-sm font-semibold text-teal-800 dark:text-teal-200 border border-[#D7E4E1] dark:border-teal-800">
             {isOvabmu ? (<>
-                <IconBuildingHospital className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+                <IconBuildingHospital className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
                 {t.ovabmuBadge} ({patients.length} {t.patientsWord})
               </>) : (<>
-                <IconStethoscope className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+                <IconStethoscope className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
                 {t.familyBadge} ({activeCalls.filter((c) => c.status !== "COMPLETED").length} {t.pendingWord})
               </>)}
           </div>
@@ -824,82 +824,82 @@ export default function ClinicalDashboardPage() {
       </div>
 
       {/* Doctor Expertise, Experience & GPS Setup Card */}
-      {(profileOpen || needsProfileSetup) && (<section className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+      {(profileOpen || needsProfileSetup) && (<section className="med-card border-teal-200 dark:border-teal-800/80 bg-[#EDF5F3]/75 dark:bg-teal-950/30 p-5 space-y-3.5 oc-slide-down">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">{t.profileTitle}</h2>
-              <p className="text-xs text-slate-600 dark:text-slate-300">{t.profileSub}</p>
+              <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white">{t.profileTitle}</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">{t.profileSub}</p>
             </div>
             <GpsConsentButton
               label={sharingGps ? "..." : t.shareGpsBtn}
               busy={sharingGps}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-teal-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+              className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-800 active:scale-[0.98] disabled:opacity-50 transition-all"
               onLocationCaptured={handleDoctorLocationCaptured}
               onError={() => showToast("error", "Could not access GPS location")}
             />
           </div>
-          <form onSubmit={handleSaveDoctorProfile} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 items-end">
+          <form onSubmit={handleSaveDoctorProfile} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 {t.fieldLabel}
               </label>
-              <input type="text" value={docSpecialty || authUser?.specialty || ""} onChange={(e) => setDocSpecialty(e.target.value)} placeholder="Oilaviy shifokor / Akusher" className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+              <input type="text" value={docSpecialty || authUser?.specialty || ""} onChange={(e) => setDocSpecialty(e.target.value)} placeholder="Oilaviy shifokor / Akusher" className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 {t.expertiseLabel}
               </label>
-              <input type="text" value={docExpertise || authUser?.expertiseArea || ""} onChange={(e) => setDocExpertise(e.target.value)} placeholder="Postpartum & Preeclampsia" className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+              <input type="text" value={docExpertise || authUser?.expertiseArea || ""} onChange={(e) => setDocExpertise(e.target.value)} placeholder="Postpartum & Preeclampsia" className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 {t.expYearsLabel}
               </label>
-              <input type="number" min={0} max={60} value={docExpYears !== "" ? docExpYears : authUser?.experienceYears ?? ""} onChange={(e) => setDocExpYears(e.target.value)} placeholder="7" className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+              <input type="number" min={0} max={60} value={docExpYears !== "" ? docExpYears : authUser?.experienceYears ?? ""} onChange={(e) => setDocExpYears(e.target.value)} placeholder="7" className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 {t.districtLabel}
               </label>
-              <input type="text" value={docDistrict || authUser?.district || ""} onChange={(e) => setDocDistrict(e.target.value)} placeholder="Yunusobod" className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+              <input type="text" value={docDistrict || authUser?.district || ""} onChange={(e) => setDocDistrict(e.target.value)} placeholder="Yunusobod" className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
             </div>
-            <button type="submit" disabled={savingProfile} className="rounded-xl bg-slate-900 dark:bg-teal-600 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50">
+            <button type="submit" disabled={savingProfile} className="min-h-[46px] rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
               {savingProfile ? "..." : t.saveProfileBtn}
             </button>
           </form>
         </section>)}
 
       {/* In-App Reminders Summary Strip & Quick Task Counts */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100">
-          <IconBell className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+      <section className="med-card p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+          <IconBell className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
           <span>{t.remindersStripTitle}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
-          <span className="rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 px-3 py-1 text-amber-800 dark:text-amber-300">
+        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-semibold">
+          <span className="rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 px-3.5 py-1.5 text-amber-800 dark:text-amber-300">
             {t.pendingVisitsCount} {activeCalls.filter((c) => c.status !== "COMPLETED").length}
           </span>
-          <span className="rounded-full border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 px-3 py-1 text-rose-800 dark:text-rose-300">
+          <span className="rounded-full border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 px-3.5 py-1.5 text-rose-800 dark:text-rose-300">
             {t.openComplaintsCount} {complaints.filter((c) => c.status !== "VERIFIED_COMPLETED").length}
           </span>
-          <a href="#direct-patient-chat" className="rounded-full border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/60 px-3 py-1 text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/60">
+          <a href="#direct-patient-chat" className="min-h-[36px] inline-flex items-center rounded-full border border-[#D7E4E1] dark:border-teal-800 bg-[#EDF5F3] dark:bg-teal-950/60 px-3.5 py-1.5 text-teal-800 dark:text-teal-200 hover:bg-teal-100 dark:hover:bg-teal-900/60 transition-colors">
             {t.directMessagesCount} {directMessages.length}
           </a>
         </div>
       </section>
 
       {/* Standalone Direct Patient Chat (Works with or without complaints, Bot + Mini App synced) */}
-      <section id="direct-patient-chat" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <IconMessageCircle className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+      <section id="direct-patient-chat" className="med-card p-5 space-y-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <IconMessageCircle className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
             {t.directChatPanelTitle}
           </h2>
-          {chatPatients.length > 0 && (<div className="flex items-center gap-2">
-              <label htmlFor="clinical-direct-chat-patient" className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+          {chatPatients.length > 0 && (<div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <label htmlFor="clinical-direct-chat-patient" className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {t.selectPatientLabel}
               </label>
-              <select id="clinical-direct-chat-patient" value={effectiveChatPatientId} onChange={(e) => setSelectedChatPatientId(e.target.value)} className="min-h-[36px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-slate-100">
+              <select id="clinical-direct-chat-patient" value={effectiveChatPatientId} onChange={(e) => setSelectedChatPatientId(e.target.value)} className="flex-1 sm:flex-initial min-h-[44px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 text-base sm:text-sm font-semibold text-slate-900 dark:text-white">
                 {chatPatients.map((cp) => (<option key={cp.id} value={cp.id}>
                     {cp.fullName}{cp.district ? ` (${cp.district})` : ""}
                   </option>))}
@@ -907,16 +907,16 @@ export default function ClinicalDashboardPage() {
             </div>)}
         </div>
 
-        {chatPatients.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center">
+        {chatPatients.length === 0 ? (<p className="text-sm text-slate-500 dark:text-slate-400 py-3 text-center">
             {t.noPatientsForChat}
-          </p>) : (<div className="space-y-2.5">
-            <div className="max-h-48 overflow-y-auto space-y-1.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3">
-              {directPatientMessages.length === 0 ? (<p className="text-xs text-slate-400 text-center py-2">{t.chatEmpty}</p>) : (directPatientMessages.map((msg) => {
+          </p>) : (<div className="space-y-3">
+            <div className="max-h-56 overflow-y-auto space-y-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-3.5">
+              {directPatientMessages.length === 0 ? (<p className="text-sm text-slate-500 dark:text-slate-400 text-center py-3">{t.chatEmpty}</p>) : (directPatientMessages.map((msg) => {
                 const isDoc = msg.senderRole !== "PATIENT";
-                return (<div key={msg.id} className={`rounded-lg p-2.5 text-xs max-w-[88%] ${isDoc
-                        ? "ml-auto bg-teal-700 text-white"
-                        : "mr-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"}`}>
-                      <div className="flex items-center justify-between gap-2 text-[10px] opacity-80 mb-0.5">
+                return (<div key={msg.id} className={`rounded-2xl px-3.5 py-2.5 text-sm max-w-[88%] leading-relaxed ${isDoc
+                        ? "ml-auto bg-teal-700 dark:bg-teal-600 text-white"
+                        : "mr-auto bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100"}`}>
+                      <div className="flex items-center justify-between gap-2 text-xs opacity-80 mb-0.5">
                         <span className="font-bold">{msg.senderName}</span>
                         <span>[{msg.channel}]</span>
                       </div>
@@ -924,10 +924,10 @@ export default function ClinicalDashboardPage() {
                     </div>);
             }))}
             </div>
-            <form onSubmit={handleSendDirectPatientChat} className="flex gap-2">
-              <input type="text" value={directChatBody} onChange={(e) => setDirectChatBody(e.target.value)} placeholder={t.chatPlaceholder} aria-label={t.chatPlaceholder} className="flex-1 min-h-[40px] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
-              <button type="submit" disabled={sendingDirectChat || !directChatBody.trim() || !effectiveChatPatientId} className="inline-flex min-h-[40px] items-center gap-1 rounded-xl bg-slate-900 dark:bg-teal-700 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-600 disabled:opacity-50">
-                <IconSend className="h-3.5 w-3.5"/>
+            <form onSubmit={handleSendDirectPatientChat} className="flex flex-col sm:flex-row gap-2">
+              <input type="text" value={directChatBody} onChange={(e) => setDirectChatBody(e.target.value)} placeholder={t.chatPlaceholder} aria-label={t.chatPlaceholder} className="flex-1 min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
+              <button type="submit" disabled={sendingDirectChat || !directChatBody.trim() || !effectiveChatPatientId} className="inline-flex min-h-[46px] items-center justify-center gap-1.5 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
+                <IconSend className="h-4 w-4"/>
                 {t.chatSendBtn}
               </button>
             </form>
@@ -935,38 +935,38 @@ export default function ClinicalDashboardPage() {
       </section>
 
       {/* Nearest Patient Complaints Queue (GPS Ranked) */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-4">
+      <section className="med-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <IconMapPin className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+          <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <IconMapPin className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
             {t.complaintsTitle} ({complaints.length})
           </h2>
-          {activeDocLat !== null && activeDocLng !== null && (<span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
+          {activeDocLat !== null && activeDocLng !== null && (<span className="font-mono text-xs text-slate-600 dark:text-slate-300">
               GPS: {Number(activeDocLat).toFixed(4)}, {Number(activeDocLng).toFixed(4)}
             </span>)}
         </div>
 
-        {complaints.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 py-4 text-center">{t.complaintsEmpty}</p>) : (<div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <div className="lg:col-span-5 space-y-2 max-h-[520px] overflow-y-auto pr-1">
+        {complaints.length === 0 ? (<p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">{t.complaintsEmpty}</p>) : (<div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div className="lg:col-span-5 space-y-2.5 max-h-[540px] overflow-y-auto pr-1">
               {complaints.map((c) => {
                 const isSelected = c.id === selectedComplaint?.id;
-                return (<button key={c.id} type="button" onClick={() => setSelectedComplaintId(c.id)} className={`w-full text-left rounded-xl border p-3.5 space-y-1.5 transition ${isSelected
-                        ? "border-teal-500 bg-teal-50/40 dark:bg-teal-950/40 ring-1 ring-teal-500"
-                        : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50 hover:border-slate-300 dark:hover:border-slate-700"}`}>
+                return (<button key={c.id} type="button" onClick={() => setSelectedComplaintId(c.id)} className={`w-full text-left rounded-2xl border p-4 space-y-2 transition-all ${isSelected
+                        ? "border-teal-600 bg-[#EDF5F3] dark:bg-teal-950/40 ring-1 ring-teal-500/40"
+                        : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] hover:border-teal-500/50"}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">
                           {c.patient?.fullName || c.title}
                         </p>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                           {c.patient?.district} • {c.category}
                         </p>
                       </div>
-                      <div className="flex flex-col items-end gap-1">
-                        {typeof c.distanceKm === "number" && (<span className="rounded-full bg-teal-100 dark:bg-teal-950/80 border border-teal-300 dark:border-teal-800 px-2 py-0.5 text-[10px] font-bold text-teal-800 dark:text-teal-300">
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        {typeof c.distanceKm === "number" && (<span className="rounded-full bg-[#EDF5F3] dark:bg-teal-950/80 border border-teal-300 dark:border-teal-800 px-2.5 py-0.5 text-xs font-bold text-teal-800 dark:text-teal-300">
                             {c.distanceKm} {t.distanceKmWord}
                           </span>)}
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${c.status === "VERIFIED_COMPLETED"
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${c.status === "VERIFIED_COMPLETED"
                         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
                         : c.severity === "CRITICAL" || c.severity === "SEVERE"
                             ? "bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300"
@@ -975,95 +975,95 @@ export default function ClinicalDashboardPage() {
                         </span>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 line-clamp-2">{c.description}</p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-slate-700 dark:text-slate-200 line-clamp-2 leading-relaxed">{c.description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {t.destLabel} {c.visitDestination} — {c.visitAddress}
                     </p>
                   </button>);
             })}
             </div>
 
-            {selectedComplaint && (<div className="lg:col-span-7 space-y-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-950/40 p-4">
+            {selectedComplaint && (<div className="lg:col-span-7 space-y-3.5 rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] p-4 sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    <h3 className="font-heading text-base font-bold text-slate-900 dark:text-white">
                       {selectedComplaint.patient?.fullName} — {selectedComplaint.title}
                     </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">
                       {selectedComplaint.patient?.phone} • {selectedComplaint.visitDestination}: {selectedComplaint.visitAddress}
                     </p>
-                    {typeof selectedComplaint.latitude === "number" && typeof selectedComplaint.longitude === "number" && (<p className="font-mono text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    {typeof selectedComplaint.latitude === "number" && typeof selectedComplaint.longitude === "number" && (<p className="font-mono text-xs text-slate-500 dark:text-slate-400 mt-1">
                         GPS: {selectedComplaint.latitude.toFixed(4)}, {selectedComplaint.longitude.toFixed(4)}
                         {typeof selectedComplaint.distanceKm === "number" ? ` (${selectedComplaint.distanceKm} km)` : ""}
                       </p>)}
                   </div>
-                  <span className="rounded-full bg-slate-900 dark:bg-teal-700 px-2.5 py-0.5 text-[10px] font-bold text-white">
+                  <span className="rounded-full bg-teal-700 px-3 py-1 text-xs font-bold text-white">
                     {selectedComplaint.status}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+                <p className="text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-[#101E21] rounded-xl p-3.5 border border-[#D7E4E1] dark:border-[#1E353A] leading-relaxed">
                   {selectedComplaint.description}
                 </p>
 
                 {/* Respond & En Route / Arrived Buttons */}
-                <div className="space-y-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
-                  <label htmlFor="comp-reply-text" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                <div className="space-y-2.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] p-3.5">
+                  <label htmlFor="comp-reply-text" className="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {t.respondLabel}
                   </label>
-                  <textarea id="comp-reply-text" rows={2} value={compReplyText} onChange={(e) => setCompReplyText(e.target.value)} placeholder={t.respondPlaceholder} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
+                  <textarea id="comp-reply-text" rows={2} value={compReplyText} onChange={(e) => setCompReplyText(e.target.value)} placeholder={t.respondPlaceholder} className="w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
                   <div className="flex flex-wrap gap-2">
-                    <button type="button" disabled={respondingComp} onClick={() => handleRespondComplaint("DOCTOR_RESPONDED")} className="min-h-[40px] rounded-lg bg-teal-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50">
+                    <button type="button" disabled={respondingComp} onClick={() => handleRespondComplaint("DOCTOR_RESPONDED")} className="min-h-[44px] rounded-xl bg-teal-700 px-4 py-2 text-sm font-bold text-white hover:bg-teal-800 active:scale-[0.98] disabled:opacity-50 transition-all">
                       {t.respondBtn}
                     </button>
-                    <button type="button" disabled={respondingComp} onClick={() => handleRespondComplaint("EN_ROUTE")} className="min-h-[40px] rounded-lg border border-amber-400 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 px-3.5 py-2 text-xs font-semibold text-amber-800 dark:text-amber-300 hover:bg-amber-100">
+                    <button type="button" disabled={respondingComp} onClick={() => handleRespondComplaint("EN_ROUTE")} className="min-h-[44px] rounded-xl border border-amber-400 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 px-4 py-2 text-sm font-semibold text-amber-800 dark:text-amber-300 hover:bg-amber-100 active:scale-[0.98] transition-all">
                       {t.enRouteBtn}
                     </button>
-                    <button type="button" disabled={respondingComp} onClick={() => handleRespondComplaint("ARRIVED")} className="min-h-[40px] rounded-lg border border-indigo-400 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/60 px-3.5 py-2 text-xs font-semibold text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100">
+                    <button type="button" disabled={respondingComp} onClick={() => handleRespondComplaint("ARRIVED")} className="min-h-[44px] rounded-xl border border-indigo-400 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/60 px-4 py-2 text-sm font-semibold text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100 active:scale-[0.98] transition-all">
                       {t.arrivedBtn}
                     </button>
                   </div>
                 </div>
 
                 {/* On-site Verification Form */}
-                {selectedComplaint.status === "VERIFIED_COMPLETED" ? (<div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 p-3 text-xs text-emerald-800 dark:text-emerald-300">
-                    <p className="font-bold flex items-center gap-1.5">
-                      <IconCircleCheck className="h-4 w-4"/>
+                {selectedComplaint.status === "VERIFIED_COMPLETED" ? (<div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 p-3.5 text-sm text-emerald-800 dark:text-emerald-300">
+                    <p className="font-bold flex items-center gap-2">
+                      <IconCircleCheck className="h-5 w-5"/>
                       {t.compVerifiedDone}
                     </p>
                     {selectedComplaint.visitVerificationNote && <p className="mt-1">{selectedComplaint.visitVerificationNote}</p>}
-                  </div>) : (<form onSubmit={handleVerifyComplaint} className="space-y-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
-                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">{t.verifyCompTitle}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <input type="text" value={compOtp} onChange={(e) => setCompOtp(e.target.value)} placeholder={t.compOtpPlaceholder} aria-label={t.compOtpPlaceholder} maxLength={4} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 font-mono text-xs text-slate-900 dark:text-slate-100"/>
-                      <input type="text" value={compVerifyNote} onChange={(e) => setCompVerifyNote(e.target.value)} placeholder={t.compNotePlaceholder} aria-label={t.compNotePlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+                  </div>) : (<form onSubmit={handleVerifyComplaint} className="space-y-2.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] p-3.5">
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">{t.verifyCompTitle}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <input type="text" value={compOtp} onChange={(e) => setCompOtp(e.target.value)} placeholder={t.compOtpPlaceholder} aria-label={t.compOtpPlaceholder} maxLength={4} className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 font-mono text-base sm:text-sm text-slate-900 dark:text-white"/>
+                      <input type="text" value={compVerifyNote} onChange={(e) => setCompVerifyNote(e.target.value)} placeholder={t.compNotePlaceholder} aria-label={t.compNotePlaceholder} className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 text-base sm:text-sm text-slate-900 dark:text-white"/>
                     </div>
-                    <button type="submit" disabled={verifyingComp} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-50">
-                      <IconCircleCheck className="h-3.5 w-3.5"/>
+                    <button type="submit" disabled={verifyingComp} className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 transition-all">
+                      <IconCircleCheck className="h-4 w-4"/>
                       {verifyingComp ? "..." : t.compVerifyBtn}
                     </button>
                   </form>)}
 
                 {/* Direct Patient Advice Chat */}
-                <div className="space-y-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
-                  <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                    <IconMessageCircle className="h-3.5 w-3.5 text-teal-700 dark:text-teal-400"/>
+                <div className="space-y-2.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] p-3.5">
+                  <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <IconMessageCircle className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
                     {t.chatTitle}
                   </p>
-                  <div className="max-h-36 overflow-y-auto space-y-1.5">
-                    {complaintMessages.length === 0 ? (<p className="text-[11px] text-slate-400">{t.chatEmpty}</p>) : (complaintMessages.map((msg) => {
+                  <div className="max-h-44 overflow-y-auto space-y-2">
+                    {complaintMessages.length === 0 ? (<p className="text-sm text-slate-500 dark:text-slate-400">{t.chatEmpty}</p>) : (complaintMessages.map((msg) => {
                     const isDoc = msg.senderRole !== "PATIENT";
-                    return (<div key={msg.id} className={`rounded-lg p-2 text-[11px] ${isDoc
+                    return (<div key={msg.id} className={`rounded-2xl px-3 py-2 text-sm leading-relaxed ${isDoc
                             ? "ml-6 bg-teal-700 text-white"
-                            : "mr-6 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"}`}>
+                            : "mr-6 bg-[#EDF5F3] dark:bg-[#16272B] text-slate-800 dark:text-slate-100"}`}>
                             <span className="font-bold">{msg.senderName} [{msg.channel}]: </span>
                             {msg.body}
                           </div>);
                 }))}
                   </div>
-                  <form onSubmit={handleSendDoctorChat} className="flex gap-2">
-                    <input type="text" value={chatBody} onChange={(e) => setChatBody(e.target.value)} placeholder={t.chatPlaceholder} aria-label={t.chatPlaceholder} className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"/>
-                    <button type="submit" disabled={sendingChat || !chatBody.trim()} className="min-h-[40px] rounded-lg bg-slate-900 dark:bg-teal-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-600 disabled:opacity-50">
+                  <form onSubmit={handleSendDoctorChat} className="flex flex-col sm:flex-row gap-2">
+                    <input type="text" value={chatBody} onChange={(e) => setChatBody(e.target.value)} placeholder={t.chatPlaceholder} aria-label={t.chatPlaceholder} className="flex-1 min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"/>
+                    <button type="submit" disabled={sendingChat || !chatBody.trim()} className="min-h-[46px] rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
                       {t.chatSendBtn}
                     </button>
                   </form>
@@ -1073,24 +1073,24 @@ export default function ClinicalDashboardPage() {
       </section>
 
       {/* VIEW 1: HOSPITAL DOCTOR */}
-      {isOvabmu && (<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          <div className="lg:col-span-4 space-y-2.5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
+      {isOvabmu && (<div className="grid grid-cols-1 lg:grid-cols-12 gap-5 oc-fade-up">
+          <div className="lg:col-span-4 space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 px-1">
               {t.rosterTitle} ({patients.length})
             </h2>
             {patients.map((p) => {
                 const selected = p.id === selectedPatient?.id;
                 const isInpatient = p.status === "INPATIENT";
                 const latestEhr = p.ehrRecords[p.ehrRecords.length - 1];
-                return (<button key={p.id} onClick={() => setSelectedPatientId(p.id)} className={`w-full text-left rounded-xl border p-4 transition ${selected
-                        ? "border-teal-500 bg-teal-50/40 dark:bg-teal-950/40 ring-1 ring-teal-500"
-                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"}`}>
-                  <div className="flex items-start justify-between gap-2">
+                return (<button key={p.id} onClick={() => setSelectedPatientId(p.id)} className={`w-full text-left rounded-2xl border p-4 sm:p-4.5 min-h-[48px] transition-all active:scale-[0.99] ${selected
+                        ? "border-teal-600 dark:border-teal-500 bg-teal-50/70 dark:bg-teal-950/50 ring-1 ring-teal-500 shadow-sm"
+                        : "med-card-interactive border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] hover:border-teal-400 dark:hover:border-teal-700"}`}>
+                  <div className="flex items-start justify-between gap-2.5">
                     <div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{p.fullName}</p>
-                      <p className="font-mono text-[11px] text-slate-500 dark:text-slate-400">{p.jshshirMasked}</p>
+                      <p className="text-base font-bold text-slate-900 dark:text-white">{p.fullName}</p>
+                      <p className="font-mono text-xs text-slate-600 dark:text-slate-300 mt-0.5">{p.jshshirMasked}</p>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isInpatient
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${isInpatient
                         ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-300"
                         : p.status === "VISIT_COMPLETED"
                             ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
@@ -1102,10 +1102,10 @@ export default function ClinicalDashboardPage() {
                             : t.patronageTag}
                     </span>
                   </div>
-                  <p className="mt-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                  <p className="mt-2 text-sm text-slate-700 dark:text-slate-200 font-medium leading-snug">
                     {latestEhr?.diagnosisIcd10} — {latestEhr?.diagnosisText.slice(0, 62)}...
                   </p>
-                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300">
                     {p.district}{p.mahalla ? `, ${p.mahalla}` : ""} {p.bedNumber ? `• ${p.bedNumber}` : ""}
                   </p>
                 </button>);
@@ -1113,46 +1113,46 @@ export default function ClinicalDashboardPage() {
           </div>
 
           <div className="lg:col-span-8">
-            {loading || !selectedPatient ? (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            {loading || !selectedPatient ? (<div className="med-card p-8 text-center text-base text-slate-600 dark:text-slate-300">
                 {t.loadingEhr}
-              </div>) : (<div className="space-y-4">
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+              </div>) : (<div className="space-y-5">
+                <div className="med-card p-5 sm:p-6">
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                           {selectedPatient.fullName}
                         </h2>
-                        <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-xs text-slate-700 dark:text-slate-300">
+                        <span className="rounded-lg bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A] px-2.5 py-1 font-mono text-xs text-slate-700 dark:text-slate-200">
                           <InfoTooltip label="JSHSHIR" explanation={t.jshshirTip}/>:{" "}
                           {selectedPatient.jshshirMasked}
                         </span>
-                        <span className="rounded bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 text-xs font-semibold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                        <span className="rounded-lg bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 text-xs font-bold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                           {selectedPatient.bloodType}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">
+                      <p className="text-sm text-slate-700 dark:text-slate-200">
                         {selectedPatient.district}
                         {selectedPatient.mahalla ? `, ${selectedPatient.mahalla}` : ""}, {selectedPatient.address} •{" "}
                         {selectedPatient.phone}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-sm text-slate-600 dark:text-slate-300">
                         {t.allergiesLabel}{" "}
-                        <span className="font-semibold text-rose-700 dark:text-rose-400">
+                        <span className="font-bold text-rose-700 dark:text-rose-400">
                           {selectedPatient.allergies.join(", ")}
                         </span>{" "}
                         • {t.polyclinicLabel}{" "}
-                        <strong className="text-slate-700 dark:text-slate-200">
+                        <strong className="text-slate-800 dark:text-slate-100">
                           {selectedPatient.polyclinicName}
                         </strong>
                       </p>
                     </div>
 
-                    {selectedPatient.status === "INPATIENT" ? (<button onClick={() => handleTriggerDischarge(selectedPatient.id)} disabled={discharging || role !== "OVABMU_MD"} className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-teal-700 px-4 py-3 text-xs font-bold text-white hover:bg-teal-800 shadow-sm disabled:opacity-50 shrink-0">
+                    {selectedPatient.status === "INPATIENT" ? (<button onClick={() => handleTriggerDischarge(selectedPatient.id)} disabled={discharging || role !== "OVABMU_MD"} className="inline-flex min-h-[48px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-3 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 shadow-sm active:scale-[0.98] transition-all disabled:opacity-50 shrink-0">
                         <IconRobot className="h-4 w-4"/>
                         {discharging ? t.dischargingBtn : t.dischargeBtn}
                       </button>) : (<div className="flex flex-wrap items-center gap-2">
-                        <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 px-3 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <div className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 px-3.5 py-2 text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                           <IconCircleCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400"/>
                           {t.dischargedActive}
                         </div>
@@ -1160,43 +1160,43 @@ export default function ClinicalDashboardPage() {
                             <button onClick={() => setTraceModal({
                             patientName: selectedPatient.fullName,
                             trace: selectedPatientCall.aiAgentTrace,
-                        })} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
-                              <IconRobot className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                        })} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-500 active:scale-[0.98] transition-all">
+                              <IconRobot className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
                               {t.aiTraceBtn}
                             </button>
-                            <button onClick={() => setFhirCallId(selectedPatientCall.id)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
-                              <IconFileCode className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400"/>
+                            <button onClick={() => setFhirCallId(selectedPatientCall.id)} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-500 active:scale-[0.98] transition-all">
+                              <IconFileCode className="h-4 w-4 text-indigo-600 dark:text-indigo-400"/>
                               {t.fhirBtn}
                             </button>
                           </>)}
                       </div>)}
                   </div>
 
-                  {selectedPatient.ehrRecords.map((ehr) => (<div key={ehr.id} className="mt-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4 space-y-2">
+                  {selectedPatient.ehrRecords.map((ehr) => (<div key={ehr.id} className="mt-4 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-4 sm:p-5 space-y-2.5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="rounded bg-slate-900 dark:bg-teal-600 px-2 py-0.5 font-mono text-xs font-bold text-white">
+                          <span className="rounded-lg bg-teal-800 dark:bg-teal-600 px-2.5 py-1 font-mono text-xs font-bold text-white">
                             <InfoTooltip label={ehr.diagnosisIcd10} explanation={t.icdTip}/>
                           </span>
-                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">
                             {ehr.recordType} ({ehr.severity})
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[10px] font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                            <IconLock className="h-3 w-3"/>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                            <IconLock className="h-3.5 w-3.5"/>
                             <InfoTooltip label={t.encryptedLabel} explanation={t.encryptedTip}/>
                           </span>
-                          {ehr.dischargeDocumentKey && (<a href={`/api/storage/${ehr.dischargeDocumentKey}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-teal-700 dark:text-teal-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
-                              <IconExternalLink className="h-3 w-3"/>
+                          {ehr.dischargeDocumentKey && (<a href={`/api/storage/${ehr.dischargeDocumentKey}`} target="_blank" rel="noreferrer" className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl bg-white dark:bg-[#101E21] px-3 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A] hover:border-teal-500 transition-colors">
+                              <IconExternalLink className="h-3.5 w-3.5"/>
                               {t.archiveDoc}
                             </a>)}
                         </div>
                       </div>
-                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">{ehr.diagnosisText}</p>
-                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{ehr.clinicalNotes}</p>
-                      {ehr.procedures.length > 0 && (<div className="flex flex-wrap gap-1.5 pt-1">
-                          {ehr.procedures.map((proc, idx) => (<span key={idx} className="rounded-md bg-white dark:bg-slate-900 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{ehr.diagnosisText}</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{ehr.clinicalNotes}</p>
+                      {ehr.procedures.length > 0 && (<div className="flex flex-wrap gap-2 pt-1">
+                          {ehr.procedures.map((proc, idx) => (<span key={idx} className="rounded-lg bg-white dark:bg-[#101E21] px-2.5 py-1 text-xs text-slate-700 dark:text-slate-200 border border-[#D7E4E1] dark:border-[#1E353A]">
                               {proc}
                             </span>))}
                         </div>)}
@@ -1216,17 +1216,17 @@ export default function ClinicalDashboardPage() {
                     const hasSelfHarm = checkins.some((c) => c.epdsSelfHarmFlag || c.riskFlag === "SELF_HARM_CRITICAL");
                     const hasPsychRisk = checkins.some((c) => c.riskFlag === "PSYCH_RISK" || (typeof c.epdsScore === "number" && c.epdsScore >= 13));
                     return (<div className="space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3">
-                          <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                        <div className="med-card flex flex-wrap items-center justify-between gap-2 px-4 py-3.5">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">
                             {t.wellbeingSectionTitle} ({checkins.length})
                           </span>
-                          <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
-                            {latestEpds && (<span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-mono text-slate-700 dark:text-slate-200">
+                          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                            {latestEpds && (<span className="rounded-full bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A] px-3 py-1 font-mono text-slate-700 dark:text-slate-200">
                                 {t.latestEpdsLabel} {latestEpds.epdsScore}/30
                               </span>)}
-                            {hasSelfHarm ? (<span className="rounded-full bg-rose-600 px-2.5 py-0.5 text-white">
+                            {hasSelfHarm ? (<span className="rounded-full bg-rose-600 px-3 py-1 text-white">
                                 {t.selfHarmAlert}
-                              </span>) : hasPsychRisk ? (<span className="rounded-full bg-amber-100 dark:bg-amber-950/70 px-2.5 py-0.5 text-amber-800 dark:text-amber-300">
+                              </span>) : hasPsychRisk ? (<span className="rounded-full bg-amber-100 dark:bg-amber-950/70 px-3 py-1 text-amber-800 dark:text-amber-300">
                                 {t.psychRiskAlert}
                               </span>) : null}
                           </div>
@@ -1235,33 +1235,33 @@ export default function ClinicalDashboardPage() {
                       </div>);
                 })()}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                        <IconFlask className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="med-card p-5 space-y-3.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <IconFlask className="h-4.5 w-4.5 text-teal-700 dark:text-teal-400"/>
                         {t.labsTitle}
                       </h3>
-                      <button onClick={() => handleOrderFollowupLab(selectedPatient.id, "Qayta Gemoglobin & CRP Nazorati")} disabled={orderingLab} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
-                        <IconPlus className="h-3 w-3"/>
+                      <button onClick={() => handleOrderFollowupLab(selectedPatient.id, "Qayta Gemoglobin & CRP Nazorati")} disabled={orderingLab} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-500 active:scale-[0.98] transition-all">
+                        <IconPlus className="h-3.5 w-3.5"/>
                         {t.orderLabBtn}
                       </button>
                     </div>
-                    {selectedPatient.labReports.map((lab) => (<div key={lab.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{lab.panelName}</span>
-                          <span className="text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400">
+                    {selectedPatient.labReports.map((lab) => (<div key={lab.id} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-3.5 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">{lab.panelName}</span>
+                          <span className="text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">
                             {lab.status}
                           </span>
                         </div>
-                        <div className="space-y-1">
-                          {lab.results.map((r, i) => (<div key={i} className="flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
-                              <span className="text-slate-700 dark:text-slate-300">{r.testName}</span>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                        <div className="space-y-1.5">
+                          {lab.results.map((r, i) => (<div key={i} className="flex items-center justify-between gap-2 text-sm py-1.5 border-b border-[#D7E4E1]/70 dark:border-[#1E353A] last:border-0">
+                              <span className="text-slate-700 dark:text-slate-200">{r.testName}</span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="font-mono font-bold text-slate-900 dark:text-white">
                                   {r.value} {r.unit}
                                 </span>
-                                {r.flag !== "NORMAL" && (<span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${r.flag === "CRITICAL"
+                                {r.flag !== "NORMAL" && (<span className={`rounded-full px-2 py-0.5 text-xs font-bold ${r.flag === "CRITICAL"
                                 ? "bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300"
                                 : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
                                     {r.flag}
@@ -1272,28 +1272,28 @@ export default function ClinicalDashboardPage() {
                       </div>))}
                   </div>
 
-                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                        <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+                  <div className="med-card p-5 space-y-3.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <IconPill className="h-4.5 w-4.5 text-teal-700 dark:text-teal-400"/>
                         {t.rxTitle}
                       </h3>
-                      <button onClick={() => setRxFormOpen((v) => !v)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
-                        <IconPlus className="h-3 w-3"/>
+                      <button onClick={() => setRxFormOpen((v) => !v)} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-500 active:scale-[0.98] transition-all">
+                        <IconPlus className="h-3.5 w-3.5"/>
                         {t.addRxBtn}
                       </button>
                     </div>
 
-                    {rxFormOpen && (<form onSubmit={(e) => handleAddRx(e, selectedPatient.id)} className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3 space-y-2">
+                    {rxFormOpen && (<form onSubmit={(e) => handleAddRx(e, selectedPatient.id)} className="oc-slide-down rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/30 p-4 space-y-3">
                         <label htmlFor="rx-med" className="sr-only">
                           {t.rxMedPlaceholder}
                         </label>
-                        <input id="rx-med" name="medicationName" value={rxMed} onChange={(e) => setRxMed(e.target.value)} placeholder={t.rxMedPlaceholder} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <input id="rx-med" name="medicationName" value={rxMed} onChange={(e) => setRxMed(e.target.value)} placeholder={t.rxMedPlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white" required/>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                           <label htmlFor="rx-dose" className="sr-only">
                             {t.rxDosePlaceholder}
                           </label>
-                          <input id="rx-dose" name="dosage" value={rxDose} onChange={(e) => setRxDose(e.target.value)} placeholder={t.rxDosePlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
+                          <input id="rx-dose" name="dosage" value={rxDose} onChange={(e) => setRxDose(e.target.value)} placeholder={t.rxDosePlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white" required/>
                           <label htmlFor="rx-freq" className="sr-only">
                             {t.rxFreqPlaceholder}
                           </label>
@@ -1303,49 +1303,49 @@ export default function ClinicalDashboardPage() {
                         if (!rxReminderEdited) {
                             setRxReminderTimes(inferReminderTimesFromFrequency(val).join(", "));
                         }
-                    }} placeholder={t.rxFreqPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
-                          <input id="rx-duration" name="durationDays" type="number" min={1} max={180} value={rxDurationDays} onChange={(e) => setRxDurationDays(e.target.value)} placeholder={t.rxDurationLabel} aria-label={t.rxDurationLabel} className="col-span-2 sm:col-span-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
+                    }} placeholder={t.rxFreqPlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white" required/>
+                          <input id="rx-duration" name="durationDays" type="number" min={1} max={180} value={rxDurationDays} onChange={(e) => setRxDurationDays(e.target.value)} placeholder={t.rxDurationLabel} aria-label={t.rxDurationLabel} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
                         </div>
-                        <input id="rx-instructions" name="instructionsUz" value={rxInstructions} onChange={(e) => setRxInstructions(e.target.value)} placeholder={t.rxInstructionsPlaceholder} aria-label={t.rxInstructionsLabel} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
-                        <div className="space-y-1">
-                          <label htmlFor="rx-reminder-times" className="block text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                        <input id="rx-instructions" name="instructionsUz" value={rxInstructions} onChange={(e) => setRxInstructions(e.target.value)} placeholder={t.rxInstructionsPlaceholder} aria-label={t.rxInstructionsLabel} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
+                        <div className="space-y-1.5">
+                          <label htmlFor="rx-reminder-times" className="block text-xs font-semibold text-slate-700 dark:text-slate-200">
                             {t.rxReminderTimesLabel}
                           </label>
                           <input id="rx-reminder-times" name="reminderTimes" value={rxReminderTimes} onChange={(e) => {
                         setRxReminderEdited(true);
                         setRxReminderTimes(e.target.value);
-                    }} placeholder="08:00, 20:00" className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100"/>
+                    }} placeholder="08:00, 20:00" className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 font-mono text-base sm:text-sm text-slate-900 dark:text-white"/>
                         </div>
-                        <label className="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                          <input type="checkbox" checked={rxRemindersEnabled} onChange={(e) => setRxRemindersEnabled(e.target.checked)} className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600"/>
+                        <label className="flex items-center gap-2.5 min-h-[40px] text-sm font-medium text-slate-700 dark:text-slate-200 cursor-pointer">
+                          <input type="checkbox" checked={rxRemindersEnabled} onChange={(e) => setRxRemindersEnabled(e.target.checked)} className="h-4.5 w-4.5 rounded border-[#D7E4E1] text-teal-600"/>
                           <span>{t.rxRemindersOn}</span>
                         </label>
-                        <button type="submit" disabled={rxSubmitting} className="w-full min-h-[40px] rounded-lg bg-teal-700 py-2 text-xs font-semibold text-white hover:bg-teal-800 disabled:opacity-50">
+                        <button type="submit" disabled={rxSubmitting} className="w-full min-h-[46px] rounded-xl bg-teal-700 dark:bg-teal-600 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all disabled:opacity-50">
                           {rxSubmitting ? "..." : t.saveRxBtn}
                         </button>
                       </form>)}
 
-                    <div className="space-y-2">
-                      {selectedPatient.prescriptions.length === 0 ? (<p className="text-xs text-slate-400 py-2 text-center">{t.noRxYet}</p>) : (selectedPatient.prescriptions.map((rx) => (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+                    <div className="space-y-2.5">
+                      {selectedPatient.prescriptions.length === 0 ? (<p className="text-sm text-slate-500 dark:text-slate-400 py-3 text-center">{t.noRxYet}</p>) : (selectedPatient.prescriptions.map((rx) => (<div key={rx.id} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-3.5">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                            <span className="text-sm font-bold text-slate-900 dark:text-white">
                               {rx.medicationName} ({rx.dosage})
                             </span>
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${rx.pharmacyStockStatus === "IN_STOCK"
-                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300"
+                            <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${rx.pharmacyStockStatus === "IN_STOCK"
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
                         : rx.pharmacyStockStatus === "RESERVED"
-                            ? "bg-teal-50 text-teal-700 dark:bg-teal-950/70 dark:text-teal-300"
-                            : "bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                            ? "bg-teal-100 text-teal-800 dark:bg-teal-950/70 dark:text-teal-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
                               {rx.pharmacyStockStatus}
                             </span>
                           </div>
-                          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                          <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">
                             {rx.frequency} • {rx.durationDays} {t.daysWord} • {rx.polyclinicPharmacy}
                           </p>
-                          {rx.remindersEnabled !== false && (rx.reminderTimes ?? []).length > 0 && (<p className="mt-1 inline-flex items-center gap-1 rounded bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2 py-0.5 font-mono text-[10px] font-semibold text-teal-800 dark:text-teal-300">
+                          {rx.remindersEnabled !== false && (rx.reminderTimes ?? []).length > 0 && (<p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2.5 py-0.5 font-mono text-xs font-semibold text-teal-800 dark:text-teal-300">
                               🔔 {(rx.reminderTimes ?? []).join(", ")}
                             </p>)}
-                          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                          <p className="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                             {lang === "ru" ? rx.instructionsRu : lang === "en" ? rx.instructionsEn : rx.instructionsUz}
                           </p>
                         </div>)))}
@@ -1367,88 +1367,88 @@ export default function ClinicalDashboardPage() {
                 selectedCall?.patient ||
                 patients[0] ||
                 null;
-            return (<div className="space-y-5">
+            return (<div className="space-y-6 oc-fade-up">
           {/* Assigned Patients & Medications (E-Rx for Family Doctors & Nurses) */}
-          <section id="assigned-patient-medications" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <section id="assigned-patient-medications" className="med-card p-5 sm:p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <IconPill className="h-5 w-5 text-teal-700 dark:text-teal-400"/>
                   {t.assignedMedTitle}
                 </h2>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.assignedMedSub}</p>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">{t.assignedMedSub}</p>
               </div>
-              {patients.length > 0 && (<div className="flex flex-wrap items-center gap-2">
-                  <label htmlFor="family-rx-patient" className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+              {patients.length > 0 && (<div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                  <label htmlFor="family-rx-patient" className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {t.selectPatientLabel}
                   </label>
-                  <select id="family-rx-patient" value={effectiveRxPatient?.id || ""} onChange={(e) => setSelectedRxPatientId(e.target.value)} className="min-h-[36px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-slate-100">
+                  <select id="family-rx-patient" value={effectiveRxPatient?.id || ""} onChange={(e) => setSelectedRxPatientId(e.target.value)} className="w-full sm:w-auto min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm font-semibold text-slate-900 dark:text-white">
                     {patients.map((p) => (<option key={p.id} value={p.id}>
                         {p.fullName}{p.district ? ` (${p.district})` : ""} • {(p.prescriptions ?? []).length}
                       </option>))}
                   </select>
-                  <button type="button" onClick={() => setRxFormOpen((v) => !v)} className="inline-flex min-h-[36px] items-center gap-1 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-800">
-                    <IconPlus className="h-3.5 w-3.5"/>
+                  <button type="button" onClick={() => setRxFormOpen((v) => !v)} className="inline-flex min-h-[46px] w-full sm:w-auto items-center justify-center gap-1.5 rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all">
+                    <IconPlus className="h-4 w-4"/>
                     {t.addRxBtn}
                   </button>
                 </div>)}
             </div>
 
-            {!effectiveRxPatient ? (<p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center">
+            {!effectiveRxPatient ? (<p className="text-sm text-slate-600 dark:text-slate-300 py-4 text-center">
                 {t.noPatientsAssigned}
-              </p>) : (<div className="space-y-3">
-                {rxFormOpen && (<form onSubmit={(e) => handleAddRx(e, effectiveRxPatient.id)} className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/30 p-3.5 space-y-2.5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                      <input id="family-rx-med" name="medicationName" value={rxMed} onChange={(e) => setRxMed(e.target.value)} placeholder={t.rxMedPlaceholder} aria-label={t.rxMedPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100" required/>
-                      <input id="family-rx-dose" name="dosage" value={rxDose} onChange={(e) => setRxDose(e.target.value)} placeholder={t.rxDosePlaceholder} aria-label={t.rxDosePlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100" required/>
+              </p>) : (<div className="space-y-3.5">
+                {rxFormOpen && (<form onSubmit={(e) => handleAddRx(e, effectiveRxPatient.id)} className="oc-slide-down rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/30 p-4 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                      <input id="family-rx-med" name="medicationName" value={rxMed} onChange={(e) => setRxMed(e.target.value)} placeholder={t.rxMedPlaceholder} aria-label={t.rxMedPlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white" required/>
+                      <input id="family-rx-dose" name="dosage" value={rxDose} onChange={(e) => setRxDose(e.target.value)} placeholder={t.rxDosePlaceholder} aria-label={t.rxDosePlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white" required/>
                       <input id="family-rx-freq" name="frequency" value={rxFreq} onChange={(e) => {
                         const val = e.target.value;
                         setRxFreq(val);
                         if (!rxReminderEdited) {
                             setRxReminderTimes(inferReminderTimesFromFrequency(val).join(", "));
                         }
-                    }} placeholder={t.rxFreqPlaceholder} aria-label={t.rxFreqPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100" required/>
-                      <input id="family-rx-duration" name="durationDays" type="number" min={1} max={180} value={rxDurationDays} onChange={(e) => setRxDurationDays(e.target.value)} placeholder={t.rxDurationLabel} aria-label={t.rxDurationLabel} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+                    }} placeholder={t.rxFreqPlaceholder} aria-label={t.rxFreqPlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white" required/>
+                      <input id="family-rx-duration" name="durationDays" type="number" min={1} max={180} value={rxDurationDays} onChange={(e) => setRxDurationDays(e.target.value)} placeholder={t.rxDurationLabel} aria-label={t.rxDurationLabel} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <input id="family-rx-instructions" name="instructionsUz" value={rxInstructions} onChange={(e) => setRxInstructions(e.target.value)} placeholder={t.rxInstructionsPlaceholder} aria-label={t.rxInstructionsLabel} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <input id="family-rx-instructions" name="instructionsUz" value={rxInstructions} onChange={(e) => setRxInstructions(e.target.value)} placeholder={t.rxInstructionsPlaceholder} aria-label={t.rxInstructionsLabel} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"/>
                       <input id="family-rx-reminder-times" name="reminderTimes" value={rxReminderTimes} onChange={(e) => {
                         setRxReminderEdited(true);
                         setRxReminderTimes(e.target.value);
-                    }} placeholder="08:00, 20:00" aria-label={t.rxReminderTimesLabel} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-2 font-mono text-xs text-slate-900 dark:text-slate-100"/>
+                    }} placeholder="08:00, 20:00" aria-label={t.rxReminderTimesLabel} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] px-3.5 py-2.5 font-mono text-base sm:text-sm text-slate-900 dark:text-white"/>
                     </div>
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <label className="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                        <input type="checkbox" checked={rxRemindersEnabled} onChange={(e) => setRxRemindersEnabled(e.target.checked)} className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600"/>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <label className="flex items-center gap-2.5 min-h-[40px] text-sm font-medium text-slate-700 dark:text-slate-200 cursor-pointer">
+                        <input type="checkbox" checked={rxRemindersEnabled} onChange={(e) => setRxRemindersEnabled(e.target.checked)} className="h-4.5 w-4.5 rounded border-[#D7E4E1] text-teal-600"/>
                         <span>{t.rxRemindersOn}</span>
                       </label>
-                      <button type="submit" disabled={rxSubmitting} className="min-h-[38px] rounded-lg bg-teal-700 px-4 py-2 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50">
+                      <button type="submit" disabled={rxSubmitting} className="min-h-[46px] w-full sm:w-auto rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all disabled:opacity-50">
                         {rxSubmitting ? "..." : t.saveRxBtn}
                       </button>
                     </div>
                   </form>)}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                  {(effectiveRxPatient.prescriptions ?? []).length === 0 ? (<p className="col-span-full text-xs text-slate-400 py-2 text-center">{t.noRxYet}</p>) : ((effectiveRxPatient.prescriptions ?? []).map((rx) => (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {(effectiveRxPatient.prescriptions ?? []).length === 0 ? (<p className="col-span-full text-sm text-slate-500 dark:text-slate-400 py-3 text-center">{t.noRxYet}</p>) : ((effectiveRxPatient.prescriptions ?? []).map((rx) => (<div key={rx.id} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-4">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                           {rx.medicationName} ({rx.dosage})
                         </span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${rx.pharmacyStockStatus === "IN_STOCK"
-                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300"
+                        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold ${rx.pharmacyStockStatus === "IN_STOCK"
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
                         : rx.pharmacyStockStatus === "RESERVED"
-                            ? "bg-teal-50 text-teal-700 dark:bg-teal-950/70 dark:text-teal-300"
-                            : "bg-amber-50 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                            ? "bg-teal-100 text-teal-800 dark:bg-teal-950/70 dark:text-teal-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
                           {rx.pharmacyStockStatus}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                      <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">
                         {rx.frequency} • {rx.durationDays} {t.daysWord} • {rx.polyclinicPharmacy}
                       </p>
-                      {rx.remindersEnabled !== false && (rx.reminderTimes ?? []).length > 0 && (<p className="mt-1 inline-flex items-center gap-1 rounded bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2 py-0.5 font-mono text-[10px] font-semibold text-teal-800 dark:text-teal-300">
+                      {rx.remindersEnabled !== false && (rx.reminderTimes ?? []).length > 0 && (<p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2.5 py-0.5 font-mono text-xs font-semibold text-teal-800 dark:text-teal-300">
                           🔔 {(rx.reminderTimes ?? []).join(", ")}
                         </p>)}
-                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                      <p className="mt-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                         {lang === "ru" ? rx.instructionsRu : lang === "en" ? rx.instructionsEn : rx.instructionsUz}
                       </p>
                     </div>)))}
@@ -1457,25 +1457,25 @@ export default function ClinicalDashboardPage() {
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          <div className="lg:col-span-4 space-y-2.5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
+          <div className="lg:col-span-4 space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 px-1">
               {t.queueTitle}
             </h2>
             {activeCalls.map((call) => {
                 const selected = call.id === selectedCall?.id;
-                return (<button key={call.id} onClick={() => { setSelectedCallId(call.id); if (call.patientId) setSelectedRxPatientId(call.patientId); }} className={`w-full text-left rounded-xl border p-4 space-y-2 transition ${selected
-                        ? "border-teal-500 bg-teal-50/40 dark:bg-teal-950/40 ring-1 ring-teal-500"
-                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"}`}>
-                  <div className="flex items-start justify-between gap-2">
+                return (<button key={call.id} onClick={() => { setSelectedCallId(call.id); if (call.patientId) setSelectedRxPatientId(call.patientId); }} className={`w-full text-left rounded-2xl border p-4 min-h-[48px] space-y-2.5 transition-all active:scale-[0.99] ${selected
+                        ? "border-teal-600 dark:border-teal-500 bg-teal-50/70 dark:bg-teal-950/50 ring-1 ring-teal-500 shadow-sm"
+                        : "med-card-interactive border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] hover:border-teal-400 dark:hover:border-teal-700"}`}>
+                  <div className="flex items-start justify-between gap-2.5">
                     <div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      <p className="text-base font-bold text-slate-900 dark:text-white">
                         {call.patient.fullName}
                       </p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                         {call.district}{call.patient.mahalla ? `, ${call.patient.mahalla}` : ""}
                       </p>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${call.riskScore >= 80
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${call.riskScore >= 80
                         ? "bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300"
                         : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
                       {t.riskWord} {call.riskScore}
@@ -1484,8 +1484,8 @@ export default function ClinicalDashboardPage() {
 
                   {data?.simState && (<SlaCountdownBadge dischargedAt={call.dischargedAt} slaDeadlineAt={call.slaDeadlineAt} simulatedNow={data.simState.simulatedNow} dataLoadedAtMs={dataLoadedAtMs} status={call.status}/>)}
 
-                  {call.symptomCheckins.some((s) => s.aiTriageLevel === "RED_EMERGENCY") && (<div className="rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white flex items-center gap-1.5">
-                      <IconAlertTriangle className="h-3.5 w-3.5"/>
+                  {call.symptomCheckins.some((s) => s.aiTriageLevel === "RED_EMERGENCY") && (<div className="rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5">
+                      <IconAlertTriangle className="h-4 w-4 shrink-0"/>
                       {t.emergencyBanner}
                     </div>)}
                 </button>);
@@ -1493,31 +1493,31 @@ export default function ClinicalDashboardPage() {
           </div>
 
           <div className="lg:col-span-8">
-            {!selectedCall ? (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            {!selectedCall ? (<div className="med-card p-8 text-center text-base text-slate-600 dark:text-slate-300">
                 {t.noCalls}
-              </div>) : (<div className="space-y-4">
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
+              </div>) : (<div className="space-y-5">
+                <div className="med-card p-5 sm:p-6 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3.5">
+                    <div className="space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                           {selectedCall.patient.fullName}
                         </h2>
-                        <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                        <span className="rounded-lg bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A] px-2.5 py-0.5 font-mono text-xs text-slate-700 dark:text-slate-200">
                           {selectedCall.patient.jshshirMasked}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                      <p className="text-sm text-slate-700 dark:text-slate-200">
                         {t.addressLabel}{" "}
-                        <strong className="text-slate-800 dark:text-slate-100">
+                        <strong className="text-slate-900 dark:text-white">
                           {selectedCall.patient.address}
                         </strong>{" "}
                         {selectedCall.patient.mahalla ? `(${selectedCall.patient.mahalla})` : ""} •{" "}
                         {selectedCall.patient.phone}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-sm text-slate-600 dark:text-slate-300">
                         {t.windowLabel}{" "}
-                        <strong className="text-slate-700 dark:text-slate-200">
+                        <strong className="text-slate-800 dark:text-slate-100">
                           {new Date(selectedCall.scheduledWindowStart).toLocaleTimeString("en-GB", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -1537,50 +1537,50 @@ export default function ClinicalDashboardPage() {
                       <button onClick={() => setTraceModal({
                     patientName: selectedCall.patient.fullName,
                     trace: selectedCall.aiAgentTrace,
-                })} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
-                        <IconRobot className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                })} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-500 active:scale-[0.98] transition-all">
+                        <IconRobot className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
                         {t.aiTraceBtn}
                       </button>
-                      <button onClick={() => setFhirCallId(selectedCall.id)} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700">
-                        <IconFileCode className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400"/>
+                      <button onClick={() => setFhirCallId(selectedCall.id)} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-500 active:scale-[0.98] transition-all">
+                        <IconFileCode className="h-4 w-4 text-indigo-600 dark:text-indigo-400"/>
                         {t.viewFhirBtn}
                       </button>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/60 dark:bg-rose-950/40 p-3.5">
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-rose-800 dark:text-rose-300 mb-1.5 flex items-center gap-1.5">
-                      <IconAlertTriangle className="h-3.5 w-3.5"/>
+                  <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50/70 dark:bg-rose-950/40 p-4">
+                    <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wide text-rose-800 dark:text-rose-300 mb-2 flex items-center gap-1.5">
+                      <IconAlertTriangle className="h-4 w-4"/>
                       {t.redFlagsTitle} {selectedCall.riskScore}/100)
                     </h3>
-                    <ul className="space-y-1 text-xs text-rose-900 dark:text-rose-200 list-disc pl-4">
+                    <ul className="space-y-1.5 text-sm text-rose-900 dark:text-rose-200 list-disc pl-5">
                       {selectedCall.redFlags.map((flag, i) => (<li key={i}>{flag}</li>))}
                     </ul>
                   </div>
 
                   <div>
-                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
                         {t.checklistTitle}
                       </h3>
-                      <button onClick={() => handleOrderFollowupLab(selectedCall.patientId, "Uy sharoitida Qayta Gemoglobin & Siydik Oqsili")} disabled={orderingLab} className="inline-flex min-h-[36px] items-center gap-1 rounded-lg bg-slate-900 dark:bg-teal-700 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 dark:hover:bg-teal-600">
-                        <IconFlask className="h-3.5 w-3.5"/>
+                      <button onClick={() => handleOrderFollowupLab(selectedCall.patientId, "Uy sharoitida Qayta Gemoglobin & Siydik Oqsili")} disabled={orderingLab} className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-1.5 rounded-xl bg-teal-700 dark:bg-teal-600 px-3.5 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all">
+                        <IconFlask className="h-4 w-4"/>
                         {t.oneClickLabBtn}
                       </button>
                     </div>
-                    <div className="space-y-2">
-                      {selectedCall.checklist.map((item) => (<label key={item.id} className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition ${item.checked
-                        ? "border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/40"
-                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 hover:bg-slate-50 dark:hover:bg-slate-800/70"}`}>
-                          <input type="checkbox" checked={item.checked} onChange={(e) => handleToggleChecklist(selectedCall.id, item.id, e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500"/>
+                    <div className="space-y-2.5">
+                      {selectedCall.checklist.map((item) => (<label key={item.id} className={`flex items-start gap-3 rounded-xl border p-3.5 min-h-[48px] cursor-pointer transition-all ${item.checked
+                        ? "border-emerald-300 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/40"
+                        : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] hover:border-teal-400 dark:hover:border-teal-700"}`}>
+                          <input type="checkbox" checked={item.checked} onChange={(e) => handleToggleChecklist(selectedCall.id, item.id, e.target.checked)} className="mt-0.5 h-5 w-5 rounded border-[#D7E4E1] dark:border-[#1E353A] text-teal-600 focus:ring-teal-500"/>
                           <div className="flex-1">
-                            <p className={`text-xs font-semibold ${item.checked
+                            <p className={`text-sm font-semibold ${item.checked
                         ? "line-through text-slate-500 dark:text-slate-400"
-                        : "text-slate-900 dark:text-slate-100"}`}>
+                        : "text-slate-900 dark:text-white"}`}>
                               {lang === "ru" ? item.titleRu : lang === "en" ? item.titleEn : item.titleUz}
                             </p>
                           </div>
-                          <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] text-slate-600 dark:text-slate-300">
+                          <span className="shrink-0 rounded-full bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] px-2.5 py-0.5 font-mono text-xs text-slate-600 dark:text-slate-300">
                             {item.category}
                           </span>
                         </label>))}
@@ -1588,59 +1588,59 @@ export default function ClinicalDashboardPage() {
                   </div>
                 </div>
 
-                <form onSubmit={handleVerifyVisit} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <form onSubmit={handleVerifyVisit} className="med-card p-5 sm:p-6 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       {t.vitalsTitle}
                     </h3>
-                    {selectedCall.visitVerifiedAt && (<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                        <IconCircleCheck className="h-3.5 w-3.5"/>
+                    {selectedCall.visitVerifiedAt && (<span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <IconCircleCheck className="h-4 w-4"/>
                         {t.verifiedLabel} ({selectedCall.verificationMethod})
                       </span>)}
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div>
-                      <label htmlFor="vitals-sbp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-sbp" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.sbpLabel}
                       </label>
-                      <input id="vitals-sbp" name="systolicBp" type="number" value={sbp} onChange={(e) => setSbp(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                      <input id="vitals-sbp" name="systolicBp" type="number" value={sbp} onChange={(e) => setSbp(e.target.value)} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 font-mono text-base sm:text-sm text-slate-900 dark:text-white" required/>
                     </div>
                     <div>
-                      <label htmlFor="vitals-dbp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-dbp" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.dbpLabel}
                       </label>
-                      <input id="vitals-dbp" name="diastolicBp" type="number" value={dbp} onChange={(e) => setDbp(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                      <input id="vitals-dbp" name="diastolicBp" type="number" value={dbp} onChange={(e) => setDbp(e.target.value)} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 font-mono text-base sm:text-sm text-slate-900 dark:text-white" required/>
                     </div>
                     <div>
-                      <label htmlFor="vitals-hr" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-hr" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.hrLabel}
                       </label>
-                      <input id="vitals-hr" name="heartRate" type="number" value={hr} onChange={(e) => setHr(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                      <input id="vitals-hr" name="heartRate" type="number" value={hr} onChange={(e) => setHr(e.target.value)} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 font-mono text-base sm:text-sm text-slate-900 dark:text-white" required/>
                     </div>
                     <div>
-                      <label htmlFor="vitals-temp" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label htmlFor="vitals-temp" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         {t.tempLabel}
                       </label>
-                      <input id="vitals-temp" name="tempC" type="number" step="0.1" value={temp} onChange={(e) => setTemp(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                      <input id="vitals-temp" name="tempC" type="number" step="0.1" value={temp} onChange={(e) => setTemp(e.target.value)} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 font-mono text-base sm:text-sm text-slate-900 dark:text-white" required/>
                     </div>
-                    <div>
-                      <label htmlFor="vitals-spo2" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    <div className="col-span-2 sm:col-span-1">
+                      <label htmlFor="vitals-spo2" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                         <InfoTooltip label={t.spo2Label} explanation={t.spo2Tip}/>
                       </label>
-                      <input id="vitals-spo2" name="spo2" type="number" value={spo2} onChange={(e) => setSpo2(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100" required/>
+                      <input id="vitals-spo2" name="spo2" type="number" value={spo2} onChange={(e) => setSpo2(e.target.value)} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 font-mono text-base sm:text-sm text-slate-900 dark:text-white" required/>
                     </div>
                   </div>
 
                   <div>
-                    <label htmlFor="vitals-notes" className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    <label htmlFor="vitals-notes" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                       {t.visitNotesLabel}
                     </label>
-                    <textarea id="vitals-notes" name="visitNotes" rows={2} value={visitNotes} onChange={(e) => setVisitNotes(e.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100" required/>
+                    <textarea id="vitals-notes" name="visitNotes" rows={3} value={visitNotes} onChange={(e) => setVisitNotes(e.target.value)} className="w-full min-h-[84px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white" required/>
                   </div>
 
-                  <button type="submit" disabled={verifying || selectedCall.status === "COMPLETED"} className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50">
-                    <IconSend className="h-3.5 w-3.5"/>
+                  <button type="submit" disabled={verifying || selectedCall.status === "COMPLETED"} className="inline-flex min-h-[48px] w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-3 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all disabled:opacity-50">
+                    <IconSend className="h-4 w-4"/>
                     {selectedCall.status === "COMPLETED"
                     ? t.verifyDoneBtn
                     : verifying
@@ -1655,17 +1655,17 @@ export default function ClinicalDashboardPage() {
                     const hasSelfHarm = checkins.some((c) => c.epdsSelfHarmFlag || c.riskFlag === "SELF_HARM_CRITICAL");
                     const hasPsychRisk = checkins.some((c) => c.riskFlag === "PSYCH_RISK" || (typeof c.epdsScore === "number" && c.epdsScore >= 13));
                     return (<div className="space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3">
-                          <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                        <div className="med-card flex flex-wrap items-center justify-between gap-2 px-4 py-3.5">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">
                             {t.wellbeingSectionTitle} ({checkins.length})
                           </span>
-                          <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
-                            {latestEpds && (<span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-mono text-slate-700 dark:text-slate-200">
+                          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                            {latestEpds && (<span className="rounded-full bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A] px-3 py-1 font-mono text-slate-700 dark:text-slate-200">
                                 {t.latestEpdsLabel} {latestEpds.epdsScore}/30
                               </span>)}
-                            {hasSelfHarm ? (<span className="rounded-full bg-rose-600 px-2.5 py-0.5 text-white">
+                            {hasSelfHarm ? (<span className="rounded-full bg-rose-600 px-3 py-1 text-white">
                                 {t.selfHarmAlert}
-                              </span>) : hasPsychRisk ? (<span className="rounded-full bg-amber-100 dark:bg-amber-950/70 px-2.5 py-0.5 text-amber-800 dark:text-amber-300">
+                              </span>) : hasPsychRisk ? (<span className="rounded-full bg-amber-100 dark:bg-amber-950/70 px-3 py-1 text-amber-800 dark:text-amber-300">
                                 {t.psychRiskAlert}
                               </span>) : null}
                           </div>
@@ -1674,9 +1674,9 @@ export default function ClinicalDashboardPage() {
                       </div>);
                 })()}
 
-                {selectedCall.symptomCheckins.length > 0 && (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
-                    <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                      <IconHeartbeat className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400"/>
+                {selectedCall.symptomCheckins.length > 0 && (<div className="med-card p-5 space-y-3">
+                    <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                      <IconHeartbeat className="h-4 w-4 text-rose-600 dark:text-rose-400"/>
                       {t.patientCheckinsTitle} ({selectedCall.symptomCheckins.length})
                     </h3>
                     {selectedCall.symptomCheckins.map((sc) => {
@@ -1689,7 +1689,7 @@ export default function ClinicalDashboardPage() {
                                     : sc.swelling);
                         const extraList = sc.additionalSymptoms ?? [];
                         const customList = sc.customConditions ?? [];
-                        return (<div key={sc.id} className={`rounded-xl border p-3 text-xs space-y-1.5 ${sc.aiTriageLevel === "RED_EMERGENCY"
+                        return (<div key={sc.id} className={`rounded-xl border p-3.5 text-sm space-y-2 ${sc.aiTriageLevel === "RED_EMERGENCY"
                                 ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
                                 : sc.aiTriageLevel === "YELLOW"
                                     ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
@@ -1698,7 +1698,7 @@ export default function ClinicalDashboardPage() {
                             <span>
                               {sc.aiTriageLevel} • BP {sc.bpReading}
                             </span>
-                            <span className="font-mono text-[10px] opacity-75">
+                            <span className="font-mono text-xs opacity-80">
                               {new Date(sc.createdAt).toLocaleTimeString("en-GB", {
                                 hour: "2-digit",
                                 minute: "2-digit",
@@ -1707,48 +1707,48 @@ export default function ClinicalDashboardPage() {
                           </div>
                           {(activePrimary.length > 0 ||
                                 extraList.length > 0 ||
-                                customList.length > 0) && (<div className="flex flex-wrap gap-1">
-                              {activePrimary.map((sym) => (<span key={sym.key} className="rounded-full bg-white/85 dark:bg-slate-900/75 border border-current/25 px-2 py-0.5 text-[10px] font-semibold">
+                                customList.length > 0) && (<div className="flex flex-wrap gap-1.5">
+                              {activePrimary.map((sym) => (<span key={sym.key} className="rounded-full bg-white/85 dark:bg-[#101E21]/85 border border-current/25 px-2.5 py-0.5 text-xs font-semibold">
                                   {lang === "ru" ? sym.ru : lang === "en" ? sym.en : sym.uz}
                                 </span>))}
-                              {extraList.map((id) => (<span key={id} className="rounded-full bg-white/85 dark:bg-slate-900/75 border border-current/25 px-2 py-0.5 text-[10px] font-semibold">
+                              {extraList.map((id) => (<span key={id} className="rounded-full bg-white/85 dark:bg-[#101E21]/85 border border-current/25 px-2.5 py-0.5 text-xs font-semibold">
                                   {getSymptomLabel(id, lang)}
                                 </span>))}
                               {customList.map((c) => {
                                     const sev = getSeverityMeta(c.severity);
                                     const sevLabel = lang === "ru" ? sev.ru : lang === "en" ? sev.en : sev.uz;
-                                    return (<span key={c.id} className="rounded-full bg-white/95 dark:bg-slate-900/85 border border-current/30 px-2 py-0.5 text-[10px] font-semibold">
+                                    return (<span key={c.id} className="rounded-full bg-white/95 dark:bg-[#101E21]/90 border border-current/30 px-2.5 py-0.5 text-xs font-semibold">
                                     {c.name} • {sevLabel}
                                   </span>);
                                 })}
                             </div>)}
-                          {sc.notes && (<p className="text-[11px] opacity-90">{sc.notes}</p>)}
+                          {sc.notes && (<p className="text-xs sm:text-sm opacity-90">{sc.notes}</p>)}
                         </div>);
                     })}
                   </div>)}
 
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
-                  <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                    <IconBell className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                <div className="med-card p-5 space-y-3">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                    <IconBell className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
                     {t.alertsTitle}
                   </h3>
-                  {selectedCall.notificationLog.map((n) => (<div key={n.id} className={`rounded-lg border p-2.5 text-xs ${n.severity === "CRITICAL"
+                  {selectedCall.notificationLog.map((n) => (<div key={n.id} className={`rounded-xl border p-3.5 text-sm ${n.severity === "CRITICAL"
                         ? "border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200"
                         : n.severity === "WARNING"
                             ? "border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200"
-                            : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-800 dark:text-slate-200"}`}>
-                      <div className="flex items-center justify-between font-semibold mb-0.5">
+                            : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-slate-800 dark:text-slate-200"}`}>
+                      <div className="flex flex-wrap items-center justify-between gap-2 font-semibold mb-1">
                         <span>
                           [{n.channel}] {n.recipientName} ({n.recipientHandle})
                         </span>
-                        <span className="font-mono text-[10px] opacity-75">
+                        <span className="font-mono text-xs opacity-75">
                           {new Date(n.sentAt).toLocaleTimeString("en-GB", {
                         hour: "2-digit",
                         minute: "2-digit",
                     })}
                         </span>
                       </div>
-                      <p>{n.message}</p>
+                      <p className="text-xs sm:text-sm leading-relaxed">{n.message}</p>
                     </div>))}
                 </div>
               </div>)}

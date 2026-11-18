@@ -490,100 +490,106 @@ export function LandingPageClient() {
   const t = LANDING_COPY[lang] || LANDING_COPY.uz;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <PublicHeader showAnchors />
 
       <main className="flex-1">
-        {/* 1. Asymmetric Scandinavian / Swiss Editorial Hero */}
-        <section className="border-b border-[#DDD8CC] dark:border-[#2F3632]">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 pt-10 pb-14 md:pt-16 md:pb-20">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-              <div className="lg:col-span-7 space-y-6 lg:pt-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
-                  {t.eyebrow}
-                </p>
+        {/* 1. Modern Clinical Hero */}
+        <section className="border-b border-[#D7E4E1] dark:border-[#1E353A] bg-gradient-to-b from-white to-[#F4F8F7] dark:from-[#101E21] dark:to-[#091315]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-14 sm:pb-20">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              <div className="lg:col-span-7 space-y-6 oc-fade-up">
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/60 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-teal-800 dark:text-teal-200">
+                  <span className="relative flex h-2 w-2" aria-hidden="true">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 dark:bg-emerald-400" />
+                  </span>
+                  <span>{t.eyebrow}</span>
+                </div>
 
-                <h1 className="font-heading text-3xl sm:text-5xl lg:text-[3.2rem] font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-[1.09]">
+                <h1 className="font-heading text-3xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight text-slate-900 dark:text-white leading-[1.12]">
                   {t.heroTitleLead}{" "}
-                  <span className="font-editorial-serif italic font-normal text-[#244C40] dark:text-[#A7BBAA]">
+                  <span className="text-teal-700 dark:text-teal-300">
                     {t.heroTitleEmphasis}
                   </span>{" "}
                   {t.heroTitleTail}
                 </h1>
 
-                <p className="text-base sm:text-[17px] leading-relaxed text-[#525954] dark:text-[#B6BCB6] max-w-xl">
+                <p className="text-base sm:text-lg leading-relaxed text-slate-600 dark:text-slate-300 max-w-2xl">
                   {t.heroDesc}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-5 pt-2">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3.5 pt-2">
                   {authChecked && authUser ? (
                     <Link
                       href={getPortalHref(authUser.role)}
-                      className="inline-flex min-h-[48px] items-center gap-2.5 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] dark:hover:bg-[#356D5C] px-7 py-3.5 text-sm font-semibold text-[#F7F5EF] transition-colors"
+                      className="inline-flex min-h-[50px] w-full sm:w-auto items-center justify-center gap-2.5 rounded-2xl bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500 px-7 py-3.5 text-base font-semibold text-white shadow-md shadow-teal-900/10 active:scale-[0.98] transition-all"
                     >
                       {t.ctaOpenPortal}
-                      <IconArrowRight className="h-4 w-4" aria-hidden="true" />
+                      <IconArrowRight className="h-5 w-5" aria-hidden="true" />
                     </Link>
                   ) : (
                     <Link
                       href="/signup?role=PATIENT"
-                      className="inline-flex min-h-[48px] items-center gap-2.5 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] dark:hover:bg-[#356D5C] px-7 py-3.5 text-sm font-semibold text-[#F7F5EF] transition-colors"
+                      className="inline-flex min-h-[50px] w-full sm:w-auto items-center justify-center gap-2.5 rounded-2xl bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500 px-7 py-3.5 text-base font-semibold text-white shadow-md shadow-teal-900/10 active:scale-[0.98] transition-all"
                     >
                       {t.ctaPrimary}
-                      <IconArrowRight className="h-4 w-4" aria-hidden="true" />
+                      <IconArrowRight className="h-5 w-5" aria-hidden="true" />
                     </Link>
                   )}
 
                   <a
                     href="#care-steps"
-                    className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-[#292E2B] dark:text-[#F3F0E8] border-b border-[#244C40] dark:border-[#A7BBAA] pb-0.5 hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors"
+                    className="inline-flex min-h-[48px] w-full sm:w-auto items-center justify-center gap-1.5 rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-6 py-3 text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] active:scale-[0.98] transition-all"
                   >
                     {t.ctaSecondaryLink}
                   </a>
                 </div>
 
                 {!(authChecked && authUser) && (
-                  <p className="text-xs text-[#525954] dark:text-[#B6BCB6]">
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
                     {t.ctaSignInPrompt}{" "}
-                    <Link href="/login" className="font-semibold text-[#244C40] dark:text-[#A7BBAA] underline underline-offset-4">
+                    <Link href="/login" className="font-semibold text-teal-700 dark:text-teal-300 underline underline-offset-4">
                       {t.ctaSignInLink}
                     </Link>
                   </p>
                 )}
 
-                <div className="pt-6 border-t border-[#DDD8CC] dark:border-[#2F3632] grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-[#525954] dark:text-[#B6BCB6]">
-                  <p className="flex items-start gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#244C40] dark:bg-[#A7BBAA] mt-1.5 shrink-0" aria-hidden="true" />
+                <div className="pt-5 border-t border-[#D7E4E1] dark:border-[#1E353A] grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-slate-700 dark:text-slate-200">
+                  <p className="flex items-start gap-2.5 rounded-xl bg-white/80 dark:bg-[#101E21]/80 border border-[#D7E4E1] dark:border-[#1E353A] px-3.5 py-2.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-teal-600 dark:bg-teal-400 mt-1.5 shrink-0" aria-hidden="true" />
                     <span>{t.trust1}</span>
                   </p>
-                  <p className="flex items-start gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#A7BBAA] mt-1.5 shrink-0" aria-hidden="true" />
+                  <p className="flex items-start gap-2.5 rounded-xl bg-white/80 dark:bg-[#101E21]/80 border border-[#D7E4E1] dark:border-[#1E353A] px-3.5 py-2.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" aria-hidden="true" />
                     <span>{t.trust2}</span>
                   </p>
-                  <p className="flex items-start gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#D9B8AE] mt-1.5 shrink-0" aria-hidden="true" />
+                  <p className="flex items-start gap-2.5 rounded-xl bg-white/80 dark:bg-[#101E21]/80 border border-[#D7E4E1] dark:border-[#1E353A] px-3.5 py-2.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-sky-500 mt-1.5 shrink-0" aria-hidden="true" />
                     <span>{t.trust3}</span>
                   </p>
                 </div>
               </div>
 
-              <div className="lg:col-span-5">
-                <figure className="bg-[#EFECE3] dark:bg-[#1D221F] p-2.5 sm:p-3 border border-[#DDD8CC] dark:border-[#2F3632] rounded-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/mother-baby-home.webp"
-                    alt={t.heroPhotoAlt}
-                    width={960}
-                    height={717}
-                    loading="eager"
-                    fetchPriority="high"
-                    className="w-full h-72 sm:h-96 lg:h-[440px] object-cover"
-                  />
-                  <figcaption className="pt-3 pb-1 px-1 flex flex-col gap-0.5">
-                    <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-[#525954] dark:text-[#B6BCB6]">
+              <div className="lg:col-span-5 oc-fade-up">
+                <figure className="group med-card overflow-hidden p-3 sm:p-3.5 rounded-3xl shadow-xl shadow-teal-950/10">
+                  <div className="overflow-hidden rounded-2xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/images/mother-baby-home.webp"
+                      alt={t.heroPhotoAlt}
+                      width={960}
+                      height={717}
+                      loading="eager"
+                      fetchPriority="high"
+                      className="w-full h-72 sm:h-96 lg:h-[430px] object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                    />
+                  </div>
+                  <figcaption className="pt-3.5 pb-1 px-1.5 flex flex-col gap-1">
+                    <span className="inline-flex w-fit items-center rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2.5 py-0.5 text-xs font-semibold text-teal-800 dark:text-teal-200">
                       {t.heroPhotoFigure}
                     </span>
-                    <span className="text-xs text-[#292E2B] dark:text-[#F3F0E8]">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                       {t.heroPhotoCaption}
                     </span>
                   </figcaption>
@@ -591,50 +597,50 @@ export function LandingPageClient() {
               </div>
             </div>
 
-            <Emergency103Banner className="mt-10" />
+            <Emergency103Banner className="mt-8 sm:mt-10" />
           </div>
         </section>
 
         {/* 2. Simple Explanation of the 24-Hour Home Visit & Conditions */}
-        <section id="visit-conditions" className="border-b border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F]">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <section id="visit-conditions" className="border-b border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
             <div className="lg:col-span-5 space-y-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+              <p className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                 {t.conditionsEyebrow}
               </p>
-              <h2 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-snug">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-snug">
                 {t.conditionsTitle}
               </h2>
-              <p className="text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+              <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                 {t.conditionsDesc}
               </p>
 
               {/* Calm 24-Hour Window Progression */}
-              <div className="pt-4 space-y-3">
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#525954] dark:text-[#B6BCB6]">
+              <div className="pt-2 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t.timelineLabel}
                 </p>
-                <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3632] border-y border-[#DDD8CC] dark:border-[#2F3632]">
+                <div className="space-y-3">
                   {t.promiseZones.map((zone) => (
-                    <div key={zone.window} className="py-3.5 flex items-start gap-4">
+                    <div key={zone.window} className="rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#16272B] p-4 flex items-start gap-3.5 transition-colors hover:border-teal-500/50">
                       <span
-                        className={`mt-1 h-2.5 w-2.5 shrink-0 ${
+                        className={`mt-1.5 h-3 w-3 rounded-full shrink-0 ${
                           zone.tone === "forest"
-                            ? "bg-[#244C40] dark:bg-[#A7BBAA]"
+                            ? "bg-teal-600 dark:bg-teal-400"
                             : zone.tone === "sage"
-                              ? "bg-[#A7BBAA]"
-                              : "bg-[#D9B8AE]"
+                              ? "bg-amber-500"
+                              : "bg-rose-500"
                         }`}
                         aria-hidden="true"
                       />
-                      <div className="space-y-0.5 text-xs">
-                        <p className="font-heading font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
-                          <span className="font-mono tabular-nums mr-2 text-[#525954] dark:text-[#B6BCB6]">
+                      <div className="space-y-1 text-sm">
+                        <p className="font-heading font-bold text-slate-900 dark:text-slate-100">
+                          <span className="font-mono tabular-nums mr-2 text-teal-700 dark:text-teal-300">
                             {zone.window}
                           </span>
                           {zone.title}
                         </p>
-                        <p className="text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                           {zone.detail}
                         </p>
                       </div>
@@ -644,16 +650,16 @@ export function LandingPageClient() {
               </div>
             </div>
 
-            <div className="lg:col-span-7 divide-y divide-[#DDD8CC] dark:divide-[#2F3632] border-t border-[#DDD8CC] dark:border-[#2F3632]">
+            <div className="lg:col-span-7 space-y-4">
               {t.conditionsCards.map((item, idx) => (
-                <div key={idx} className="py-7 first:pt-7 grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-6">
+                <div key={idx} className="med-card med-card-interactive p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-6">
                   <div className="sm:col-span-4">
-                    <h3 className="font-heading text-base font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                    <h3 className="font-heading text-base sm:text-lg font-bold text-teal-800 dark:text-teal-300">
                       {item.title}
                     </h3>
                   </div>
                   <div className="sm:col-span-8">
-                    <p className="text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                       {item.body}
                     </p>
                   </div>
@@ -663,39 +669,39 @@ export function LandingPageClient() {
           </div>
         </section>
 
-        {/* 3. How the Service Works (Swiss Architectural 4-Column Rule Grid) */}
-        <section id="care-steps" className="border-b border-[#DDD8CC] dark:border-[#2F3632]">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 py-16 md:py-24 space-y-12">
+        {/* 3. How the Service Works (4-Step Clinical Workflow Cards) */}
+        <section id="care-steps" className="border-b border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
               <div className="lg:col-span-7 space-y-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+                <p className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                   {t.pipeEyebrow}
                 </p>
-                <h2 className="font-heading text-2xl sm:text-4xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-tight">
+                <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
                   {t.pipeTitle}
                 </h2>
               </div>
               <div className="lg:col-span-5">
-                <p className="text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+                <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                   {t.pipeSub}
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-[#DDD8CC] dark:border-[#2F3632]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               {t.steps.map((item) => (
                 <div
                   key={item.step}
-                  className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF]/60 dark:bg-[#1D221F]/60 p-6 sm:p-7 flex flex-col justify-between gap-6"
+                  className="med-card med-card-interactive p-6 flex flex-col justify-between gap-5"
                 >
-                  <span className="font-heading text-3xl font-light tracking-tight text-[#A7BBAA] dark:text-[#6E8572] tabular-nums">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 font-heading text-lg font-bold text-teal-700 dark:text-teal-300 tabular-nums">
                     {item.step}
                   </span>
-                  <div className="space-y-2.5">
-                    <h3 className="font-heading text-base font-semibold text-[#292E2B] dark:text-[#F3F0E8] leading-snug">
+                  <div className="space-y-2">
+                    <h3 className="font-heading text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
                       {item.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                       {item.desc}
                     </p>
                   </div>
@@ -705,40 +711,42 @@ export function LandingPageClient() {
           </div>
         </section>
 
-        {/* 4. Doctor & Nurse Involvement + Mother/Newborn Benefits (Editorial Photography Spreads) */}
-        <section className="border-b border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F]">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 py-16 md:py-24 space-y-20">
+        {/* 4. Doctor & Nurse Involvement + Mother/Newborn Benefits */}
+        <section className="border-b border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-16 sm:space-y-20">
             {/* Spread A: Doctor & Nurse Involvement */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-              <figure className="lg:col-span-6 bg-[#F7F5EF] dark:bg-[#161A18] p-2.5 border border-[#DDD8CC] dark:border-[#2F3632] rounded-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/doctor-home-visit.webp"
-                  alt={t.doctorPhotoAlt}
-                  width={960}
-                  height={717}
-                  loading="lazy"
-                  className="w-full h-72 sm:h-80 lg:h-[360px] object-cover"
-                />
-                <figcaption className="pt-2.5 px-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#525954] dark:text-[#B6BCB6]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              <figure className="group lg:col-span-6 med-card overflow-hidden p-3 rounded-3xl shadow-lg">
+                <div className="overflow-hidden rounded-2xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/doctor-home-visit.webp"
+                    alt={t.doctorPhotoAlt}
+                    width={960}
+                    height={717}
+                    loading="lazy"
+                    className="w-full h-72 sm:h-80 lg:h-[360px] object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                  />
+                </div>
+                <figcaption className="pt-3 px-1.5 text-xs font-semibold text-teal-700 dark:text-teal-300">
                   {t.doctorPhotoFigure}
                 </figcaption>
               </figure>
 
               <div className="lg:col-span-6 space-y-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+                <p className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                   {t.careTeamEyebrow}
                 </p>
-                <h2 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-snug">
+                <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-snug">
                   {t.careTeamTitle}
                 </h2>
-                <p className="text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+                <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                   {t.careTeamBody}
                 </p>
-                <ul className="divide-y divide-[#DDD8CC] dark:divide-[#2F3632] border-y border-[#DDD8CC] dark:border-[#2F3632] text-sm text-[#292E2B] dark:text-[#F3F0E8]">
+                <ul className="space-y-3 text-sm sm:text-base text-slate-800 dark:text-slate-100">
                   {t.careTeamPoints.map((pt, i) => (
-                    <li key={i} className="py-3 flex items-start gap-3">
-                      <span className="font-mono text-xs text-[#244C40] dark:text-[#A7BBAA] mt-0.5">
+                    <li key={i} className="flex items-start gap-3 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#16272B] p-3.5">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-teal-700 text-xs font-bold text-white mt-0.5">
                         0{i + 1}
                       </span>
                       <span>{pt}</span>
@@ -748,34 +756,34 @@ export function LandingPageClient() {
                 <div>
                   <Link
                     href="/technology"
-                    className="inline-flex min-h-[40px] items-center gap-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4"
+                    className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4"
                   >
                     {t.careTeamLink}
-                    <IconArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    <IconArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 </div>
               </div>
             </div>
 
             {/* Spread B: Benefits for Mothers & Newborns */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center pt-14 border-t border-[#DDD8CC] dark:border-[#2F3632]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center pt-12 border-t border-[#D7E4E1] dark:border-[#1E353A]">
               <div className="lg:col-span-6 space-y-6 order-2 lg:order-1">
                 <div className="space-y-2.5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+                  <p className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                     {t.benefitsEyebrow}
                   </p>
-                  <h2 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-snug">
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-snug">
                     {t.featuresTitle}
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-7 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                   {t.features.map((feat, idx) => (
-                    <div key={idx} className="border-t-2 border-[#A7BBAA] dark:border-[#6E8572] pt-3.5 space-y-1.5">
-                      <h3 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                    <div key={idx} className="rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#16272B] p-4 space-y-1.5 transition-colors hover:border-teal-500/60">
+                      <h3 className="font-heading text-base font-bold text-slate-900 dark:text-white">
                         {feat.title}
                       </h3>
-                      <p className="text-xs text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                         {feat.desc}
                       </p>
                     </div>
@@ -783,17 +791,19 @@ export function LandingPageClient() {
                 </div>
               </div>
 
-              <figure className="lg:col-span-6 order-1 lg:order-2 bg-[#F7F5EF] dark:bg-[#161A18] p-2.5 border border-[#DDD8CC] dark:border-[#2F3632] rounded-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/mobile-care-checkin.webp"
-                  alt={t.mobilePhotoAlt}
-                  width={960}
-                  height={717}
-                  loading="lazy"
-                  className="w-full h-72 sm:h-80 lg:h-[360px] object-cover"
-                />
-                <figcaption className="pt-2.5 px-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#525954] dark:text-[#B6BCB6]">
+              <figure className="group lg:col-span-6 order-1 lg:order-2 med-card overflow-hidden p-3 rounded-3xl shadow-lg">
+                <div className="overflow-hidden rounded-2xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/mobile-care-checkin.webp"
+                    alt={t.mobilePhotoAlt}
+                    width={960}
+                    height={717}
+                    loading="lazy"
+                    className="w-full h-72 sm:h-80 lg:h-[360px] object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                  />
+                </div>
+                <figcaption className="pt-3 px-1.5 text-xs font-semibold text-teal-700 dark:text-teal-300">
                   {t.mobilePhotoFigure}
                 </figcaption>
               </figure>
@@ -802,24 +812,24 @@ export function LandingPageClient() {
         </section>
 
         {/* 4.5 Mothers Community & Perinatal Psychological Support */}
-        <section className="border-b border-[#DDD8CC] dark:border-[#2F3632] bg-[#EFECE3]/50 dark:bg-[#1A1F1C]">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <section className="border-b border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 sm:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+              <p className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                 {lang === "ru"
                   ? "Сообщество и бережная поддержка"
                   : lang === "en"
                     ? "Community & Perinatal Support"
                     : "Hamjamiyat va ruhiy qo'llab-quvvatlash"}
               </p>
-              <h2 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-snug">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-snug">
                 {lang === "ru"
                   ? "Круги мам по возрасту малыша и консультации перинатального психолога"
                   : lang === "en"
                     ? "Newborn stage circles and private sessions with perinatal psychologists"
                     : "Chaqaloq yoshiga mos onalar davralari va perinatal psixolog bilan xavfsiz suhbat"}
               </h2>
-              <p className="text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed max-w-2xl">
+              <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
                 {lang === "ru"
                   ? "Отмечайте ежедневное настроение за 10 секунд, получайте напоминания о лекарствах за 10 минут и обращайтесь к проверенному психологу с вашего согласия."
                   : lang === "en"
@@ -827,10 +837,10 @@ export function LandingPageClient() {
                     : "Kundalik kayfiyatingizni 10 soniyada belgilang, har bir dori dozasidan 10 daqiqa oldin Telegram eslatma oling va o'z roziligingiz bilan tekshirilgan psixologga ulaning."}
               </p>
             </div>
-            <div className="lg:col-span-5 flex flex-wrap lg:justify-end items-center gap-3">
+            <div className="lg:col-span-5 flex flex-col sm:flex-row flex-wrap lg:justify-end items-stretch sm:items-center gap-3">
               <Link
                 href="/hamjamiyat"
-                className="inline-flex min-h-[46px] items-center gap-2 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] dark:hover:bg-[#356D5C] px-6 py-3 text-xs sm:text-sm font-semibold text-[#F7F5EF] transition-colors"
+                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500 px-6 py-3 text-sm sm:text-base font-semibold text-white shadow-sm active:scale-[0.98] transition-all"
               >
                 {lang === "ru"
                   ? "Открыть сообщество мам"
@@ -841,7 +851,7 @@ export function LandingPageClient() {
               </Link>
               <Link
                 href="/signup?role=PSYCHOLOGIST"
-                className="inline-flex min-h-[46px] items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] px-5 py-3 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] transition-colors"
+                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-5 py-3 text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-600 active:scale-[0.98] transition-all"
               >
                 {lang === "ru"
                   ? "Я перинатальный психолог"
@@ -853,30 +863,30 @@ export function LandingPageClient() {
           </div>
         </section>
 
-        {/* 5. Privacy Commitments & Editorial FAQ */}
-        <section id="faq" className="border-b border-[#DDD8CC] dark:border-[#2F3632]">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* 5. Privacy Commitments & Smooth FAQ */}
+        <section id="faq" className="border-b border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
             <div className="lg:col-span-5 space-y-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+              <p className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
                 {t.privacyEyebrow}
               </p>
-              <h2 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-snug">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-snug">
                 {t.privacyTitle}
               </h2>
-              <p className="text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+              <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                 {t.privacyDesc}
               </p>
-              <div className="flex flex-wrap items-center gap-5 pt-2 text-xs font-semibold">
+              <div className="flex flex-wrap items-center gap-5 pt-2 text-sm font-semibold">
                 <Link
                   href="/privacy"
-                  className="inline-flex min-h-[40px] items-center gap-1.5 text-[#244C40] dark:text-[#A7BBAA] underline underline-offset-4"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 text-teal-700 dark:text-teal-300 underline underline-offset-4"
                 >
-                  <IconLock className="h-3.5 w-3.5" aria-hidden="true" />
+                  <IconLock className="h-4 w-4" aria-hidden="true" />
                   {t.privacyLink}
                 </Link>
                 <Link
                   href="/terms"
-                  className="inline-flex min-h-[40px] items-center gap-1.5 text-[#525954] dark:text-[#B6BCB6] hover:text-[#244C40] dark:hover:text-[#F3F0E8] underline underline-offset-4"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-300 underline underline-offset-4"
                 >
                   {t.termsLink}
                 </Link>
@@ -884,17 +894,24 @@ export function LandingPageClient() {
             </div>
 
             <div className="lg:col-span-7 space-y-4">
-              <h3 className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+              <h3 className="font-heading text-xl font-bold text-slate-900 dark:text-white">
                 {t.faqTitle}
               </h3>
 
-              <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3632] border-y border-[#DDD8CC] dark:border-[#2F3632]">
+              <div className="space-y-3">
                 {t.faqs.map((item, idx) => {
                   const isOpen = openFaqIndex === idx;
                   const panelId = `faq-panel-${idx}`;
                   const btnId = `faq-btn-${idx}`;
                   return (
-                    <div key={idx}>
+                    <div
+                      key={idx}
+                      className={`rounded-2xl border transition-colors ${
+                        isOpen
+                          ? "border-teal-500/60 bg-[#EDF5F3]/60 dark:bg-[#16272B]"
+                          : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315]/50"
+                      }`}
+                    >
                       <h4>
                         <button
                           id={btnId}
@@ -902,26 +919,29 @@ export function LandingPageClient() {
                           aria-expanded={isOpen}
                           aria-controls={panelId}
                           onClick={() => setOpenFaqIndex(isOpen ? -1 : idx)}
-                          className="w-full min-h-[54px] flex items-center justify-between gap-4 py-4 text-left text-sm sm:text-base font-medium text-[#292E2B] dark:text-[#F3F0E8] hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors"
+                          className="w-full min-h-[56px] flex items-center justify-between gap-4 px-4 sm:px-5 py-3.5 text-left text-base font-semibold text-slate-900 dark:text-white hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
                         >
                           <span>{item.q}</span>
                           {isOpen ? (
-                            <IconMinus className="h-4 w-4 shrink-0 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
+                            <IconMinus className="h-5 w-5 shrink-0 text-teal-700 dark:text-teal-300" aria-hidden="true" />
                           ) : (
-                            <IconPlus className="h-4 w-4 shrink-0 text-[#525954] dark:text-[#B6BCB6]" aria-hidden="true" />
+                            <IconPlus className="h-5 w-5 shrink-0 text-slate-500 dark:text-slate-400" aria-hidden="true" />
                           )}
                         </button>
                       </h4>
-                      {isOpen && (
-                        <div
-                          id={panelId}
-                          role="region"
-                          aria-labelledby={btnId}
-                          className="pb-5 pr-8 text-xs sm:text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed"
-                        >
-                          {item.a}
+                      <div
+                        id={panelId}
+                        role="region"
+                        aria-labelledby={btnId}
+                        data-open={isOpen ? "true" : "false"}
+                        className="faq-grid"
+                      >
+                        <div>
+                          <p className="px-4 sm:px-5 pb-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                            {item.a}
+                          </p>
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 })}
@@ -931,41 +951,41 @@ export function LandingPageClient() {
         </section>
 
         {/* 6. Clear Registration CTA Band */}
-        <section className="bg-[#244C40] dark:bg-[#1D221F] text-[#F7F5EF]">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8 py-16 md:py-20 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <section className="bg-gradient-to-r from-teal-800 to-teal-700 dark:from-[#0E3130] dark:to-[#134240] text-white">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="space-y-3 max-w-2xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#D9B8AE]">
+              <p className="text-xs font-bold uppercase tracking-wider text-teal-200">
                 {t.closingEyebrow}
               </p>
-              <h2 className="font-heading text-2xl sm:text-4xl font-semibold tracking-tight text-[#F7F5EF] leading-tight">
+              <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
                 {t.closingTitle}
               </h2>
-              <p className="text-sm text-[#F7F5EF]/80 leading-relaxed">
+              <p className="text-base text-teal-100 leading-relaxed">
                 {t.closingSub}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 shrink-0">
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3.5 shrink-0">
               {authChecked && authUser ? (
                 <Link
                   href={getPortalHref(authUser.role)}
-                  className="inline-flex min-h-[48px] items-center gap-2 rounded-sm bg-[#F7F5EF] hover:bg-[#EFECE3] px-6 py-3 text-sm font-semibold text-[#244C40] transition-colors"
+                  className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-2xl bg-white hover:bg-teal-50 px-6 py-3.5 text-base font-semibold text-teal-800 shadow-md active:scale-[0.98] transition-all"
                 >
                   {t.ctaOpenPortal}
-                  <IconArrowRight className="h-4 w-4" aria-hidden="true" />
+                  <IconArrowRight className="h-5 w-5" aria-hidden="true" />
                 </Link>
               ) : (
                 <>
                   <Link
                     href="/signup?role=PATIENT"
-                    className="inline-flex min-h-[48px] items-center gap-2 rounded-sm bg-[#F7F5EF] hover:bg-[#EFECE3] px-6 py-3 text-sm font-semibold text-[#244C40] transition-colors"
+                    className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-2xl bg-white hover:bg-teal-50 px-6 py-3.5 text-base font-semibold text-teal-800 shadow-md active:scale-[0.98] transition-all"
                   >
                     {t.closingCta}
-                    <IconArrowRight className="h-4 w-4" aria-hidden="true" />
+                    <IconArrowRight className="h-5 w-5" aria-hidden="true" />
                   </Link>
                   <Link
                     href="/login"
-                    className="inline-flex min-h-[48px] items-center gap-2 rounded-sm border border-[#F7F5EF]/40 hover:border-[#F7F5EF] px-5 py-3 text-sm font-medium text-[#F7F5EF] transition-colors"
+                    className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-2xl border border-white/40 hover:border-white hover:bg-white/10 px-6 py-3.5 text-base font-semibold text-white active:scale-[0.98] transition-all"
                   >
                     {t.closingLogin}
                   </Link>

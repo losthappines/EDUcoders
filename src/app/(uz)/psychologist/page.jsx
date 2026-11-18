@@ -431,55 +431,55 @@ export default function PsychologistPortalPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 oc-fade-up">
       <Emergency103Banner />
 
       {/* Header */}
-      <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="font-heading text-lg font-bold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-2">
-            <IconHeartHandshake className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+      <div className="med-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <h1 className="font-heading text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <IconHeartHandshake className="h-6 w-6 text-teal-700 dark:text-teal-300 shrink-0" />
             <span>{t.title}</span>
           </h1>
-          <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.subtitle}</p>
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">{t.subtitle}</p>
         </div>
-        <div className="inline-flex items-center gap-1.5 rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA]">
-          <IconShieldCheck className="h-4 w-4" />
+        <div className="inline-flex items-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-4 py-2.5 text-sm font-semibold text-teal-800 dark:text-teal-200">
+          <IconShieldCheck className="h-4 w-4 shrink-0" />
           <span>{t.ehrGuardBadge}</span>
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#525954] dark:text-[#B8C2BA]">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="med-card p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
             {t.kpiConsented}
           </p>
-          <p className="mt-1 font-heading text-2xl font-bold text-[#244C40] dark:text-[#A7BBAA]">
+          <p className="mt-1.5 font-heading text-2xl sm:text-3xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">
             {queueData?.kpis?.consentedCount ?? 0}
           </p>
         </div>
-        <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#525954] dark:text-[#B8C2BA]">
+        <div className="med-card p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
             {t.kpiHighRisk}
           </p>
-          <p className="mt-1 font-heading text-2xl font-bold text-[#9A6B42]">
+          <p className="mt-1.5 font-heading text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
             {queueData?.kpis?.highRiskCount ?? 0}
           </p>
         </div>
-        <div className="rounded-sm border border-[#D9B8AE] dark:border-[#6B3A3A] bg-[#F3EAE7]/70 dark:bg-[#2E1E1D]/60 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7A2E2E] dark:text-[#F0C8C4]">
+        <div className="rounded-2xl border border-rose-300 dark:border-rose-800/80 bg-rose-50/80 dark:bg-rose-950/40 p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-rose-800 dark:text-rose-200">
             {t.kpiSelfHarm}
           </p>
-          <p className="mt-1 font-heading text-2xl font-bold text-[#9E4747] dark:text-[#F4C9C2]">
+          <p className="mt-1.5 font-heading text-2xl sm:text-3xl font-bold text-rose-700 dark:text-rose-300 tabular-nums">
             {queueData?.kpis?.selfHarmActiveCount ?? 0}
           </p>
         </div>
-        <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#525954] dark:text-[#B8C2BA]">
+        <div className="med-card p-4 sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
             {t.kpiTodaySessions}
           </p>
-          <p className="mt-1 font-heading text-2xl font-bold text-[#292E2B] dark:text-[#F3F0E8]">
+          <p className="mt-1.5 font-heading text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tabular-nums">
             {queueData?.kpis?.todaySessionsCount ?? 0}
           </p>
         </div>
@@ -489,16 +489,16 @@ export default function PsychologistPortalPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Queue + Slots */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="space-y-2.5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#525954] dark:text-[#B8C2BA]">
+          <div className="space-y-3">
+            <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 px-1">
               {t.queueTitle} ({queue.length})
             </h2>
             {loadingQueue ? (
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 text-xs text-[#525954]">
+              <div className="med-card p-5 text-sm text-slate-600 dark:text-slate-300">
                 {t.loadingDetail}
               </div>
             ) : queue.length === 0 ? (
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 text-xs text-[#525954] dark:text-[#B8C2BA]">
+              <div className="med-card p-5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 {t.queueEmpty}
               </div>
             ) : (
@@ -508,46 +508,46 @@ export default function PsychologistPortalPage() {
                 return (
                   <div
                     key={item.patientId}
-                    className={`rounded-sm border p-4 space-y-2 transition-colors ${
+                    className={`rounded-2xl border p-4 space-y-2.5 transition-all ${
                       item.activeSelfHarm
-                        ? "border-[#9E4747] bg-[#F3EAE7]/80 dark:bg-[#2E1E1D]/60"
+                        ? "border-rose-400 dark:border-rose-700 bg-rose-50/85 dark:bg-rose-950/50"
                         : selected
-                          ? "border-[#244C40] bg-[#EFECE3]/70 dark:bg-[#242A27]"
-                          : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F]"
+                          ? "border-teal-600 bg-[#EDF5F3] dark:bg-teal-950/40 ring-1 ring-teal-500/40"
+                          : "border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] hover:border-teal-500/60"
                     }`}
                   >
                     <button
                       type="button"
                       onClick={() => setSelectedPatientId(item.patientId)}
-                      className="w-full text-left space-y-1.5"
+                      className="w-full text-left space-y-2"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                          <p className="text-base font-bold text-slate-900 dark:text-white">
                             {item.fullName}
                           </p>
-                          <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA]">
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
                             {item.district}
                             {item.mahalla ? `, ${item.mahalla}` : ""}
                           </p>
                         </div>
-                        <span className="text-base" title="Mood">
+                        <span className="text-lg" title="Mood">
                           {moodMeta ? moodMeta.emoji : "—"}
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
                         <span
-                          className={`rounded-sm px-2 py-0.5 ${
+                          className={`rounded-full px-2.5 py-0.5 ${
                             item.hasActiveConsent
-                              ? "bg-[#EFECE3] text-[#244C40] border border-[#A7BBAA]"
-                              : "bg-[#F3EAE7] text-[#7A2E2E] border border-[#D9B8AE]"
+                              ? "bg-[#EDF5F3] dark:bg-teal-950/70 text-teal-800 dark:text-teal-200 border border-[#D7E4E1] dark:border-teal-800"
+                              : "bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-800"
                           }`}
                         >
                           {item.hasActiveConsent ? t.consentActive : t.triageOnly}
                         </span>
                         {typeof item.latestEpdsScore === "number" && (
-                          <span className="rounded-sm bg-[#F7F5EF] dark:bg-[#161A18] border border-[#DDD8CC] dark:border-[#2F3733] px-2 py-0.5 font-mono">
+                          <span className="rounded-full bg-[#F4F8F7] dark:bg-[#091315] border border-[#D7E4E1] dark:border-[#1E353A] px-2.5 py-0.5 font-mono text-slate-800 dark:text-slate-200">
                             {t.epdsWord}: {item.latestEpdsScore}/30
                           </span>
                         )}
@@ -555,10 +555,10 @@ export default function PsychologistPortalPage() {
                     </button>
 
                     {item.activeSelfHarm && (
-                      <div className="pt-2 border-t border-[#D9B8AE] space-y-2">
-                        <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-[#7A2E2E] dark:text-[#F0C8C4]">
-                          <span className="inline-flex items-center gap-1">
-                            <IconAlertTriangle className="h-3.5 w-3.5" />
+                      <div className="pt-2.5 border-t border-rose-200 dark:border-rose-800 space-y-2.5">
+                        <div className="flex items-center justify-between gap-2 text-xs font-bold text-rose-800 dark:text-rose-200">
+                          <span className="inline-flex items-center gap-1.5">
+                            <IconAlertTriangle className="h-4 w-4" />
                             EPDS Q10 (103)
                           </span>
                           <span className="font-mono">
@@ -568,7 +568,7 @@ export default function PsychologistPortalPage() {
                         <button
                           type="button"
                           onClick={() => handleAckSelfHarm(item.patientId)}
-                          className="w-full min-h-[36px] rounded-sm bg-[#9E4747] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#7A2E2E]"
+                          className="w-full min-h-[44px] rounded-xl bg-rose-600 px-3.5 py-2 text-sm font-bold text-white hover:bg-rose-700 active:scale-[0.98] transition-all"
                         >
                           {t.ackSlaBtn}
                         </button>
@@ -583,10 +583,10 @@ export default function PsychologistPortalPage() {
           {/* Weekly Slots Editor */}
           <form
             onSubmit={handleSaveSlots}
-            className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-2.5"
+            className="med-card p-4 sm:p-5 space-y-3"
           >
-            <h3 className="text-xs font-bold uppercase tracking-wide text-[#525954] dark:text-[#B8C2BA] flex items-center gap-1.5">
-              <IconClock className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]" />
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <IconClock className="h-4 w-4 text-teal-700 dark:text-teal-300" />
               <span>{t.slotsTitle}</span>
             </h3>
             <input
@@ -594,12 +594,12 @@ export default function PsychologistPortalPage() {
               value={slotsText}
               onChange={(e) => setSlotsText(e.target.value)}
               placeholder={t.slotsHint}
-              className="min-h-[38px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"
+              className="min-h-[46px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"
             />
             <button
               type="submit"
               disabled={savingSlots}
-              className="w-full min-h-[38px] rounded-sm border border-[#244C40] bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:bg-[#244C40] hover:text-[#F7F5EF] transition-colors"
+              className="w-full min-h-[46px] rounded-xl border border-teal-600 dark:border-teal-700 bg-[#EDF5F3] dark:bg-[#16272B] px-4 py-2.5 text-sm font-bold text-teal-800 dark:text-teal-200 hover:bg-teal-700 hover:text-white active:scale-[0.98] transition-all"
             >
               {savingSlots ? "..." : t.saveSlotsBtn}
             </button>
@@ -609,40 +609,40 @@ export default function PsychologistPortalPage() {
         {/* Detail Workspace */}
         <div className="lg:col-span-8 space-y-4">
           {!selectedQueueItem ? (
-            <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-8 text-center text-xs text-[#525954]">
+            <div className="med-card p-8 text-center text-sm text-slate-600 dark:text-slate-300">
               {t.selectMother}
             </div>
           ) : loadingDetail || !detail || detail.loadError ? (
-            <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-8 text-center text-xs text-[#525954]">
+            <div className="med-card p-8 text-center text-sm text-slate-600 dark:text-slate-300">
               {detail?.loadError ? t.selectMother : t.loadingDetail}
             </div>
           ) : (
             <>
               {/* Profile & EHR Separation Notice */}
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 space-y-3">
+              <div className="med-card p-5 sm:p-6 space-y-3.5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="font-heading text-lg font-bold text-[#292E2B] dark:text-[#F3F0E8]">
+                    <h2 className="font-heading text-xl font-bold text-slate-900 dark:text-white">
                       {detail.patient.fullName}
                     </h2>
-                    <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">
                       {detail.patient.district}
                       {detail.patient.mahalla ? `, ${detail.patient.mahalla}` : ""}
                       {detail.patient.phone ? ` • ${detail.patient.phone}` : ""}
                     </p>
                   </div>
                   {detail.patient.assignedFamilyDoctor && (
-                    <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs">
-                      <span className="text-[#525954] dark:text-[#B8C2BA]">Shifokor: </span>
-                      <strong className="text-[#292E2B] dark:text-[#F3F0E8]">
+                    <div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-sm">
+                      <span className="text-slate-500 dark:text-slate-400">Shifokor: </span>
+                      <strong className="text-slate-900 dark:text-white">
                         {detail.patient.assignedFamilyDoctor.fullName}
                       </strong>
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-start gap-2 rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#EFECE3]/70 dark:bg-[#242A27] px-3 py-2 text-[11px] text-[#244C40] dark:text-[#A7BBAA]">
-                  <IconLock className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#16272B] px-3.5 py-2.5 text-xs sm:text-sm text-teal-800 dark:text-teal-200 leading-relaxed">
+                  <IconLock className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>{t.ehrNotice}</span>
                 </div>
               </div>
@@ -652,23 +652,23 @@ export default function PsychologistPortalPage() {
 
               {/* EPDS Screening History + Escalation */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-2.5">
-                  <h3 className="text-xs font-bold uppercase tracking-wide text-[#525954] dark:text-[#B8C2BA]">
+                <div className="med-card p-4 sm:p-5 space-y-3">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
                     {t.epdsHistoryTitle}
                   </h3>
                   {detail.epdsHistory.length === 0 ? (
-                    <p className="text-xs text-[#525954]">{t.epdsEmpty}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{t.epdsEmpty}</p>
                   ) : (
                     <div className="space-y-2">
                       {detail.epdsHistory.slice(0, 6).map((row) => (
                         <div
                           key={row.id}
-                          className={`rounded-sm border px-3 py-2 text-xs flex items-center justify-between ${
+                          className={`rounded-xl border px-3.5 py-2.5 text-sm flex items-center justify-between ${
                             row.epdsSelfHarmFlag
-                              ? "border-[#9E4747] bg-[#F3EAE7] text-[#7A2E2E]"
+                              ? "border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200"
                               : row.epdsScore >= 13
-                                ? "border-[#D9B8AE] bg-[#F7F5EF] text-[#9A6B42]"
-                                : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18]"
+                                ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200"
+                                : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-slate-800 dark:text-slate-100"
                           }`}
                         >
                           <span className="font-mono">{row.date}</span>
@@ -683,10 +683,10 @@ export default function PsychologistPortalPage() {
 
                 <form
                   onSubmit={handleEscalate}
-                  className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-2.5"
+                  className="med-card p-4 sm:p-5 space-y-3"
                 >
-                  <h3 className="text-xs font-bold uppercase tracking-wide text-[#7A2E2E] dark:text-[#F0C8C4] flex items-center gap-1.5">
-                    <IconStethoscope className="h-3.5 w-3.5" />
+                  <h3 className="text-sm font-bold text-rose-700 dark:text-rose-300 flex items-center gap-2">
+                    <IconStethoscope className="h-4 w-4 shrink-0" />
                     <span>{t.escalateTitle}</span>
                   </h3>
                   <textarea
@@ -694,41 +694,41 @@ export default function PsychologistPortalPage() {
                     value={escalateMsg}
                     onChange={(e) => setEscalateMsg(e.target.value)}
                     placeholder={t.escalatePlaceholder}
-                    className="w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"
                     required
                   />
                   <button
                     type="submit"
                     disabled={escalating || !escalateMsg.trim() || !detail.patient.assignedFamilyDoctor}
-                    className="w-full min-h-[38px] inline-flex items-center justify-center gap-1.5 rounded-sm bg-[#9E4747] px-3 py-2 text-xs font-semibold text-white hover:bg-[#7A2E2E] disabled:opacity-50"
+                    className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-700 active:scale-[0.98] disabled:opacity-50 transition-all"
                   >
-                    <IconPhoneCall className="h-3.5 w-3.5" />
+                    <IconPhoneCall className="h-4 w-4" />
                     <span>{escalating ? "..." : t.escalateBtn}</span>
                   </button>
                 </form>
               </div>
 
               {/* Encrypted Notes */}
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-[#525954] dark:text-[#B8C2BA] flex items-center gap-1.5">
-                  <IconNotes className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" />
+              <div className="med-card p-4 sm:p-5 space-y-3.5">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                  <IconNotes className="h-5 w-5 text-teal-700 dark:text-teal-300" />
                   <span>{t.notesTitle}</span>
                 </h3>
-                <form onSubmit={handleSaveNote} className="space-y-2">
+                <form onSubmit={handleSaveNote} className="space-y-3">
                   <textarea
                     rows={2}
                     value={noteBody}
                     onChange={(e) => setNoteBody(e.target.value)}
                     placeholder={t.notesPlaceholder}
-                    className="w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"
                     required
                   />
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
                     <select
                       value={noteRisk}
                       onChange={(e) => setNoteRisk(e.target.value)}
                       aria-label={t.riskSelectLabel}
-                      className="min-h-[38px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"
+                      className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"
                     >
                       <option value="LOW">LOW</option>
                       <option value="MODERATE">MODERATE</option>
@@ -738,26 +738,26 @@ export default function PsychologistPortalPage() {
                     <button
                       type="submit"
                       disabled={savingNote || !noteBody.trim()}
-                      className="min-h-[38px] inline-flex items-center gap-1.5 rounded-sm bg-[#244C40] px-4 py-1.5 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1A382F] disabled:opacity-50"
+                      className="min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all"
                     >
-                      <IconPlus className="h-3.5 w-3.5" />
+                      <IconPlus className="h-4 w-4" />
                       <span>{savingNote ? "..." : t.saveNoteBtn}</span>
                     </button>
                   </div>
                 </form>
 
                 {detail.notes.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+                  <div className="space-y-2.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
                     {detail.notes.map((n) => (
                       <div
                         key={n.id}
-                        className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] p-3 text-xs space-y-1"
+                        className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-3.5 text-sm space-y-1"
                       >
-                        <div className="flex items-center justify-between text-[10px] font-mono text-[#525954]">
-                          <span>{n.riskAssessment || "NOTE"}</span>
+                        <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400">
+                          <span className="font-semibold">{n.riskAssessment || "NOTE"}</span>
                           <span>{new Date(n.createdAt).toLocaleString()}</span>
                         </div>
-                        <p className="text-[#292E2B] dark:text-[#F3F0E8]">{n.notes}</p>
+                        <p className="text-slate-900 dark:text-slate-100 leading-relaxed">{n.notes}</p>
                       </div>
                     ))}
                   </div>
@@ -765,16 +765,16 @@ export default function PsychologistPortalPage() {
               </div>
 
               {/* Sessions */}
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-[#525954] dark:text-[#B8C2BA] flex items-center gap-1.5">
-                  <IconCalendarEvent className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" />
+              <div className="med-card p-4 sm:p-5 space-y-3.5">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                  <IconCalendarEvent className="h-5 w-5 text-teal-700 dark:text-teal-300" />
                   <span>{t.sessionsTitle}</span>
                 </h3>
-                <form onSubmit={handleCreateSession} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <form onSubmit={handleCreateSession} className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <select
                     value={sessionType}
                     onChange={(e) => setSessionType(e.target.value)}
-                    className="min-h-[38px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"
+                    className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"
                   >
                     <option value="CHAT">CHAT</option>
                     <option value="VOICE">VOICE</option>
@@ -785,7 +785,7 @@ export default function PsychologistPortalPage() {
                     type="datetime-local"
                     value={sessionAt}
                     onChange={(e) => setSessionAt(e.target.value)}
-                    className="min-h-[38px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"
+                    className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"
                     required
                   />
                   <input
@@ -793,53 +793,53 @@ export default function PsychologistPortalPage() {
                     value={sessionTopic}
                     onChange={(e) => setSessionTopic(e.target.value)}
                     placeholder={t.sessionTopicPlaceholder}
-                    className="min-h-[38px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"
+                    className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"
                   />
                   <input
                     type="url"
                     value={sessionUrl}
                     onChange={(e) => setSessionUrl(e.target.value)}
                     placeholder={t.sessionLinkPlaceholder}
-                    className="min-h-[38px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"
+                    className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"
                   />
                   <button
                     type="submit"
                     disabled={creatingSession}
-                    className="sm:col-span-2 min-h-[38px] rounded-sm bg-[#244C40] px-4 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1A382F]"
+                    className="sm:col-span-2 min-h-[46px] rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all"
                   >
                     {creatingSession ? "..." : t.createSessionBtn}
                   </button>
                 </form>
 
                 {detail.sessions.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+                  <div className="space-y-2.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
                     {detail.sessions.map((s) => (
                       <div
                         key={s.id}
-                        className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] p-3 flex flex-wrap items-center justify-between gap-2 text-xs"
+                        className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-3.5 flex flex-wrap items-center justify-between gap-2.5 text-sm"
                       >
                         <div>
-                          <p className="font-semibold">
+                          <p className="font-bold text-slate-900 dark:text-white">
                             {s.sessionType} • {new Date(s.scheduledAt).toLocaleString()}
                           </p>
-                          <p className="text-[11px] text-[#525954]">
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
                             {s.topic || "—"} • <strong>{s.status}</strong>
                           </p>
                         </div>
                         {s.status === "SCHEDULED" && (
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-wrap items-center gap-2">
                             <button
                               type="button"
                               onClick={() => handleSessionStatus(s.id, "COMPLETED")}
-                              className="inline-flex items-center gap-1 rounded-sm bg-[#244C40] px-2.5 py-1 text-[11px] font-semibold text-[#F7F5EF]"
+                              className="min-h-[40px] inline-flex items-center gap-1.5 rounded-xl bg-teal-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-800 active:scale-[0.98] transition-all"
                             >
-                              <IconCheck className="h-3 w-3" />
+                              <IconCheck className="h-3.5 w-3.5" />
                               {t.markComplete}
                             </button>
                             <button
                               type="button"
                               onClick={() => handleSessionStatus(s.id, "CANCELLED")}
-                              className="rounded-sm border border-[#DDD8CC] bg-[#FFFFFF] px-2.5 py-1 text-[11px] font-semibold text-[#525954]"
+                              className="min-h-[40px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#16272B]"
                             >
                               {t.markCancel}
                             </button>
@@ -852,51 +852,51 @@ export default function PsychologistPortalPage() {
               </div>
 
               {/* Direct Chat */}
-              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-[#525954] dark:text-[#B8C2BA] flex items-center gap-1.5">
-                  <IconMessageCircle className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" />
+              <div className="med-card p-4 sm:p-5 space-y-3.5">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                  <IconMessageCircle className="h-5 w-5 text-teal-700 dark:text-teal-300" />
                   <span>{t.chatTitle}</span>
                 </h3>
                 {!detail.hasActiveConsent ? (
-                  <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.chatNeedConsent}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{t.chatNeedConsent}</p>
                 ) : (
                   <>
-                    <div className="max-h-52 overflow-y-auto space-y-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] p-3">
+                    <div className="max-h-60 overflow-y-auto space-y-2.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-3.5">
                       {detail.messages.length === 0 ? (
-                        <p className="text-xs text-[#525954]">—</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-2">—</p>
                       ) : (
                         detail.messages.map((m) => {
                           const mine = m.senderUserId === authUser?.id;
                           return (
                             <div
                               key={m.id}
-                              className={`rounded-sm p-2.5 text-xs max-w-[85%] ${
+                              className={`rounded-2xl px-3.5 py-2.5 text-sm max-w-[88%] leading-relaxed ${
                                 mine
-                                  ? "ml-auto bg-[#244C40] text-[#F7F5EF]"
-                                  : "mr-auto bg-[#FFFFFF] dark:bg-[#1D221F] border border-[#DDD8CC] dark:border-[#2F3733]"
+                                  ? "ml-auto bg-teal-700 dark:bg-teal-600 text-white"
+                                  : "mr-auto bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100"
                               }`}
                             >
-                              <p className="text-[10px] opacity-75 font-semibold">{m.senderName}</p>
+                              <p className="text-xs opacity-80 font-bold mb-0.5">{m.senderName}</p>
                               <p>{m.body}</p>
                             </div>
                           );
                         })
                       )}
                     </div>
-                    <form onSubmit={handleSendChat} className="flex gap-2">
+                    <form onSubmit={handleSendChat} className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={chatBody}
                         onChange={(e) => setChatBody(e.target.value)}
                         placeholder={t.chatPlaceholder}
-                        className="flex-1 min-h-[38px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"
+                        className="flex-1 min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-3.5 py-2.5 text-base sm:text-sm text-slate-900 dark:text-white"
                       />
                       <button
                         type="submit"
                         disabled={sendingChat || !chatBody.trim()}
-                        className="inline-flex items-center gap-1 rounded-sm bg-[#244C40] px-4 py-1.5 text-xs font-semibold text-[#F7F5EF] disabled:opacity-50"
+                        className="min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all"
                       >
-                        <IconSend className="h-3.5 w-3.5" />
+                        <IconSend className="h-4 w-4" />
                         <span>{t.chatSendBtn}</span>
                       </button>
                     </form>

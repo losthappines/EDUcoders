@@ -118,120 +118,120 @@ export default function LoginPage() {
             href: "/signup?role=PATIENT",
             label: t.patientCta,
             sub: t.patientCtaSub,
-            icon: <IconUser className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+            icon: <IconUser className="h-5 w-5 text-teal-700 dark:text-teal-300"/>,
         },
         {
             href: "/signup?role=DOCTOR",
             label: t.doctorCta,
             sub: t.doctorCtaSub,
-            icon: <IconStethoscope className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+            icon: <IconStethoscope className="h-5 w-5 text-teal-700 dark:text-teal-300"/>,
         },
         {
             href: "/signup?role=ADMIN_RECEPTION",
             label: t.adminCta,
             sub: t.adminCtaSub,
-            icon: <IconShieldCheck className="h-4 w-4 text-[#292E2B] dark:text-[#F3F0E8]"/>,
+            icon: <IconShieldCheck className="h-5 w-5 text-slate-700 dark:text-slate-200"/>,
         },
         {
             href: "/telegram",
             label: t.telegramCta,
             sub: t.telegramCtaSub,
-            icon: <IconBrandTelegram className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+            icon: <IconBrandTelegram className="h-5 w-5 text-sky-700 dark:text-sky-300"/>,
         },
     ];
 
-    return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
+    return (<div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <PublicHeader />
 
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12 sm:py-16">
-        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+      <main className="flex-1 flex items-center justify-center px-4 sm:px-8 py-8 sm:py-16">
+        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start oc-fade-up">
           {/* Sign In Panel */}
-          <div className="lg:col-span-7 border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 sm:p-9 rounded-sm space-y-6">
-            <div className="border-b border-[#DDD8CC] dark:border-[#2F3733] pb-5">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#244C40] dark:text-[#A7BBAA]">
+          <div className="lg:col-span-7 med-card p-6 sm:p-9 space-y-6">
+            <div className="border-b border-[#D7E4E1] dark:border-[#1E353A] pb-5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-teal-700 dark:text-teal-300">
                 <IconLock className="h-3.5 w-3.5"/>
                 {t.badge}
               </span>
-              <h1 className="font-heading mt-2 text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8]">
+              <h1 className="font-heading mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                 {t.title}
               </h1>
-              <p className="text-sm text-[#525954] dark:text-[#B8C2BA] mt-2 leading-relaxed">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                 {t.subtitle}
               </p>
             </div>
 
-            {error && (<div role="alert" className="flex items-center gap-2.5 border-l-4 border-[#9E4747] bg-[#F3EAE7] dark:bg-[#2E1E1D] px-4 py-3 text-xs font-semibold text-[#7A2E2E] dark:text-[#F0C8C4]">
-                <IconAlertTriangle className="h-4 w-4 shrink-0"/>
+            {error && (<div role="alert" className="oc-slide-down flex items-center gap-2.5 rounded-xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 px-4 py-3 text-sm font-semibold text-rose-700 dark:text-rose-200">
+                <IconAlertTriangle className="h-5 w-5 shrink-0"/>
                 <span>{error}</span>
               </div>)}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="login-email" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                <label htmlFor="login-email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                   {t.emailLabel}
                 </label>
-                <input id="login-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaceholder} className="w-full min-h-[44px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2.5 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                <input id="login-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaceholder} className="w-full min-h-[48px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="login-password" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA]">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {t.passwordLabel}
                   </label>
-                  <Link href="/forgot-password" className="text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
+                  <Link href="/forgot-password" className="text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4">
                     {t.forgotPassword}
                   </Link>
                 </div>
                 <div className="relative">
-                  <input id="login-password" name="password" type={showPw ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.passwordPlaceholder} className="w-full min-h-[44px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2.5 pr-11 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
-                  <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center text-[#525954] hover:text-[#292E2B] dark:text-[#B8C2BA] dark:hover:text-[#F3F0E8]" aria-label={t.togglePw}>
-                    {showPw ? (<IconEyeOff className="h-4 w-4"/>) : (<IconEye className="h-4 w-4"/>)}
+                  <input id="login-password" name="password" type={showPw ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.passwordPlaceholder} className="w-full min-h-[48px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2.5 pr-12 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"/>
+                  <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors" aria-label={t.togglePw}>
+                    {showPw ? (<IconEyeOff className="h-5 w-5"/>) : (<IconEye className="h-5 w-5"/>)}
                   </button>
                 </div>
               </div>
 
-              <button type="submit" disabled={busy} className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-5 py-2.5 text-sm font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-50 transition-colors">
-                <IconLogin className="h-4 w-4"/>
+              <button type="submit" disabled={busy} className="w-full min-h-[50px] inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-3 text-base sm:text-sm font-semibold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all shadow-sm">
+                <IconLogin className="h-5 w-5"/>
                 {busy ? t.submitting : t.submit}
               </button>
             </form>
 
-            <p className="text-xs text-[#525954] dark:text-[#B8C2BA] text-center pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+            <p className="text-sm text-slate-600 dark:text-slate-300 text-center pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
               {t.newHere}{" "}
-              <Link href="/signup?role=PATIENT" className="font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
+              <Link href="/signup?role=PATIENT" className="font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4">
                 {t.createAccount}
               </Link>
             </p>
           </div>
 
           {/* Account Creation & Telegram Guide Panel */}
-          <div className="lg:col-span-5 border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#1D221F] p-6 rounded-sm space-y-4">
-            <div className="border-b border-[#DDD8CC] dark:border-[#2F3733] pb-3">
-              <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-1.5">
-                <IconSparkles className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+          <div className="lg:col-span-5 rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3] dark:bg-[#101E21] p-6 space-y-4">
+            <div className="border-b border-[#D7E4E1] dark:border-[#1E353A] pb-3.5">
+              <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <IconSparkles className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
                 {t.guideTitle}
               </h2>
-              <p className="text-xs text-[#525954] dark:text-[#B8C2BA] mt-1 leading-relaxed">
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
                 {t.guideSub}
               </p>
             </div>
 
-            <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3733] border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] rounded-sm">
-              {quickLinks.map((item) => (<Link key={item.href} href={item.href} className="w-full min-h-[54px] flex items-center justify-between px-3.5 py-3 text-left hover:bg-[#F7F5EF] dark:hover:bg-[#242A27] transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] border border-[#DDD8CC] dark:border-[#2F3733]">
+            <div className="divide-y divide-[#D7E4E1] dark:divide-[#1E353A] border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#091315] rounded-xl overflow-hidden">
+              {quickLinks.map((item) => (<Link key={item.href} href={item.href} className="w-full min-h-[60px] flex items-center justify-between px-4 py-3.5 text-left hover:bg-[#F4F8F7] dark:hover:bg-[#16272B] transition-colors group">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A]">
                       {item.icon}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] truncate">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                         {item.label}
                       </p>
-                      <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] truncate">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">
                         {item.sub}
                       </p>
                     </div>
                   </div>
-                  <IconArrowRight className="h-4 w-4 shrink-0 text-[#525954] dark:text-[#B8C2BA]"/>
+                  <IconArrowRight className="h-4 w-4 shrink-0 text-slate-400 group-hover:translate-x-0.5 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-all"/>
                 </Link>))}
             </div>
           </div>

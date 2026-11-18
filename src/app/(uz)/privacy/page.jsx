@@ -147,46 +147,46 @@ export default function PrivacyPage() {
   const homeHref = lang === "ru" ? "/ru" : lang === "en" ? "/en" : "/";
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8]">
+    <div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] text-slate-900 dark:text-slate-100">
       <PublicHeader />
 
-      <main className="flex-1 mx-auto w-full max-w-4xl px-5 sm:px-8 py-12 space-y-10">
-        <div className="space-y-4 border-b border-[#DDD8CC] dark:border-[#2F3632] pb-8">
-          <Link href={homeHref} className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
-            <IconArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+      <main className="flex-1 mx-auto w-full max-w-4xl px-4 sm:px-8 py-10 sm:py-12 space-y-8 oc-fade-up">
+        <div className="space-y-4 border-b border-[#D7E4E1] dark:border-[#1E353A] pb-8">
+          <Link href={homeHref} className="inline-flex min-h-[36px] items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline underline-offset-4">
+            <IconArrowLeft className="h-4 w-4" aria-hidden="true" />
             {t.back}
           </Link>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA] flex items-center gap-1.5 pt-2">
+          <p className="inline-flex items-center gap-2 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-teal-700 dark:text-teal-300">
             <IconLock className="h-3.5 w-3.5" aria-hidden="true" />
             {t.badge}
           </p>
-          <h1 className="font-heading text-2xl sm:text-4xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8]">
+          <h1 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
             {t.title}
           </h1>
-          <p className="font-mono text-xs text-[#525954] dark:text-[#B6BCB6]">{t.updated}</p>
-          <p className="text-sm sm:text-base text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
+          <p className="font-mono text-xs text-slate-500 dark:text-slate-400">{t.updated}</p>
+          <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed">
             {t.intro}
           </p>
         </div>
 
-        <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3632] border-b border-[#DDD8CC] dark:border-[#2F3632]">
+        <div className="space-y-5">
           {t.sections.map((sec, idx) => (
             <section
               key={sec.id}
               id={sec.id}
-              className="py-8 first:pt-2 space-y-4"
+              className="med-card p-6 sm:p-7 space-y-4"
             >
-              <h2 className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-2.5">
+              <h2 className="font-heading text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
                 {idx === 1 ? (
-                  <IconShieldLock className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
+                  <IconShieldLock className="h-5 w-5 text-teal-700 dark:text-teal-300 shrink-0" aria-hidden="true" />
                 ) : idx === 2 ? (
-                  <IconMapPin className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
+                  <IconMapPin className="h-5 w-5 text-teal-700 dark:text-teal-300 shrink-0" aria-hidden="true" />
                 ) : (
-                  <IconShieldCheck className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
+                  <IconShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-300 shrink-0" aria-hidden="true" />
                 )}
                 {sec.title}
               </h2>
-              <ul className="space-y-2.5 text-sm text-[#525954] dark:text-[#B6BCB6] list-disc pl-5 leading-relaxed">
+              <ul className="space-y-3 text-sm sm:text-base text-slate-600 dark:text-slate-300 list-disc pl-5 leading-relaxed">
                 {sec.points.map((pt, pIdx) => (
                   <li key={pIdx}>{pt}</li>
                 ))}

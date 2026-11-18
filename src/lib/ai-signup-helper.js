@@ -8,6 +8,7 @@ export function createInitialDraft(persona, presetRole) {
             doctorTypePicked: true,
             fullName: "",
             dateOfBirth: "",
+            deliveryDate: "",
             phone: "",
             region: "",
             district: "",
@@ -29,6 +30,29 @@ export function createInitialDraft(persona, presetRole) {
             doctorTypePicked: true,
             fullName: "",
             dateOfBirth: "",
+            deliveryDate: "",
+            phone: "",
+            region: "",
+            district: "",
+            mahalla: "",
+            bloodType: "",
+            specialty: "",
+            expertiseArea: "",
+            experienceYears: "",
+            latitude: null,
+            longitude: null,
+            email: "",
+            password: "",
+        };
+    }
+    if (persona === "PSYCHOLOGIST") {
+        return {
+            persona,
+            role: "PSYCHOLOGIST",
+            doctorTypePicked: true,
+            fullName: "",
+            dateOfBirth: "",
+            deliveryDate: "",
             phone: "",
             region: "",
             district: "",
@@ -50,6 +74,7 @@ export function createInitialDraft(persona, presetRole) {
             doctorTypePicked: true,
             fullName: "",
             dateOfBirth: "",
+            deliveryDate: "",
             phone: "",
             region: "",
             district: "",
@@ -71,6 +96,7 @@ export function createInitialDraft(persona, presetRole) {
         doctorTypePicked: hasExplicitDoctorRole,
         fullName: "",
         dateOfBirth: "",
+        deliveryDate: "",
         phone: "",
         region: "",
         district: "",
@@ -95,7 +121,7 @@ export function getNextStep(draft) {
         return "dateOfBirth";
     if (!draft.phone.trim())
         return "phone";
-    if (draft.persona === "DOCTOR" || draft.persona === "NURSE") {
+    if (draft.persona === "DOCTOR" || draft.persona === "NURSE" || draft.persona === "PSYCHOLOGIST") {
         if (!draft.specialty.trim())
             return "specialty";
         if (!draft.expertiseArea.trim())
@@ -129,7 +155,7 @@ export function getProgressPercent(draft) {
     if (draft.persona === "DOCTOR") {
         requiredFields.push(draft.doctorTypePicked, Boolean(draft.specialty.trim()), Boolean(draft.expertiseArea.trim()), draft.experienceYears !== "" && draft.experienceYears !== null && draft.experienceYears !== undefined);
     }
-    else if (draft.persona === "NURSE") {
+    else if (draft.persona === "NURSE" || draft.persona === "PSYCHOLOGIST") {
         requiredFields.push(Boolean(draft.specialty.trim()), Boolean(draft.expertiseArea.trim()), draft.experienceYears !== "" && draft.experienceYears !== null && draft.experienceYears !== undefined);
     }
     else if (draft.persona === "PATIENT") {
@@ -152,9 +178,8 @@ const MONTH_MAP = {
     nov: 11, november: 11, noyabr: 11, ноябрь: 11, ноября: 11, ноя: 11,
     dec: 12, december: 12, dekabr: 12, декабрь: 12, декабря: 12, дек: 12,
 };
-function formatIsoDate(year, month, day) {
-    const maxYear = new Date().getFullYear() - 14;
-    if (year < 1915 || year > maxYear || month < 1 || month > 12 || day < 1 || day > 31) {
+function formatIsoDateRange(year, month, day, minYear, maxYear) {
+    if (year < minYear || year > maxYear || month < 1 || month > 12 || day < 1 || day > 31) {
         return null;
     }
     const d = new Date(Date.UTC(year, month - 1, day));
@@ -165,19 +190,18 @@ function formatIsoDate(year, month, day) {
     }
     return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
-export function parseBirthDate(raw) {
-    const text = raw.trim();
-    // YYYY-MM-DD or YYYY.MM.DD or YYYY/MM/DD
+function parseFlexibleDate(raw, minYear, maxYear) {
+    const text = String(raw || "").trim();
+    if (!text)
+        return null;
     const isoMatch = text.match(/\b((?:19|20)\d{2})[-./](\d{1,2})[-./](\d{1,2})\b/);
     if (isoMatch) {
-        return formatIsoDate(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]));
+        return formatIsoDateRange(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]), minYear, maxYear);
     }
-    // DD.MM.YYYY or DD/MM/YYYY or DD-MM-YYYY
     const dmyMatch = text.match(/\b(\d{1,2})[-./](\d{1,2})[-./]((?:19|20)\d{2})\b/);
     if (dmyMatch) {
-        return formatIsoDate(Number(dmyMatch[3]), Number(dmyMatch[2]), Number(dmyMatch[1]));
+        return formatIsoDateRange(Number(dmyMatch[3]), Number(dmyMatch[2]), Number(dmyMatch[1]), minYear, maxYear);
     }
-    // Named month formats: "14 may 1996", "May 14, 1996", "1996 yil 14 may", "14 мая 1996"
     const lower = text.toLowerCase().replace(/[,']/g, " ");
     const yearMatch = lower.match(/\b((?:19|20)\d{2})\b/);
     if (yearMatch) {
@@ -194,11 +218,17 @@ export function parseBirthDate(raw) {
             const cleanedNoYear = lower.replace(yearMatch[0], " ");
             const dayMatch = cleanedNoYear.match(/\b(\d{1,2})\b/);
             if (dayMatch) {
-                return formatIsoDate(year, foundMonth, Number(dayMatch[1]));
+                return formatIsoDateRange(year, foundMonth, Number(dayMatch[1]), minYear, maxYear);
             }
         }
     }
     return null;
+}
+export function parseBirthDate(raw) {
+    return parseFlexibleDate(raw, 1915, new Date().getFullYear() - 14);
+}
+export function parseDeliveryDate(raw) {
+    return parseFlexibleDate(raw, 2018, new Date().getFullYear() + 1);
 }
 export function parsePhoneNumber(raw) {
     const candidates = raw.match(/(\+?\d[\d\s\-()]{6,17}\d)/g) || [];
@@ -515,7 +545,34 @@ export function getStepPrompt(draft, lang) {
         };
     }
     if (step === "specialty") {
-        const chips = draft.persona === "NURSE"
+        const chips = draft.persona === "PSYCHOLOGIST"
+            ? [
+                {
+                    label: lang === "ru"
+                        ? "Перинатальный психолог"
+                        : lang === "en"
+                            ? "Perinatal Psychologist"
+                            : "Perinatal psixolog",
+                    value: "Perinatal psixolog",
+                },
+                {
+                    label: lang === "ru"
+                        ? "Семейный и послеродовый психолог"
+                        : lang === "en"
+                            ? "Postpartum & Family Psychologist"
+                            : "Tug'ruqdan keyingi oilaviy psixolog",
+                    value: "Tug'ruqdan keyingi oilaviy psixolog",
+                },
+                {
+                    label: lang === "ru"
+                        ? "Клинический психотерапевт"
+                        : lang === "en"
+                            ? "Clinical Psychotherapist"
+                            : "Klinik psixoterapevt",
+                    value: "Klinik psixoterapevt",
+                },
+            ]
+            : draft.persona === "NURSE"
             ? [
                 {
                     label: lang === "ru"
@@ -572,17 +629,23 @@ export function getStepPrompt(draft, lang) {
         return {
             step,
             inputType: "text",
-            message: draft.persona === "NURSE"
+            message: draft.persona === "PSYCHOLOGIST"
                 ? lang === "ru"
-                    ? "Укажите ваше направление работы или выберите ниже:"
+                    ? "Укажите вашу психологическую специализацию:"
                     : lang === "en"
-                        ? "What is your nursing monitoring focus? Pick below or type it:"
-                        : "Hamshiralik yo'nalishingizni tanlang yoki yozing:"
-                : lang === "ru"
-                    ? "Какая у вас врачебная специальность?"
-                    : lang === "en"
-                        ? "What is your medical specialty?"
-                        : "Tibbiy mutaxassisligingiz qaysi?",
+                        ? "What is your psychological counseling specialty?"
+                        : "Psixologik mutaxassisligingiz qaysi?"
+                : draft.persona === "NURSE"
+                    ? lang === "ru"
+                        ? "Укажите ваше направление работы или выберите ниже:"
+                        : lang === "en"
+                            ? "What is your nursing monitoring focus? Pick below or type it:"
+                            : "Hamshiralik yo'nalishingizni tanlang yoki yozing:"
+                    : lang === "ru"
+                        ? "Какая у вас врачебная специальность?"
+                        : lang === "en"
+                            ? "What is your medical specialty?"
+                            : "Tibbiy mutaxassisligingiz qaysi?",
             placeholder: lang === "ru"
                 ? "Специальность..."
                 : lang === "en"
@@ -592,6 +655,32 @@ export function getStepPrompt(draft, lang) {
         };
     }
     if (step === "expertiseArea") {
+        const psychChips = [
+            {
+                label: lang === "ru"
+                    ? "Послеродовая тревожность и выгорание"
+                    : lang === "en"
+                        ? "Postpartum anxiety & emotional recovery"
+                        : "Tug'ruqdan keyingi ruhiy tushkunlik va xavotir",
+                value: "Tug'ruqdan keyingi ruhiy tushkunlik va xavotir",
+            },
+            {
+                label: lang === "ru"
+                    ? "Поддержка сна и привязанности с малышом"
+                    : lang === "en"
+                        ? "Mother-baby bonding & sleep stress"
+                        : "Ona-bola bog'lanishi va uyqu muammolari",
+                value: "Ona-bola bog'lanishi va uyqu muammolari",
+            },
+            {
+                label: lang === "ru"
+                    ? "Кризисное перинатальное консультирование"
+                    : lang === "en"
+                        ? "Crisis & high-risk perinatal counseling"
+                        : "Favqulodda perinatal psixologik yordam",
+                value: "Favqulodda perinatal psixologik yordam",
+            },
+        ];
         return {
             step,
             inputType: "text",
@@ -601,11 +690,11 @@ export function getStepPrompt(draft, lang) {
                     ? "What is your primary clinical expertise focus?"
                     : "Asosiy ekspertizangiz va qaysi holatlarda yordam ko'rsatishingizni yozing:",
             placeholder: lang === "ru"
-                ? "Например: Послеродовое наблюдение и давление"
+                ? "Например: Послеродовое наблюдение и поддержка"
                 : lang === "en"
-                    ? "e.g. High-risk postpartum care & blood pressure"
-                    : "Masalan: Tug'ruqdan keyingi nazorat va qon bosimi",
-            chips: [
+                    ? "e.g. High-risk postpartum care & support"
+                    : "Masalan: Tug'ruqdan keyingi nazorat va qo'llab-quvvatlash",
+            chips: draft.persona === "PSYCHOLOGIST" ? psychChips : [
                 {
                     label: lang === "ru"
                         ? "Послеродовое наблюдение и уход"
@@ -689,18 +778,252 @@ export function getStepPrompt(draft, lang) {
         chips: [],
     };
 }
+export function getStarterFaqChips(persona, lang) {
+    if (lang === "ru") {
+        return [
+            { label: "❓ Как работает визит за 24ч?", value: "Как работает 24-часовой визит врача на дом?" },
+            { label: "❓ Мои данные в безопасности?", value: "Как защищены мои медицинские данные и личная информация?" },
+            persona === "PATIENT"
+                ? { label: "❓ Зачем нужна группа крови?", value: "Зачем указывать группу крови и что делать, если я ее не знаю?" }
+                : { label: "❓ Как проходит проверка аккаунта?", value: "Как проходит верификация специалиста?" },
+        ];
+    }
+    if (lang === "en") {
+        return [
+            { label: "❓ How does the 24h home visit work?", value: "How does the 24-hour home visit work?" },
+            { label: "❓ Is my health data private?", value: "How are my medical records and personal data protected?" },
+            persona === "PATIENT"
+                ? { label: "❓ Why do you need blood type?", value: "Why do you ask for blood type, and what if I don't know it?" }
+                : { label: "❓ How does verification work?", value: "How does specialist account verification work?" },
+        ];
+    }
+    return [
+        { label: "❓ 24 soatlik uy tashrifi qanday?", value: "24 soatlik uy tashrifi qanday ishlaydi va bepulmi?" },
+        { label: "❓ Ma'lumotlarim xavfsizmi?", value: "Tibbiy ma'lumotlarim va shaxsiy yozuvlarim qanday himoyalanadi?" },
+        persona === "PATIENT"
+            ? { label: "❓ Qon guruhimni bilmasam-chi?", value: "Qon guruhini nima uchun so'raysiz va bilmasam nima qilaman?" }
+            : { label: "❓ Tasdiqlash qanday o'tadi?", value: "Shifokor va mutaxassis hisoblari qanday tasdiqlanadi?" },
+    ];
+}
+export function isLikelyQuestion(raw) {
+    const text = String(raw || "").trim();
+    if (!text)
+        return false;
+    if (text.includes("?"))
+        return true;
+    const lower = text.toLowerCase();
+    return /^(?:why|how|what|when|where|who|can i|do i|is it|are you|will |tell me|explain|зачем|почему|как|что|когда|где|кто|можно ли|нужно ли|расскажите|объясните|сколько|бесплатно|nima|nega|qanday|qachon|qayerda|kim|mumkinmi|kerakmi|tushuntiring|bepulmi|necha)/i.test(lower);
+}
+export function answerSignupQuestionFallback(raw, draft, lang) {
+    const lower = String(raw || "").toLowerCase();
+    if (lower.includes("blood") || lower.includes("кров") || lower.includes("qon") || lower.includes("резус")) {
+        return lang === "ru"
+            ? "Группа крови помогает бригаде роддома и семейному врачу быстрее ориентироваться при послеродовом осмотре и осложнениях. Если вы не знаете свою группу крови, просто нажмите «Не знаю» — это не помешает регистрации."
+            : lang === "en"
+                ? "Your blood type helps your maternity team and family doctor react faster during postpartum follow-ups. If you don't know it yet, simply choose 'I don't know' — you can still register right away."
+                : "Qon guruhi tug'ruqxona va oilaviy shifokorga tug'ruqdan keyingi ko'rikda tezkor qaror qabul qilishga yordam beradi. Agar bilmasangiz, bemalol «Bilmayman» ni tanlang — ro'yxatdan o'tishga to'sqinlik qilmaydi.";
+    }
+    if (lower.includes("privacy") ||
+        lower.includes("private") ||
+        lower.includes("data") ||
+        lower.includes("encrypt") ||
+        lower.includes("безопас") ||
+        lower.includes("защи") ||
+        lower.includes("данн") ||
+        lower.includes("конфиден") ||
+        lower.includes("xavfsiz") ||
+        lower.includes("maxfiy") ||
+        lower.includes("himoya")) {
+        return lang === "ru"
+            ? "Все чувствительные данные (ПИНФЛ/JSHSHIR, клинические заметки и записи психолога) шифруются по стандарту AES-256-GCM. Доступ строго разграничен по ролям, а заметки перинатального психолога изолированы от больничного EHR и доступны только с вашего согласия (PsychConsent)."
+            : lang === "en"
+                ? "Sensitive fields (JSHSHIR, clinical notes, and psychologist notes) are encrypted with AES-256-GCM. Access is strictly role-based, and perinatal psychologist sessions are isolated from hospital clinical EHR records unless you explicitly consent."
+                : "Barcha maxfiy ma'lumotlar (JSHSHIR, shifokor va psixolog qaydnomalari) AES-256-GCM shifrlash bilan himoyalanadi. Kirish huquqlari qat'iy rollarga ajratilgan, psixolog suhbatlari esa shifoxona klinik kartasidan alohida saqlanadi.";
+    }
+    if (/\b(?:telegram|телеграм|bot|botga|botda|бот|бота|боту|боте)\b/i.test(lower)) {
+        return lang === "ru"
+            ? "После создания аккаунта вы сразу получите персональную ссылку для привязки Telegram-бота (@OnaCarePatronajBot). Через бота приходят напоминания о лекарствах, утренний чек-ин, связь с врачом и доступ в мини-приложение."
+            : lang === "en"
+                ? "Right after creating your account, you'll receive a one-tap link for the OnaCare Telegram bot (@OnaCarePatronajBot) to get medication reminders, daily check-ins, and direct doctor/psychologist messaging."
+                : "Hisob yaratganingizdan so'ng darhol Telegram botga (@OnaCarePatronajBot) ulash havolasi chiqadi. Bot orqali dori eslatmalari, kunlik holat tekshiruvi va shifokor bilan chat olasiz.";
+    }
+    if (lower.includes("verif") ||
+        lower.includes("approv") ||
+        lower.includes("провер") ||
+        lower.includes("вериф") ||
+        lower.includes("подтвер") ||
+        lower.includes("tasdiq")) {
+        return lang === "ru"
+            ? "Для безопасности пациентов все новые аккаунты (мамы, врачи, медсестры и психологи) проверяет координатор поликлиники. После подтверждения вы сможете войти по вашему email и паролю."
+            : lang === "en"
+                ? "To protect patient safety, new mother, doctor, nurse, and psychologist accounts are reviewed by a clinic administrator before sign-in. You can still link Telegram immediately after submitting."
+                : "Bemorlar xavfsizligi uchun barcha yangi hisoblar poliklinika administratori tomonidan tekshirib tasdiqlanadi. Tasdiqlangach elektron pochta va parol bilan kirasiz.";
+    }
+    if (lower.includes("gps") || lower.includes("locat") || lower.includes("район") || lower.includes("адрес") || lower.includes("локац") || lower.includes("tuman") || lower.includes("manzil")) {
+        return lang === "ru"
+            ? "Район и махалля нужны, чтобы автоматически закрепить за вами ближайшую семейную поликлинику и врача. Точный GPS необязателен — если вы не поделитесь им, система подставит центр вашего района."
+            : lang === "en"
+                ? "Your region, district, and mahalla match you with the nearest family clinic and home-visit team. Live GPS is optional — we automatically fall back to your district center if skipped."
+                : "Hudud, tuman va mahalla sizga eng yaqin oilaviy poliklinika va uyga keluvchi shifokorni biriktirish uchun kerak. Jonli GPS ixtiyoriy — ulashmasangiz tuman markazi koordinatasi olinadi.";
+    }
+    if (lower.includes("24") || lower.includes("visit") || lower.includes("free") || lower.includes("cost") || lower.includes("визит") || lower.includes("бесплат") || lower.includes("tashrif") || lower.includes("bepul") || lower.includes("narx")) {
+        return lang === "ru"
+            ? "Базовый 24-часовой послеродовой визит семейного врача/патронажной медсестры, ежедневный чек-ин и экстренные уведомления бесплатны в рамках программы. Срочные случаи всегда направляются в службу 103."
+            : lang === "en"
+                ? "The core 24-hour postpartum family clinic home visit after hospital discharge, daily mother & baby check-ins, and emergency alerts are free. For urgent emergencies, always call 103."
+                : "Tug'ruqxonadan chiqqandan keyingi 24 soat ichidagi oilaviy shifokor uy tashrifi, kunlik ona-bola nazorati va shoshilinch ogohlantirishlar bepul. Favqulodda holatlarda doimo 103 ga qo'ng'iroq qiling.";
+    }
+    if (lower.includes("psych") || lower.includes("псих") || lower.includes("epds") || lower.includes("ruhiy")) {
+        return lang === "ru"
+            ? "Перинатальные психологи OnaCare помогают при послеродовой тревожности и эмоциональной нагрузке. Они видят только шкалу настроения и EPDS при вашем согласии (PsychConsent) и не видят больничные анализы."
+            : lang === "en"
+                ? "OnaCare perinatal psychologists support maternal emotional health (including EPDS check-ins) with explicit consent and strict isolation from hospital clinical EHR records."
+                : "OnaCare perinatal psixologlari onalarga ruhiy yordam ko'rsatadi; ular faqat roziligingiz (PsychConsent) bilan kayfiyat/EPDS natijalarini ko'radi va shifoxona tahlillariga kira olmaydi.";
+    }
+    return lang === "ru"
+        ? `Я помогу ответить на любые вопросы об OnaCare и заполнить анкету. Текущая роль: ${draft.persona}. Сейчас осталось заполнить обязательные поля анкеты — можете писать данные естественным текстом или по одному шагу.`
+        : lang === "en"
+            ? `I'm happy to help with any questions about OnaCare and fill out your ${draft.persona.toLowerCase()} registration. You can share multiple details in one message (e.g., name, birth date, phone, district, email) or answer step by step.`
+            : `OnaCare bo'yicha istalgan savolingizga javob beraman va arizangizni to'ldirishda yordamlashaman. Ma'lumotlaringizni bitta xabarda yozishingiz ham, bosqichma-bosqich kiritishingiz ham mumkin.`;
+}
+function extractExplicitNamePhrase(raw) {
+    const match = String(raw || "").match(
+        /(?:меня зовут|мо[её] имя|mening to'liq ismim|mening ismim|ismim|my name is|my full name is|i am|i'm)\s+([a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ'’ʻ-]+(?:\s+[a-zA-Zа-яА-ЯёЁўЎқҚғҒҳҲ'’ʻ-]+){0,2})/i
+    );
+    return match ? match[1].trim() : null;
+}
+export function applyExtractedFields(draft, extracted) {
+    if (!extracted || typeof extracted !== "object") {
+        return { nextDraft: { ...draft }, filledFields: [] };
+    }
+    const next = { ...draft };
+    const filledFields = [];
+    const rawRole = typeof extracted.role === "string" ? extracted.role.trim().toUpperCase() : "";
+    if (draft.persona === "DOCTOR" && (rawRole === "OVABMU_MD" || rawRole === "FAMILY_MD")) {
+        if (next.role !== rawRole || !next.doctorTypePicked) {
+            next.role = rawRole;
+            next.doctorTypePicked = true;
+            filledFields.push("role");
+        }
+    }
+    if (typeof extracted.fullName === "string" && extracted.fullName.trim()) {
+        const parsedName = parseFullName(extracted.fullName);
+        if (parsedName && parsedName !== next.fullName) {
+            next.fullName = parsedName;
+            filledFields.push("fullName");
+        }
+    }
+    if (typeof extracted.dateOfBirth === "string" && extracted.dateOfBirth.trim()) {
+        const dob = parseBirthDate(extracted.dateOfBirth);
+        if (dob && dob !== next.dateOfBirth) {
+            next.dateOfBirth = dob;
+            filledFields.push("dateOfBirth");
+        }
+    }
+    if (typeof extracted.deliveryDate === "string" && extracted.deliveryDate.trim()) {
+        const deliv = parseDeliveryDate(extracted.deliveryDate);
+        if (deliv && deliv !== next.deliveryDate) {
+            next.deliveryDate = deliv;
+            filledFields.push("deliveryDate");
+        }
+    }
+    if (typeof extracted.phone === "string" && extracted.phone.trim()) {
+        const phone = parsePhoneNumber(extracted.phone);
+        if (phone && phone !== next.phone) {
+            next.phone = phone;
+            filledFields.push("phone");
+        }
+    }
+    const combinedLocationText = [extracted.region, extracted.district]
+        .filter((v) => typeof v === "string" && v.trim())
+        .join(", ");
+    if (combinedLocationText) {
+        const parsedLoc = parseLocation(combinedLocationText, Boolean(extracted.district && String(extracted.district).trim().length >= 2));
+        if (parsedLoc) {
+            if (parsedLoc.region && parsedLoc.region !== next.region) {
+                next.region = parsedLoc.region;
+                filledFields.push("region");
+            }
+            if (parsedLoc.district && parsedLoc.district !== next.district) {
+                next.district = parsedLoc.district;
+                filledFields.push("district");
+            }
+        }
+        else if (typeof extracted.district === "string" && extracted.district.trim()) {
+            const dVal = extracted.district.trim();
+            if (dVal !== next.district) {
+                next.district = dVal;
+                filledFields.push("district");
+            }
+        }
+        if (next.district && (next.latitude === null || next.longitude === null)) {
+            const coords = resolveCoordinatesForLocation(next.district, next.region);
+            next.latitude = coords.latitude;
+            next.longitude = coords.longitude;
+        }
+    }
+    if (typeof extracted.mahalla === "string" && extracted.mahalla.trim()) {
+        const mVal = extracted.mahalla.trim();
+        if (mVal !== next.mahalla) {
+            next.mahalla = mVal;
+            filledFields.push("mahalla");
+        }
+    }
+    if (typeof extracted.bloodType === "string" && extracted.bloodType.trim()) {
+        const bt = parseBloodType(extracted.bloodType);
+        if (bt && bt !== next.bloodType) {
+            next.bloodType = bt;
+            filledFields.push("bloodType");
+        }
+    }
+    if (typeof extracted.specialty === "string" && extracted.specialty.trim()) {
+        const sVal = extracted.specialty.trim();
+        if (sVal !== next.specialty) {
+            next.specialty = sVal;
+            filledFields.push("specialty");
+        }
+    }
+    if (typeof extracted.expertiseArea === "string" && extracted.expertiseArea.trim()) {
+        const eVal = extracted.expertiseArea.trim();
+        if (eVal !== next.expertiseArea) {
+            next.expertiseArea = eVal;
+            filledFields.push("expertiseArea");
+        }
+    }
+    if (extracted.experienceYears !== undefined &&
+        extracted.experienceYears !== null &&
+        String(extracted.experienceYears).trim() !== "") {
+        const numMatch = String(extracted.experienceYears).match(/\d+/);
+        if (numMatch) {
+            const yrs = String(Math.min(65, Math.max(0, parseInt(numMatch[0], 10))));
+            if (yrs !== String(next.experienceYears)) {
+                next.experienceYears = yrs;
+                filledFields.push("experienceYears");
+            }
+        }
+    }
+    if (typeof extracted.email === "string" && extracted.email.trim()) {
+        const email = parseEmailAddress(extracted.email);
+        if (email && email !== next.email) {
+            next.email = email;
+            filledFields.push("email");
+        }
+    }
+    return { nextDraft: next, filledFields };
+}
 export function processAiAnswer(draft, rawInput, lang) {
     const step = getNextStep(draft);
     const input = rawInput.trim();
     if (!input) {
-        return { nextDraft: draft, reply: getStepPrompt(draft, lang).message };
+        return { nextDraft: draft, reply: getStepPrompt(draft, lang).message, filledFields: [] };
     }
     const next = { ...draft };
-    // Handle password step exclusively & securely
-    if (step === "password") {
+    // Handle password step exclusively & securely on client
+    if (step === "password" && !isLikelyQuestion(input)) {
         if (input.length < 6) {
             return {
                 nextDraft: next,
+                filledFields: [],
                 maskedUserMessage: "••••",
                 reply: lang === "ru"
                     ? "Пароль должен содержать не менее 6 символов. Попробуйте еще раз:"
@@ -713,17 +1036,28 @@ export function processAiAnswer(draft, rawInput, lang) {
         const nextPrompt = getStepPrompt(next, lang);
         return {
             nextDraft: next,
+            filledFields: ["password"],
             maskedUserMessage: "•".repeat(Math.min(input.length, 10)),
             reply: nextPrompt.message,
         };
     }
     const capturedLabels = [];
+    const filledFields = [];
     // 1. Opportunistically extract unambiguous structured fields if user typed a multi-part sentence
+    if (!next.fullName) {
+        const explicitName = extractExplicitNamePhrase(input);
+        if (explicitName) {
+            next.fullName = explicitName;
+            capturedLabels.push(lang === "ru" ? "ФИО" : lang === "en" ? "Name" : "F.I.O.");
+            filledFields.push("fullName");
+        }
+    }
     if (step !== "email" && !next.email) {
         const email = parseEmailAddress(input);
         if (email) {
             next.email = email;
             capturedLabels.push("Email");
+            filledFields.push("email");
         }
     }
     if (step !== "dateOfBirth" && !next.dateOfBirth) {
@@ -731,6 +1065,7 @@ export function processAiAnswer(draft, rawInput, lang) {
         if (dob) {
             next.dateOfBirth = dob;
             capturedLabels.push(lang === "ru" ? "Дата рождения" : lang === "en" ? "DOB" : "Tug'ilgan sana");
+            filledFields.push("dateOfBirth");
         }
     }
     if (step !== "phone" && !next.phone) {
@@ -738,14 +1073,45 @@ export function processAiAnswer(draft, rawInput, lang) {
         if (phone) {
             next.phone = phone;
             capturedLabels.push(lang === "ru" ? "Телефон" : lang === "en" ? "Phone" : "Telefon");
+            filledFields.push("phone");
         }
     }
-    if (step === "fullName" && !next.district) {
+    if (step !== "location" && !next.district) {
         const loc = parseLocation(input, false);
-        if (loc && loc.district) {
-            next.region = loc.region;
-            next.district = loc.district;
+        if (loc && (loc.district || loc.region)) {
+            if (loc.region)
+                next.region = loc.region;
+            if (loc.district)
+                next.district = loc.district;
+            if (next.district && (next.latitude === null || next.longitude === null)) {
+                const coords = resolveCoordinatesForLocation(next.district, next.region);
+                next.latitude = coords.latitude;
+                next.longitude = coords.longitude;
+            }
+            if (loc.district) {
+                capturedLabels.push(lang === "ru" ? "Район" : lang === "en" ? "District" : "Tuman");
+                filledFields.push("district");
+            }
         }
+    }
+    if (next.persona === "PATIENT" && step !== "bloodType" && !next.bloodType) {
+        const bt = parseBloodType(input);
+        if (bt) {
+            next.bloodType = bt;
+            capturedLabels.push(lang === "ru" ? "Группа крови" : lang === "en" ? "Blood type" : "Qon guruhi");
+            filledFields.push("bloodType");
+        }
+    }
+    // If user is asking a question, answer it cleanly instead of treating the question as a field value!
+    if (isLikelyQuestion(input)) {
+        const faqAnswer = answerSignupQuestionFallback(input, next, lang);
+        const nextPrompt = getStepPrompt(next, lang);
+        return {
+            nextDraft: next,
+            filledFields,
+            answeredQuestion: true,
+            reply: `${faqAnswer}\n\n${nextPrompt.message}`,
+        };
     }
     // 2. Process the active step specifically
     if (step === "doctorType") {
@@ -759,6 +1125,7 @@ export function processAiAnswer(draft, rawInput, lang) {
             lower.includes("стационар")) {
             next.role = "OVABMU_MD";
             next.doctorTypePicked = true;
+            filledFields.push("role");
         }
         else if (input === "FAMILY_MD" ||
             lower.includes("family") ||
@@ -769,10 +1136,12 @@ export function processAiAnswer(draft, rawInput, lang) {
             lower.includes("поликлин")) {
             next.role = "FAMILY_MD";
             next.doctorTypePicked = true;
+            filledFields.push("role");
         }
         else {
             return {
                 nextDraft: next,
+                filledFields,
                 reply: lang === "ru"
                     ? "Пожалуйста, выберите один из вариантов: Врач роддома или Семейный врач."
                     : lang === "en"
@@ -782,12 +1151,12 @@ export function processAiAnswer(draft, rawInput, lang) {
         }
     }
     else if (step === "fullName") {
-        // Strip trailing multi-field parts (after comma if DOB/phone were included)
         const firstSegment = input.split(/[,;]/)[0] || input;
         const parsedName = parseFullName(firstSegment);
         if (!parsedName) {
             return {
                 nextDraft: next,
+                filledFields,
                 reply: lang === "ru"
                     ? "Пожалуйста, напишите ваше полное имя буквами (не менее 2 символов)."
                     : lang === "en"
@@ -796,12 +1165,14 @@ export function processAiAnswer(draft, rawInput, lang) {
             };
         }
         next.fullName = parsedName;
+        filledFields.push("fullName");
     }
     else if (step === "dateOfBirth") {
         const dob = parseBirthDate(input);
         if (!dob) {
             return {
                 nextDraft: next,
+                filledFields,
                 reply: lang === "ru"
                     ? "Не удалось распознать дату рождения. Напишите, например: 14.05.1996 или 1996-05-14."
                     : lang === "en"
@@ -810,12 +1181,14 @@ export function processAiAnswer(draft, rawInput, lang) {
             };
         }
         next.dateOfBirth = dob;
+        filledFields.push("dateOfBirth");
     }
     else if (step === "phone") {
         const phone = parsePhoneNumber(input);
         if (!phone) {
             return {
                 nextDraft: next,
+                filledFields,
                 reply: lang === "ru"
                     ? "Пожалуйста, введите корректный номер телефона (например: +998 90 123 45 67)."
                     : lang === "en"
@@ -824,12 +1197,14 @@ export function processAiAnswer(draft, rawInput, lang) {
             };
         }
         next.phone = phone;
+        filledFields.push("phone");
     }
     else if (step === "location") {
         const loc = parseLocation(input, Boolean(next.region) || input.length >= 3);
         if (!loc) {
             return {
                 nextDraft: next,
+                filledFields,
                 reply: lang === "ru"
                     ? "Пожалуйста, напишите ваш город или район (или выберите вариант ниже)."
                     : lang === "en"
@@ -839,8 +1214,10 @@ export function processAiAnswer(draft, rawInput, lang) {
         }
         if (loc.region)
             next.region = loc.region;
-        if (loc.district)
+        if (loc.district) {
             next.district = loc.district;
+            filledFields.push("district");
+        }
         if (next.district && (next.latitude === null || next.longitude === null)) {
             const coords = resolveCoordinatesForLocation(next.district, next.region);
             next.latitude = coords.latitude;
@@ -849,12 +1226,14 @@ export function processAiAnswer(draft, rawInput, lang) {
     }
     else if (step === "mahalla") {
         next.mahalla = input;
+        filledFields.push("mahalla");
     }
     else if (step === "bloodType") {
         const bt = parseBloodType(input);
         if (!bt) {
             return {
                 nextDraft: next,
+                filledFields,
                 reply: lang === "ru"
                     ? "Выберите группу крови кнопкой ниже или напишите например: A(II) Rh-, O(I) Rh+ или «Не знаю»."
                     : lang === "en"
@@ -863,12 +1242,15 @@ export function processAiAnswer(draft, rawInput, lang) {
             };
         }
         next.bloodType = bt;
+        filledFields.push("bloodType");
     }
     else if (step === "specialty") {
         next.specialty = input;
+        filledFields.push("specialty");
     }
     else if (step === "expertiseArea") {
         next.expertiseArea = input;
+        filledFields.push("expertiseArea");
     }
     else if (step === "experienceYears") {
         const numMatch = input.match(/\d+/);
@@ -876,6 +1258,7 @@ export function processAiAnswer(draft, rawInput, lang) {
         if (Number.isNaN(yrs)) {
             return {
                 nextDraft: next,
+                filledFields,
                 reply: lang === "ru"
                     ? "Укажите количество лет стажа числом (например: 5)."
                     : lang === "en"
@@ -884,12 +1267,14 @@ export function processAiAnswer(draft, rawInput, lang) {
             };
         }
         next.experienceYears = String(yrs);
+        filledFields.push("experienceYears");
     }
     else if (step === "email") {
         const email = parseEmailAddress(input);
         if (!email) {
             return {
                 nextDraft: next,
+                filledFields,
                 reply: lang === "ru"
                     ? "Пожалуйста, введите корректный адрес электронной почты (например: name@example.uz)."
                     : lang === "en"
@@ -898,6 +1283,7 @@ export function processAiAnswer(draft, rawInput, lang) {
             };
         }
         next.email = email;
+        filledFields.push("email");
     }
     const nextPrompt = getStepPrompt(next, lang);
     const ack = capturedLabels.length > 0 && nextPrompt.step !== "complete"
@@ -909,6 +1295,8 @@ export function processAiAnswer(draft, rawInput, lang) {
         : "";
     return {
         nextDraft: next,
+        filledFields,
         reply: `${ack}${nextPrompt.message}`,
     };
 }
+

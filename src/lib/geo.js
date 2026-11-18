@@ -126,14 +126,12 @@ export function matchNearestDoctor(doctors, params) {
         ? 1
         : 0;
     const isFamilyFirst = doc.role === "FAMILY_MD" ? 1 : 0;
-    const hasActiveSub = doc.subscriptionStatus === "ACTIVE" ? 1 : 0;
 
     // Lower penalty score wins
     let rankScore = distKm !== null ? distKm : 25;
     if (districtMatch) rankScore -= 5;
     if (specMatch) rankScore -= 4;
     if (isFamilyFirst) rankScore -= 2;
-    if (hasActiveSub) rankScore -= 1;
 
     return { doctor: doc, distanceKm: distKm, rankScore };
   });

@@ -88,6 +88,7 @@ async function ensureDatabaseSchema() {
                 await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "subscriptionTier" TEXT NOT NULL DEFAULT 'FREE'`);
                 await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "subscriptionStatus" TEXT NOT NULL DEFAULT 'NONE'`);
                 await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "subscriptionExpiresAt" TIMESTAMP(3)`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "patients" ADD COLUMN IF NOT EXISTS "deliveryDate" TIMESTAMP(3)`);
                 await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "patients_userId_key" ON "patients"("userId")`);
                 await prisma.$executeRawUnsafe(`
           DO $$
@@ -144,6 +145,8 @@ async function ensureDatabaseSchema() {
             "dosage" TEXT NOT NULL,
             "frequency" TEXT NOT NULL,
             "durationDays" INTEGER NOT NULL,
+            "reminderTimesJson" TEXT NOT NULL DEFAULT '[]',
+            "remindersEnabled" BOOLEAN NOT NULL DEFAULT true,
             "instructionsUz" TEXT NOT NULL,
             "instructionsRu" TEXT NOT NULL,
             "instructionsEn" TEXT NOT NULL,
@@ -157,6 +160,8 @@ async function ensureDatabaseSchema() {
             CONSTRAINT "prescriptions_prescribedById_fkey" FOREIGN KEY ("prescribedById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE
           );
         `);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "prescriptions" ADD COLUMN IF NOT EXISTS "reminderTimesJson" TEXT NOT NULL DEFAULT '[]'`);
+                await prisma.$executeRawUnsafe(`ALTER TABLE "prescriptions" ADD COLUMN IF NOT EXISTS "remindersEnabled" BOOLEAN NOT NULL DEFAULT true`);
                 await prisma.$executeRawUnsafe(`
           CREATE TABLE IF NOT EXISTS "active_calls" (
             "id" TEXT NOT NULL,
@@ -317,6 +322,99 @@ async function ensureDatabaseSchema() {
                 await prisma.$executeRawUnsafe(`ALTER TABLE "system_sim_state" ADD COLUMN IF NOT EXISTS "cleanSlateVersion" INTEGER NOT NULL DEFAULT 0`);
                 await prisma.$executeRawUnsafe(`ALTER TABLE "system_sim_state" ADD COLUMN IF NOT EXISTS "telegramBotTokenEnc" TEXT`);
                 await prisma.$executeRawUnsafe(`ALTER TABLE "system_sim_state" ADD COLUMN IF NOT EXISTS "telegramBotUsername" TEXT`);
+                await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "wellbeing_checkins" (
+            "id" TEXT NOT NULL,
+            "patientId" TEXT NOT NULL,
+            "date" TEXT NOT NULL,
+            "mood" INTEGER NOT NULL,
+            "answersJson" TEXT NOT NULL DEFAULT '{}',
+            "epdsScore" INTEGER,
+            "epdsSelfHarmFlag" BOOLEAN NOT NULL DEFAULT false,
+            "riskFlag" TEXT NOT NULL DEFAULT 'GREEN',
+            "source" TEXT NOT NULL DEFAULT 'WEB',
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "wellbeing_checkins_pkey" PRIMARY KEY ("id"),
+            CONSTRAINT "wellbeing_checkins_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "patients"("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+        `);
+                await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "wellbeing_checkins_patientId_date_idx" ON "wellbeing_checkins"("patientId", "date")`);
+                await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "med_reminder_logs" (
+            "id" TEXT NOT NULL,
+            "prescriptionId" TEXT NOT NULL,
+            "patientId" TEXT NOT NULL,
+            "doseAt" TIMESTAMP(3) NOT NULL,
+            "preSentAt" TIMESTAMP(3),
+            "atDoseSentAt" TIMESTAMP(3),
+            "status" TEXT NOT NULL DEFAULT 'PENDING',
+            "snoozeCount" INTEGER NOT NULL DEFAULT 0,
+            "nextRemindAt" TIMESTAMP(3),
+            "telegramMessageId" TEXT,
+            "respondedAt" TIMESTAMP(3),
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "med_reminder_logs_pkey" PRIMARY KEY ("id"),
+            CONSTRAINT "med_reminder_logs_prescriptionId_fkey" FOREIGN KEY ("prescriptionId") REFERENCES "prescriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+        `);
+                await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "med_reminder_logs_prescriptionId_doseAt_key" ON "med_reminder_logs"("prescriptionId", "doseAt")`);
+                await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "med_reminder_logs_patientId_status_idx" ON "med_reminder_logs"("patientId", "status")`);
+                await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "psych_consents" (
+            "id" TEXT NOT NULL,
+            "patientId" TEXT NOT NULL,
+            "psychologistId" TEXT NOT NULL,
+            "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+            "shareWellbeing" BOOLEAN NOT NULL DEFAULT true,
+            "shareAssistantTopics" BOOLEAN NOT NULL DEFAULT true,
+            "selfHarmAlertAt" TIMESTAMP(3),
+            "selfHarmAckAt" TIMESTAMP(3),
+            "consentedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "withdrawnAt" TIMESTAMP(3),
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "psych_consents_pkey" PRIMARY KEY ("id"),
+            CONSTRAINT "psych_consents_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "patients"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT "psych_consents_psychologistId_fkey" FOREIGN KEY ("psychologistId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+        `);
+                await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "psych_consents_patientId_psychologistId_key" ON "psych_consents"("patientId", "psychologistId")`);
+                await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "psych_sessions" (
+            "id" TEXT NOT NULL,
+            "patientId" TEXT NOT NULL,
+            "psychologistId" TEXT NOT NULL,
+            "sessionType" TEXT NOT NULL DEFAULT 'CHAT',
+            "scheduledAt" TIMESTAMP(3) NOT NULL,
+            "durationMin" INTEGER NOT NULL DEFAULT 45,
+            "status" TEXT NOT NULL DEFAULT 'SCHEDULED',
+            "meetingUrl" TEXT,
+            "topic" TEXT,
+            "reminder10mSentAt" TIMESTAMP(3),
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "psych_sessions_pkey" PRIMARY KEY ("id"),
+            CONSTRAINT "psych_sessions_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "patients"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT "psych_sessions_psychologistId_fkey" FOREIGN KEY ("psychologistId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+        `);
+                await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "psych_sessions_psychologistId_scheduledAt_idx" ON "psych_sessions"("psychologistId", "scheduledAt")`);
+                await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "psych_sessions_patientId_scheduledAt_idx" ON "psych_sessions"("patientId", "scheduledAt")`);
+                await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "psych_notes" (
+            "id" TEXT NOT NULL,
+            "patientId" TEXT NOT NULL,
+            "psychologistId" TEXT NOT NULL,
+            "sessionId" TEXT,
+            "notesEncrypted" TEXT NOT NULL,
+            "riskAssessment" TEXT NOT NULL DEFAULT 'LOW',
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "psych_notes_pkey" PRIMARY KEY ("id"),
+            CONSTRAINT "psych_notes_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "patients"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT "psych_notes_psychologistId_fkey" FOREIGN KEY ("psychologistId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+        `);
+                await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "psych_notes_patientId_psychologistId_idx" ON "psych_notes"("patientId", "psychologistId")`);
                 // One-time atomic clean-slate purge: remove all pre-existing demo & test accounts
                 // so the database starts completely clean for real user testing.
                 await prisma.$transaction(async (tx) => {
@@ -346,6 +444,12 @@ async function ensureDatabaseSchema() {
                         await tx.user.deleteMany();
                     }
                 });
+                await prisma.$executeRawUnsafe(`
+                  UPDATE "users"
+                  SET "subscriptionTier" = 'FREE', "subscriptionStatus" = 'NONE', "subscriptionExpiresAt" = NULL
+                  WHERE "role" <> 'PATIENT'
+                    AND ("subscriptionTier" <> 'FREE' OR "subscriptionStatus" <> 'NONE' OR "subscriptionExpiresAt" IS NOT NULL)
+                `);
                 schemaChecked = true;
             }
             catch (err) {

@@ -46,8 +46,11 @@ export function canTriggerDischarge(role) {
 export function canVerifyVisitAsDoctor(role) {
     return role === "FAMILY_MD" || role === "OVABMU_MD";
 }
+export function canAccessPsychologistPortal(role) {
+    return role === "PSYCHOLOGIST";
+}
 export function isStaffRole(role) {
-    return role === "OVABMU_MD" || role === "FAMILY_MD" || role === "ADMIN_RECEPTION";
+    return role === "OVABMU_MD" || role === "FAMILY_MD" || role === "ADMIN_RECEPTION" || role === "PSYCHOLOGIST";
 }
 export async function recordAuditLog(params) {
     await prisma.auditLog.create({

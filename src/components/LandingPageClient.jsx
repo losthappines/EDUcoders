@@ -15,6 +15,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 function getPortalHref(role) {
   if (role === "PATIENT") return "/patient";
+  if (role === "PSYCHOLOGIST") return "/psychologist";
   if (role === "ADMIN_RECEPTION") return "/admin";
   return "/clinical";
 }
@@ -796,6 +797,58 @@ export function LandingPageClient() {
                   {t.mobilePhotoFigure}
                 </figcaption>
               </figure>
+            </div>
+          </div>
+        </section>
+
+        {/* 4.5 Mothers Community & Perinatal Psychological Support */}
+        <section className="border-b border-[#DDD8CC] dark:border-[#2F3632] bg-[#EFECE3]/50 dark:bg-[#1A1F1C]">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-7 space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+                {lang === "ru"
+                  ? "Сообщество и бережная поддержка"
+                  : lang === "en"
+                    ? "Community & Perinatal Support"
+                    : "Hamjamiyat va ruhiy qo'llab-quvvatlash"}
+              </p>
+              <h2 className="font-heading text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-snug">
+                {lang === "ru"
+                  ? "Круги мам по возрасту малыша и консультации перинатального психолога"
+                  : lang === "en"
+                    ? "Newborn stage circles and private sessions with perinatal psychologists"
+                    : "Chaqaloq yoshiga mos onalar davralari va perinatal psixolog bilan xavfsiz suhbat"}
+              </h2>
+              <p className="text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed max-w-2xl">
+                {lang === "ru"
+                  ? "Отмечайте ежедневное настроение за 10 секунд, получайте напоминания о лекарствах за 10 минут и обращайтесь к проверенному психологу с вашего согласия."
+                  : lang === "en"
+                    ? "Check in daily in 10 seconds, get Telegram medication reminders 10 minutes before each dose, and connect with verified psychologists strictly on your consent."
+                    : "Kundalik kayfiyatingizni 10 soniyada belgilang, har bir dori dozasidan 10 daqiqa oldin Telegram eslatma oling va o'z roziligingiz bilan tekshirilgan psixologga ulaning."}
+              </p>
+            </div>
+            <div className="lg:col-span-5 flex flex-wrap lg:justify-end items-center gap-3">
+              <Link
+                href="/hamjamiyat"
+                className="inline-flex min-h-[46px] items-center gap-2 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] dark:hover:bg-[#356D5C] px-6 py-3 text-xs sm:text-sm font-semibold text-[#F7F5EF] transition-colors"
+              >
+                {lang === "ru"
+                  ? "Открыть сообщество мам"
+                  : lang === "en"
+                    ? "Explore Mothers Community"
+                    : "Onalar hamjamiyatini ochish"}
+                <IconArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/signup?role=PSYCHOLOGIST"
+                className="inline-flex min-h-[46px] items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] px-5 py-3 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] transition-colors"
+              >
+                {lang === "ru"
+                  ? "Я перинатальный психолог"
+                  : lang === "en"
+                    ? "Join as Psychologist"
+                    : "Psixolog sifatida qo'shilish"}
+              </Link>
             </div>
           </div>
         </section>

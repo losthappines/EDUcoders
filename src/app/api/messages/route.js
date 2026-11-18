@@ -22,6 +22,23 @@ export async function GET(req) {
         patientId: patient.id,
         ...(complaintIdParam ? { complaintId: complaintIdParam } : {}),
       };
+    } else if (actor.role === "PSYCHOLOGIST") {
+      if (!patientIdParam) {
+        where = {
+          OR: [{ senderUserId: actor.userId }, { recipientUserId: actor.userId }],
+        };
+      } else {
+        const consent = await prisma.psychConsent.findUnique({
+          where: { patientId_psychologistId: { patientId: patientIdParam, psychologistId: actor.userId } },
+        });
+        if (!consent || consent.status !== "ACTIVE") {
+          return NextResponse.json({ error: "Active patient consent is required for chat" }, { status: 403 });
+        }
+        where = {
+          patientId: patientIdParam,
+          OR: [{ senderUserId: actor.userId }, { recipientUserId: actor.userId }],
+        };
+      }
     } else if (canVerifyVisitAsDoctor(actor.role)) {
       if (actor.role === "FAMILY_MD" && patientIdParam) {
         const patient = await prisma.patient.findUnique({ where: { id: patientIdParam } });
@@ -71,6 +88,17 @@ export async function POST(req) {
     let patient = null;
     if (actor.role === "PATIENT") {
       patient = await prisma.patient.findUnique({ where: { userId: actor.userId } });
+    } else if (actor.role === "PSYCHOLOGIST") {
+      if (!body.patientId) {
+        return NextResponse.json({ error: "patientId is required" }, { status: 400 });
+      }
+      const consent = await prisma.psychConsent.findUnique({
+        where: { patientId_psychologistId: { patientId: body.patientId, psychologistId: actor.userId } },
+      });
+      if (!consent || consent.status !== "ACTIVE") {
+        return NextResponse.json({ error: "Active patient consent is required" }, { status: 403 });
+      }
+      patient = await prisma.patient.findUnique({ where: { id: body.patientId } });
     } else if (canVerifyVisitAsDoctor(actor.role)) {
       if (!body.patientId) {
         return NextResponse.json({ error: "patientId is required" }, { status: 400 });
@@ -112,7 +140,9 @@ export async function POST(req) {
       const prefix =
         actor.role === "PATIENT"
           ? `💬 <b>Bemordan xabar (${actor.fullName}):</b>`
-          : `🩺 <b>Shifokor maslahati (${actor.fullName}):</b>`;
+          : actor.role === "PSYCHOLOGIST"
+            ? `💜 <b>Psixologdan xabar (${actor.fullName}):</b>`
+            : `🩺 <b>Shifokor maslahati (${actor.fullName}):</b>`;
       await notifyUserViaTelegram(recipientUserId, `${prefix}\n\n${text}`);
     }
 

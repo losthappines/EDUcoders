@@ -1,7 +1,7 @@
 import { NextResponse, connection } from "next/server";
 import { prisma } from "@/lib/db";
 import { recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
-import { DOCTOR_PLANS, getPlanByCode, PATIENT_PLANS } from "@/lib/subscriptions";
+import { getPlanByCode, PATIENT_PLANS } from "@/lib/subscriptions";
 import { notifyUserViaTelegram } from "@/lib/telegram-bot";
 
 const VALID_METHODS = new Set(["PAYME", "CLICK", "UZCARD", "HUMO", "CARD_DEMO"]);
@@ -38,7 +38,7 @@ export async function GET(req) {
 
     return NextResponse.json({
       currentSubscription: user,
-      plans: actor.role === "PATIENT" ? PATIENT_PLANS : DOCTOR_PLANS,
+      plans: actor.role === "PATIENT" ? PATIENT_PLANS : [],
       history: records,
     });
   } catch (error) {
@@ -54,18 +54,17 @@ export async function POST(req) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const plan = getPlanByCode(body.planCode);
-    if (!plan) {
-      return NextResponse.json({ error: "Invalid subscription plan." }, { status: 400 });
-    }
-
-    const expectedTarget = actor.role === "PATIENT" ? "PATIENT" : "DOCTOR";
-    if (plan.targetRole !== expectedTarget) {
+    if (actor.role !== "PATIENT") {
       return NextResponse.json(
-        { error: "Selected plan does not match your account role." },
+        { error: "Doctor and nurse accounts are free — no paid subscription plans required." },
         { status: 403 }
       );
+    }
+
+    const body = await req.json();
+    const plan = getPlanByCode(body.planCode);
+    if (!plan || plan.targetRole !== "PATIENT") {
+      return NextResponse.json({ error: "Invalid subscription plan." }, { status: 400 });
     }
 
     const paymentMethod = VALID_METHODS.has(body.paymentMethod) ? body.paymentMethod : "PAYME";
@@ -81,20 +80,18 @@ export async function POST(req) {
           subscriptionExpiresAt: isActive ? expiresAt : null,
         },
       });
-      if (actor.role === "PATIENT") {
-        await tx.patient.updateMany({
-          where: { userId: actor.userId },
-          data: {
-            subscriptionTier: plan.code,
-            subscriptionStatus: isActive ? "ACTIVE" : "NONE",
-            subscriptionExpiresAt: isActive ? expiresAt : null,
-          },
-        });
-      }
+      await tx.patient.updateMany({
+        where: { userId: actor.userId },
+        data: {
+          subscriptionTier: plan.code,
+          subscriptionStatus: isActive ? "ACTIVE" : "NONE",
+          subscriptionExpiresAt: isActive ? expiresAt : null,
+        },
+      });
       return tx.subscriptionRecord.create({
         data: {
           userId: actor.userId,
-          targetRole: expectedTarget,
+          targetRole: "PATIENT",
           planCode: plan.code,
           planName: plan.nameUz,
           priceUzs: plan.priceUzs,

@@ -1,14 +1,14 @@
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { IconAlertTriangle, IconArrowLeft, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClock, IconCrown, IconMail, IconMapPin, IconPhone, IconSearch, IconStethoscope, IconTrash, IconUser, IconUserCheck, IconX, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconArrowLeft, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClock, IconCrown, IconHeartHandshake, IconMail, IconMapPin, IconPhone, IconSearch, IconStethoscope, IconTrash, IconUser, IconUserCheck, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 const COPY = {
     uz: {
         backDash: "Umumiy boshqaruvga qaytish",
-        title: "Bemor va shifokor hisoblarini tasdiqlash",
-        subtitle: "Yangi ro'yxatdan o'tgan bemorlar va shifokorlarni ko'rib chiqing. Tasdiqlangandan so'ng ular o'z kabinetiga kira oladi.",
+        title: "Bemor, shifokor va psixolog hisoblarini tasdiqlash",
+        subtitle: "Yangi ro'yxatdan o'tgan bemorlar, shifokorlar va perinatal psixologlarni ko'rib chiqing. Tasdiqlangandan so'ng ular o'z kabinetiga kira oladi.",
         pendingCard: "Tasdiqlash kutilmoqda",
         verifiedCard: "Tasdiqlangan",
         rejectedCard: "Rad etilgan",
@@ -20,6 +20,7 @@ const COPY = {
         roleAll: "Barcha rollar",
         rolePatients: "Bemorlar",
         roleDoctors: "Shifokorlar",
+        rolePsychologists: "Psixologlar",
         searchPlaceholder: "Ism, email, telefon yoki tuman bo'yicha qidirish...",
         loading: "Arizalar ro'yxati yuklanmoqda...",
         empty: "Tanlangan filtrlar bo'yicha hisoblar topilmadi.",
@@ -29,6 +30,7 @@ const COPY = {
         rolePatient: "Bemor / Ona",
         roleOvabmu: "Tug'ruqxona shifokori",
         roleFamily: "Oilaviy shifokor",
+        rolePsych: "Perinatal psixolog",
         approveBtn: "Tasdiqlash va faollashtirish",
         rejectBtn: "Rad etish",
         reapproveBtn: "Qayta tasdiqlash",
@@ -52,8 +54,8 @@ const COPY = {
     },
     ru: {
         backDash: "Назад к обзору клиники",
-        title: "Проверка аккаунтов пациентов и врачей",
-        subtitle: "Рассмотрите новые заявки пациентов и врачей. После подтверждения они смогут войти в свой личный кабинет.",
+        title: "Проверка аккаунтов пациентов, врачей и психологов",
+        subtitle: "Рассмотрите новые заявки пациентов, врачей и перинатальных психологов. После подтверждения они смогут войти в свой кабинет.",
         pendingCard: "Ожидают проверки",
         verifiedCard: "Подтверждены",
         rejectedCard: "Отклонены",
@@ -65,6 +67,7 @@ const COPY = {
         roleAll: "Все роли",
         rolePatients: "Пациенты",
         roleDoctors: "Врачи",
+        rolePsychologists: "Психологи",
         searchPlaceholder: "Поиск по имени, email, телефону или району...",
         loading: "Загрузка списка заявок...",
         empty: "По выбранным фильтрам аккаунты не найдены.",
@@ -74,6 +77,7 @@ const COPY = {
         rolePatient: "Мама / Пациент",
         roleOvabmu: "Врач роддома",
         roleFamily: "Семейный врач",
+        rolePsych: "Перинатальный психолог",
         approveBtn: "Подтвердить и активировать",
         rejectBtn: "Отклонить",
         reapproveBtn: "Подтвердить повторно",
@@ -97,8 +101,8 @@ const COPY = {
     },
     en: {
         backDash: "Back to Clinic Overview",
-        title: "Patient & Doctor Account Verifications",
-        subtitle: "Review new patient and physician registrations. Accounts remain locked until you verify and activate them.",
+        title: "Patient, Doctor & Psychologist Account Verifications",
+        subtitle: "Review new patient, physician, and perinatal psychologist registrations. Accounts remain locked until verified.",
         pendingCard: "Pending Review",
         verifiedCard: "Verified Accounts",
         rejectedCard: "Declined",
@@ -110,6 +114,7 @@ const COPY = {
         roleAll: "All Roles",
         rolePatients: "Patients",
         roleDoctors: "Doctors",
+        rolePsychologists: "Psychologists",
         searchPlaceholder: "Search by name, email, phone, or district...",
         loading: "Loading account verification queue...",
         empty: "No accounts match your current filters.",
@@ -119,6 +124,7 @@ const COPY = {
         rolePatient: "Mother / Patient",
         roleOvabmu: "Hospital Doctor",
         roleFamily: "Local Family Doctor",
+        rolePsych: "Perinatal Psychologist",
         approveBtn: "Verify & Activate",
         rejectBtn: "Decline",
         reapproveBtn: "Verify Account",
@@ -246,6 +252,9 @@ export default function AdminVerificationsPage() {
             if (roleFilter === "DOCTOR" && a.role !== "OVABMU_MD" && a.role !== "FAMILY_MD") {
                 return false;
             }
+            if (roleFilter === "PSYCHOLOGIST" && a.role !== "PSYCHOLOGIST") {
+                return false;
+            }
             if (!q)
                 return true;
             return (a.fullName.toLowerCase().includes(q) ||
@@ -270,6 +279,13 @@ export default function AdminVerificationsPage() {
                 label: t.roleOvabmu,
                 icon: <IconBuildingHospital className="h-4 w-4 text-indigo-700 dark:text-indigo-400"/>,
                 pill: "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800",
+            };
+        }
+        if (role === "PSYCHOLOGIST") {
+            return {
+                label: t.rolePsych,
+                icon: <IconHeartHandshake className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+                pill: "bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] border-[#A7BBAA] dark:border-[#6E8572]",
             };
         }
         return {
@@ -353,6 +369,7 @@ export default function AdminVerificationsPage() {
             { key: "ALL", label: t.roleAll },
             { key: "PATIENT", label: t.rolePatients },
             { key: "DOCTOR", label: t.roleDoctors },
+            { key: "PSYCHOLOGIST", label: t.rolePsychologists },
         ].map((rf) => (<button key={rf.key} type="button" onClick={() => setRoleFilter(rf.key)} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${roleFilter === rf.key
                 ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"}`}>
@@ -406,7 +423,7 @@ export default function AdminVerificationsPage() {
                               <IconBrandTelegram className="h-3 w-3"/>
                               {t.telegramLinkedLabel}
                             </span>)}
-                          {acc.subscriptionTier && acc.subscriptionTier !== "FREE" && (<span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                          {acc.role === "PATIENT" && acc.subscriptionTier && acc.subscriptionTier !== "FREE" && (<span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
                               <IconCrown className="h-3 w-3"/>
                               {acc.subscriptionTier}
                             </span>)}

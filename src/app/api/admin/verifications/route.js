@@ -23,7 +23,7 @@ export async function GET(req) {
         }
         const users = await prisma.user.findMany({
             where: {
-                role: { in: ["PATIENT", "OVABMU_MD", "FAMILY_MD"] },
+                role: { in: ["PATIENT", "OVABMU_MD", "FAMILY_MD", "PSYCHOLOGIST"] },
             },
             orderBy: { createdAt: "desc" },
             include: {

@@ -78,14 +78,21 @@ export async function POST(req) {
             return NextResponse.json({ success: true, lab });
         }
         if (body.type === "ADD_PRESCRIPTION") {
+            const { inferReminderTimesFromFrequency, validateReminderTimes } = await import("@/lib/med-reminders");
+            const freq = body.frequency || "Kuniga 2 mahal";
+            const parsedTimes = Array.isArray(body.reminderTimes) && body.reminderTimes.length > 0
+                ? validateReminderTimes(body.reminderTimes)
+                : inferReminderTimesFromFrequency(freq);
             const rx = await prisma.prescription.create({
                 data: {
                     patientId: body.patientId,
                     prescribedById: actor.userId,
                     medicationName: body.medicationName || "Magne B6",
                     dosage: body.dosage || "100 mg",
-                    frequency: body.frequency || "Kuniga 2 mahal",
+                    frequency: freq,
                     durationDays: Number(body.durationDays) || 14,
+                    reminderTimesJson: JSON.stringify(parsedTimes),
+                    remindersEnabled: body.remindersEnabled !== false,
                     instructionsUz: body.instructionsUz || "Ovqatdan keyin suv bilan iching.",
                     instructionsRu: "Принимать после еды.",
                     instructionsEn: "Take after meals with water.",
@@ -94,7 +101,13 @@ export async function POST(req) {
                     adherenceLogsJson: "[]",
                 },
             });
-            return NextResponse.json({ success: true, prescription: rx });
+            return NextResponse.json({
+                success: true,
+                prescription: {
+                    ...rx,
+                    reminderTimes: parsedTimes,
+                },
+            });
         }
         return NextResponse.json({ error: "Unsupported order type" }, { status: 400 });
     }

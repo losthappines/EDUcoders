@@ -15,8 +15,9 @@ const FOOTER_COPY = {
     privacy: "Maxfiylik siyosati",
     terms: "Foydalanish shartlari",
     dataHandling: "Ma'lumotlarni saqlash bayonoti",
-    professionalsHeading: "Mutaxassislar uchun",
-    doctorLogin: "Shifokor va hamshira kirishi",
+    professionalsHeading: "Mutaxassislar va hamjamiyat",
+    communityLink: "Onalar hamjamiyati va psixolog yordami",
+    doctorLogin: "Shifokor, psixolog va hamshira kirishi",
     coordinatorLogin: "Poliklinika koordinatori kirishi",
     techArch: "Tizim arxitekturasi va klinik standartlar",
     botConsole: "Telegram Bot boshqaruvi",
@@ -33,8 +34,9 @@ const FOOTER_COPY = {
     privacy: "Политика конфиденциальности",
     terms: "Условия использования",
     dataHandling: "Обработка медицинских данных",
-    professionalsHeading: "Для специалистов",
-    doctorLogin: "Вход для врачей и медсестер",
+    professionalsHeading: "Специалистам и сообщество",
+    communityLink: "Сообщество мам и психолог",
+    doctorLogin: "Вход для врачей, психологов и медсестер",
     coordinatorLogin: "Вход для координаторов клиник",
     techArch: "Архитектура и клинические стандарты",
     botConsole: "Консоль Telegram Бота",
@@ -51,8 +53,9 @@ const FOOTER_COPY = {
     privacy: "Privacy Policy",
     terms: "Terms of Service",
     dataHandling: "Data-Handling Statement",
-    professionalsHeading: "For Professionals",
-    doctorLogin: "Doctor & Nurse Sign In",
+    professionalsHeading: "Professionals & Community",
+    communityLink: "Mothers Community & Perinatal Support",
+    doctorLogin: "Doctor, Psychologist & Nurse Sign In",
     coordinatorLogin: "Clinic Coordinator Sign In",
     techArch: "Architecture & Clinical Standards",
     botConsole: "Telegram Bot Console",
@@ -142,6 +145,11 @@ export function SiteFooter() {
             {t.professionalsHeading}
           </h3>
           <ul className="space-y-2.5 text-[#292E2B] dark:text-[#F3F0E8]">
+            <li>
+              <Link href="/hamjamiyat" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
+                {t.communityLink}
+              </Link>
+            </li>
             <li>
               <Link href="/login" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
                 {t.doctorLogin}

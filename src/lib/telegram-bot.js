@@ -336,6 +336,8 @@ function formatRoleLabel(role) {
       return "Oilaviy shifokor / Hamshira";
     case "OVABMU_MD":
       return "Tug'ruqxona shifokori (OvaBMU)";
+    case "PSYCHOLOGIST":
+      return "Perinatal psixolog";
     case "ADMIN_RECEPTION":
       return "Poliklinika koordinatori (Admin)";
     default:
@@ -388,6 +390,8 @@ async function buildUserProfileMessage(user) {
     `• <b>GPS koordinata:</b> <code>${gpsText}</code>`,
   ];
 
+  const miniAppUrl = getTelegramMiniAppUrl();
+
   if (u.role === "PATIENT") {
     const p = u.patientProfile;
     let allergies = [];
@@ -430,6 +434,11 @@ async function buildUserProfileMessage(user) {
     const buttons =
       u.verificationStatus === "VERIFIED"
         ? [
+            [{ text: "📱 Kabinetni ochish (Mini App)", webAppUrl: miniAppUrl }],
+            [
+              { text: "🧠 Kundalik holat (/checkin)", callbackData: "PATIENT:CHECKIN" },
+              { text: "💊 Dorilarim (/dorilar)", callbackData: "PATIENT:MEDS" },
+            ],
             [{ text: "🚨 Shikoyat yuborish (GPS)", callbackData: "PATIENT:NEW_COMPLAINT" }],
             [
               { text: "🩺 Tashrif holati", callbackData: "PATIENT:STATUS" },
@@ -473,22 +482,51 @@ async function buildUserProfileMessage(user) {
       `• <b>Mutaxassislik:</b> ${escapeHtml(u.specialty || "Kiritilmagan")}`,
       `• <b>Ekspertiza:</b> ${escapeHtml(u.expertiseArea || "Kiritilmagan")}`,
       `• <b>Ish tajribasi:</b> ${u.experienceYears != null ? `${u.experienceYears} yil` : "Kiritilmagan"}`,
-      `• <b>Obuna:</b> <b>${escapeHtml(u.subscriptionTier)}</b> (${escapeHtml(u.subscriptionStatus)})${subExpiry ? ` • ${subExpiry} gacha` : ""}`,
       `• <b>Biriktirilgan ishlar:</b> ${assignedComplaints} faol shikoyat • ${assignedCalls} 24s tashrif`
     );
 
     const buttons =
       u.verificationStatus === "VERIFIED"
         ? [
+            [{ text: "📱 Shifokor kabineti (Mini App)", webAppUrl: miniAppUrl }],
             [{ text: "📍 Eng yaqin bemorlar", callbackData: "DOCTOR:NEARBY" }],
             [
               { text: "🧭 GPS yangilash", callbackData: "DOCTOR:UPDATE_GPS" },
               { text: "⏰ Eslatmalar", callbackData: "DOCTOR:REMINDERS" },
             ],
+            [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+            [{ text: "🗑️ Hisobni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_CONFIRM" }],
+          ]
+        : [
             [
-              { text: "💎 Obuna", callbackData: "MENU:SUBSCRIPTIONS" },
+              { text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" },
               { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
             ],
+            [{ text: "🗑️ Hisobni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_CONFIRM" }],
+          ];
+    return { text: lines.join("\n"), buttons };
+  }
+
+  if (u.role === "PSYCHOLOGIST") {
+    const [consentsCount, upcomingSessionsCount] = await Promise.all([
+      prisma.psychConsent.count({ where: { psychologistId: u.id, status: "ACTIVE" } }),
+      prisma.psychSession.count({ where: { psychologistId: u.id, status: "SCHEDULED" } }),
+    ]);
+
+    lines.push(
+      ``,
+      `💜 <b>Psixolog Mutaxassisligi va Faoliyati:</b>`,
+      `• <b>Mutaxassislik:</b> ${escapeHtml(u.specialty || "Perinatal psixolog")}`,
+      `• <b>Tajriba:</b> ${u.experienceYears != null ? `${u.experienceYears} yil` : "Kiritilmagan"}`,
+      `• <b>Rozilik bergan onalar:</b> ${consentsCount}`,
+      `• <b>Rejalashtirilgan seanslar:</b> ${upcomingSessionsCount}`
+    );
+
+    const buttons =
+      u.verificationStatus === "VERIFIED"
+        ? [
+            [{ text: "📱 Psixolog kabineti (Mini App)", webAppUrl: miniAppUrl }],
+            [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
             [{ text: "🗑️ Hisobni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_CONFIRM" }],
           ]
         : [
@@ -504,7 +542,7 @@ async function buildUserProfileMessage(user) {
   const [pendingAccs, openComplaints, activeSubs] = await Promise.all([
     prisma.user.count({ where: { verificationStatus: "PENDING" } }),
     prisma.complaint.count({ where: { status: { not: "VERIFIED_COMPLETED" } } }),
-    prisma.user.count({ where: { subscriptionStatus: "ACTIVE" } }),
+    prisma.user.count({ where: { role: "PATIENT", subscriptionStatus: "ACTIVE" } }),
   ]);
 
   lines.push(
@@ -518,6 +556,7 @@ async function buildUserProfileMessage(user) {
   return {
     text: lines.join("\n"),
     buttons: [
+      [{ text: "📱 Admin kabineti (Mini App)", webAppUrl: miniAppUrl }],
       [
         { text: "📊 Jonli statistika", callbackData: "ADMIN:STATS" },
         { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
@@ -528,14 +567,16 @@ async function buildUserProfileMessage(user) {
 }
 
 function buildMainMenuForUser(user) {
+  const miniAppUrl = getTelegramMiniAppUrl();
+
   if (!user) {
     return {
       text:
         "👋 <b>OnaCare Patronaj & Shoshilinch Yordam Botiga xush kelibsiz!</b>\n\n" +
         "Bu bot orqali:\n" +
         "• 🤰 Bemor yoki 🩺 Shifokor sifatida GPS lokatsiyangiz bilan ro'yxatdan o'tishingiz\n" +
-        "• 🔗 Saytda (SI yordamchisi yoki shakl orqali) yaratilgan hisobingizni Telegramga ulashingiz\n" +
-        "• 👤 Mening hisobim bo'limida profil va asosiy tibbiy ma'lumotlaringizni ko'rishingiz (yoki hisobni o'chirishingiz)\n" +
+        "• 🔗 Saytda yaratilgan hisobingizni Telegramga ulashingiz\n" +
+        "• 🧠 Kundalik holat check-in (/checkin) va 💊 dori eslatmalarini (/dorilar) boshqarishingiz\n" +
         "• 🚨 Shikoyat yuborib, shifokor bilan bevosita maslahatlashishingiz mumkin.\n\n" +
         "Quyidagi amallardan birini tanlang:",
       buttons: [
@@ -582,6 +623,11 @@ function buildMainMenuForUser(user) {
         `💎 Obuna: <b>${escapeHtml(user.subscriptionTier)}</b>\n\n` +
         `Nima qilishni xohlaysiz?`,
       buttons: [
+        [{ text: "📱 Kabinetni ochish (Mini App)", webAppUrl: miniAppUrl }],
+        [
+          { text: "🧠 Kundalik holat (/checkin)", callbackData: "PATIENT:CHECKIN" },
+          { text: "💊 Dorilarim (/dorilar)", callbackData: "PATIENT:MEDS" },
+        ],
         [{ text: "🚨 Shikoyat yuborish (GPS & Manzil)", callbackData: "PATIENT:NEW_COMPLAINT" }],
         [
           { text: "🩺 Shifokorim & Tashrif holati", callbackData: "PATIENT:STATUS" },
@@ -601,10 +647,10 @@ function buildMainMenuForUser(user) {
         `🩺 <b>OnaCare Shifokor Kabineti — ${escapeHtml(user.fullName)}</b>\n` +
         `🏥 Soha: ${escapeHtml(user.expertiseArea || user.specialty || "Belgilanmagan")}\n` +
         `⏳ Tajriba: ${user.experienceYears != null ? `${user.experienceYears} yil` : "Kiritilmagan"}\n` +
-        `📍 GPS: ${user.latitude ? `${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)}` : "Ulashilmagan"}\n` +
-        `💎 Obuna: <b>${escapeHtml(user.subscriptionTier)}</b>\n\n` +
+        `📍 GPS: ${user.latitude ? `${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)}` : "Ulashilmagan"}\n\n` +
         `Quyidagi bo'limlardan birini tanlang:`,
       buttons: [
+        [{ text: "📱 Kabinetni ochish (Mini App)", webAppUrl: miniAppUrl }],
         [{ text: "📍 Eng yaqin bemorlar & Shikoyatlar", callbackData: "DOCTOR:NEARBY" }],
         [
           { text: "⏰ Tashrif eslatmalari", callbackData: "DOCTOR:REMINDERS" },
@@ -614,7 +660,20 @@ function buildMainMenuForUser(user) {
           { text: "💬 Bemorlarga maslahat yozish", callbackData: "DOCTOR:DM_LIST" },
           { text: "👤 Mening hisobim", callbackData: "MENU:PROFILE" },
         ],
-        [{ text: "💎 Shifokor PRO obunasi", callbackData: "MENU:SUBSCRIPTIONS" }],
+      ],
+    };
+  }
+
+  if (user.role === "PSYCHOLOGIST") {
+    return {
+      text:
+        `💜 <b>OnaCare Psixolog Kabineti — ${escapeHtml(user.fullName)}</b>\n` +
+        `🎓 Soha: ${escapeHtml(user.specialty || "Perinatal psixolog")}\n` +
+        `📍 Hudud: ${escapeHtml(user.district || "Belgilanmagan")}\n\n` +
+        `Onalar ruhiy holati, EPDS skriningi va seanslarni boshqarish uchun Mini App kabinetini oching:`,
+      buttons: [
+        [{ text: "📱 Psixolog kabineti (Mini App)", webAppUrl: miniAppUrl }],
+        [{ text: "👤 Mening hisobim", callbackData: "MENU:PROFILE" }],
       ],
     };
   }
@@ -624,6 +683,7 @@ function buildMainMenuForUser(user) {
       `🛡️ <b>OnaCare Admin — ${escapeHtml(user.fullName)}</b>\n` +
       `Tizimdagi barcha bemor, shifokor va shikoyatlarni nazorat qilishingiz mumkin.`,
     buttons: [
+      [{ text: "📱 Admin kabineti (Mini App)", webAppUrl: miniAppUrl }],
       [{ text: "👤 Mening hisobim", callbackData: "MENU:PROFILE" }],
       [{ text: "⏰ Barcha shifokorlarga eslatma yuborish", callbackData: "ADMIN:REMIND_ALL" }],
       [{ text: "📊 Jonli statistika", callbackData: "ADMIN:STATS" }],
@@ -1640,28 +1700,32 @@ export async function processTelegramUpdate(update, options = {}) {
     (callbackData === "MENU:SUBSCRIPTIONS" || rawText === "/subscription") &&
     linkedUser
   ) {
-    const isDoc = linkedUser.role === "FAMILY_MD" || linkedUser.role === "OVABMU_MD";
-    reply = makeBotReply(
-      isDoc
-        ? `💎 <b>Shifokor Obunalari</b>\nHozirgi rejangiz: <b>${linkedUser.subscriptionTier}</b>\n\n• <b>DOCTOR_PRO</b> — 149,000 UZS/oy (GPS Bemor Radari + Telegram eslatmalar)\n• <b>DOCTOR_CLINIC</b> — 349,000 UZS/oy (Ko'p tumanli ustuvor qabul)`
-        : `💎 <b>Bemor Obunalari</b>\nHozirgi rejangiz: <b>${linkedUser.subscriptionTier}</b>\n\n• <b>CARE_PLUS</b> — 49,000 UZS/oy (Tezkor GPS shifokor + Telegram maslahat)\n• <b>CARE_FAMILY</b> — 99,000 UZS/oy (24/7 Oila VIP)`,
-      [
-        isDoc
-          ? [
-              { text: "💎 DOCTOR_PRO faollashtirish", callbackData: "BUY_PLAN:DOCTOR_PRO" },
-              { text: "🏥 DOCTOR_CLINIC", callbackData: "BUY_PLAN:DOCTOR_CLINIC" },
-            ]
-          : [
-              { text: "💎 CARE_PLUS faollashtirish", callbackData: "BUY_PLAN:CARE_PLUS" },
-              { text: "👨‍👩‍👧 CARE_FAMILY", callbackData: "BUY_PLAN:CARE_FAMILY" },
-            ],
-        [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
-      ]
-    );
+    if (linkedUser.role !== "PATIENT") {
+      reply = makeBotReply(
+        `ℹ️ <b>Shifokor va hamshira hisoblari bepul</b>\n\nOnaCare tizimida shifokorlar va hamshiralar uchun barcha klinik imkoniyatlar (GPS qidiruv, tashriflar nazorati, Telegram eslatmalar) bepul taqdim etiladi. Pullik obuna talab qilinmaydi.`,
+        [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
+      );
+    } else {
+      reply = makeBotReply(
+        `💎 <b>Bemor Obunalari</b>\nHozirgi rejangiz: <b>${linkedUser.subscriptionTier}</b>\n\n• <b>CARE_PLUS</b> — 49,000 UZS/oy (Tezkor GPS shifokor + Telegram maslahat)\n• <b>CARE_FAMILY</b> — 99,000 UZS/oy (24/7 Oila VIP)`,
+        [
+          [
+            { text: "💎 CARE_PLUS faollashtirish", callbackData: "BUY_PLAN:CARE_PLUS" },
+            { text: "👨‍👩‍👧 CARE_FAMILY", callbackData: "BUY_PLAN:CARE_FAMILY" },
+          ],
+          [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+        ]
+      );
+    }
   } else if (callbackData.startsWith("BUY_PLAN:") && linkedUser) {
     const planCode = callbackData.split(":")[1];
     const plan = getPlanByCode(planCode);
-    if (!plan) {
+    if (linkedUser.role !== "PATIENT") {
+      reply = makeBotReply(
+        `ℹ️ Shifokor va hamshira hisoblari bepul — pullik obuna talab qilinmaydi.`,
+        [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
+      );
+    } else if (!plan || plan.targetRole !== "PATIENT") {
       setIdleWithMenu();
     } else {
       const expiresAt = new Date(Date.now() + 30 * 86400000);
@@ -1687,7 +1751,7 @@ export async function processTelegramUpdate(update, options = {}) {
         await tx.subscriptionRecord.create({
           data: {
             userId: linkedUser.id,
-            targetRole: linkedUser.role === "PATIENT" ? "PATIENT" : "DOCTOR",
+            targetRole: "PATIENT",
             planCode: plan.code,
             planName: plan.nameUz,
             priceUzs: plan.priceUzs,
@@ -1707,6 +1771,259 @@ export async function processTelegramUpdate(update, options = {}) {
       );
     }
   }
+  // ==================== DAILY WELLBEING CHECK-IN (/checkin) ====================
+  else if (
+    (rawText === "/checkin" || callbackData === "PATIENT:CHECKIN") &&
+    linkedUser?.role === "PATIENT" &&
+    linkedUser.verificationStatus === "VERIFIED"
+  ) {
+    nextFlowState = "WELLBEING_MOOD";
+    draft = {};
+    reply = makeBotReply(
+      "🧠 <b>Kundalik ruhiy va jismoniy holat check-in</b>\n\n" +
+        "Bugun o'zingizni qanday his qilyapsiz? 1 ta emoji tugmasini bosing:",
+      [
+        [
+          { text: "😢", callbackData: "WELLBEING_MOOD:1" },
+          { text: "😕", callbackData: "WELLBEING_MOOD:2" },
+          { text: "😐", callbackData: "WELLBEING_MOOD:3" },
+          { text: "🙂", callbackData: "WELLBEING_MOOD:4" },
+          { text: "😊", callbackData: "WELLBEING_MOOD:5" },
+        ],
+        [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+      ]
+    );
+  } else if (callbackData.startsWith("WELLBEING_MOOD:") && linkedUser?.role === "PATIENT") {
+    const mood = Math.max(1, Math.min(5, Number(callbackData.split(":")[1]) || 3));
+    draft = { mood };
+    nextFlowState = "WELLBEING_MOTHER";
+    reply = makeBotReply(
+      `Kayfiyat belgilandi (${mood}/5).\n\n🩺 <b>O'zingizning jismoniy holatingiz qanday?</b> (og'riq, qon ketish yoki isitma bormi?)`,
+      [
+        [{ text: "✅ Yaxshi, xavfli belgi yo'q", callbackData: "WELLBEING_MOTHER:OK" }],
+        [{ text: "⚠️ Biroz og'riq / holsizlik", callbackData: "WELLBEING_MOTHER:MILD" }],
+        [{ text: "🚨 Kuchli og'riq / Qon / Isitma", callbackData: "WELLBEING_MOTHER:RED" }],
+      ]
+    );
+  } else if (nextFlowState === "WELLBEING_MOTHER" && callbackData.startsWith("WELLBEING_MOTHER:")) {
+    const mFlag = callbackData.split(":")[1] || "OK";
+    draft.motherStatus = mFlag;
+    nextFlowState = "WELLBEING_BABY";
+    reply = makeBotReply(
+      "👶 <b>Chaqaloq holati qanday?</b> (emishi, uyqusi, harorati)",
+      [
+        [{ text: "✅ Yaxshi emyapti va tinch", callbackData: "WELLBEING_BABY:OK" }],
+        [{ text: "⚠️ Kamroq emyapti / sariqlik", callbackData: "WELLBEING_BABY:YELLOW" }],
+        [{ text: "🚨 Emmayapti / Yuqori isitma", callbackData: "WELLBEING_BABY:RED" }],
+      ]
+    );
+  } else if (nextFlowState === "WELLBEING_BABY" && callbackData.startsWith("WELLBEING_BABY:") && linkedUser?.patientProfile) {
+    const bFlag = callbackData.split(":")[1] || "OK";
+    const patient = linkedUser.patientProfile;
+    const answers = {
+      motherPain: draft.motherStatus === "RED" ? "severe" : draft.motherStatus === "MILD" ? "mild" : "none",
+      motherBleeding: draft.motherStatus === "RED" ? "heavy" : "normal",
+      motherFever: draft.motherStatus === "RED",
+      newbornFeeding: bFlag === "RED" ? "refusing" : bFlag === "YELLOW" ? "less" : "good",
+      newbornJaundice: bFlag === "YELLOW",
+      newbornTempHigh: bFlag === "RED",
+    };
+
+    const recent = await prisma.wellbeingCheckin.findMany({
+      where: { patientId: patient.id },
+      orderBy: { createdAt: "desc" },
+      take: 14,
+    });
+    const evaluation = evaluateWellbeingSignals({
+      mood: draft.mood || 3,
+      answers,
+      recentCheckins: recent,
+    });
+    const dateStr = getTashkentDateString();
+    const checkin = await prisma.wellbeingCheckin.create({
+      data: {
+        patientId: patient.id,
+        date: dateStr,
+        mood: draft.mood || 3,
+        answersJson: JSON.stringify(answers),
+        riskFlag: evaluation.riskFlag,
+        source: "TELEGRAM",
+      },
+    });
+    await triggerWellbeingRiskAlerts({
+      patient,
+      checkin,
+      evaluation,
+      notifyUserViaTelegram,
+      notifyAdminsViaTelegram,
+    });
+
+    nextFlowState = "IDLE";
+    draft = {};
+    const miniAppUrl = getTelegramMiniAppUrl();
+
+    if (evaluation.hasPhysicalRedFlag) {
+      reply = makeBotReply(
+        `🚨 <b>DIQQAT! Xavfli jismoniy belgi qayd etildi.</b>\n\n` +
+          `• Agar ahvolingiz shoshilinch bo'lsa, darhol <b>103</b> tez yordamiga qo'ng'iroq qiling!\n` +
+          `• Oilaviy shifokoringiz Telegram orqali xabardor qilindi.`,
+        [
+          [{ text: "🚨 Shikoyat / Qabul yuborish", callbackData: "PATIENT:NEW_COMPLAINT" }],
+          [{ text: "📱 Kabinetni ochish", webAppUrl: miniAppUrl }],
+        ]
+      );
+    } else if (evaluation.suggestPsychologist) {
+      reply = makeBotReply(
+        `💜 <b>Check-in saqlandi. O'zingizni ehtiyot qiling!</b>\n\n` +
+          `Sizda so'nggi kunlarda kayfiyat pasayishi kuzatildi. Shaxsiy perinatal psixolog bilan bepul suhbat boshlashingiz mumkin.`,
+        [
+          [{ text: "📱 Kabinetda psixologga yozish", webAppUrl: miniAppUrl }],
+          [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+        ]
+      );
+    } else {
+      reply = makeBotReply(
+        `✅ <b>Bugungi holat check-in saqlandi (${dateStr})!</b>\nRahmat! Har kuni holatingizni belgilash shifokoringizga aniq yordam beradi.`,
+        [
+          [{ text: "📱 Kabinetni ochish", webAppUrl: miniAppUrl }],
+          [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+        ]
+      );
+    }
+  }
+  // ==================== MEDICATION REMINDERS (/dorilar) ====================
+  else if (
+    (rawText === "/dorilar" || callbackData === "PATIENT:MEDS") &&
+    linkedUser?.role === "PATIENT" &&
+    linkedUser.verificationStatus === "VERIFIED"
+  ) {
+    const patient = linkedUser.patientProfile;
+    const rxs = patient
+      ? await prisma.prescription.findMany({
+          where: { patientId: patient.id, active: true },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+        })
+      : [];
+    const miniAppUrl = getTelegramMiniAppUrl();
+
+    if (rxs.length === 0) {
+      reply = makeBotReply("💊 Hozircha faol dorilar ro'yxati yo'q.", [
+        [{ text: "📱 Kabinetni ochish", webAppUrl: miniAppUrl }],
+        [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+      ]);
+    } else {
+      const todayStr = getTashkentDateString();
+      const lines = ["💊 <b>Bugungi faol dorilar va eslatma vaqtlari:</b>\n"];
+      const btnRows = [];
+      for (const rx of rxs) {
+        const times = parseReminderTimesJson(rx.reminderTimesJson, rx.frequency);
+        lines.push(
+          `• <b>${escapeHtml(rx.medicationName)}</b> (${escapeHtml(rx.dosage)})\n` +
+            `  🕒 Vaqtlar: <code>${times.join(", ") || rx.frequency}</code>`
+        );
+        btnRows.push([
+          { text: `✅ Ichdim: ${rx.medicationName.slice(0, 18)}`, callbackData: `MED_LOG_NOW:${rx.id}` },
+        ]);
+      }
+      btnRows.push([{ text: "📱 Vaqtlarni kabinetda tahrirlash", webAppUrl: miniAppUrl }]);
+      btnRows.push([{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]);
+      lines.push(`\n📅 Bugungi sana: <code>${todayStr}</code>`);
+      reply = makeBotReply(lines.join("\n"), btnRows);
+    }
+  } else if (callbackData.startsWith("MED_LOG_NOW:") && linkedUser?.role === "PATIENT") {
+    const rxId = callbackData.split(":")[1];
+    const rx = await prisma.prescription.findUnique({
+      where: { id: rxId },
+      include: { patient: true },
+    });
+    if (!rx || rx.patient.userId !== linkedUser.id) {
+      setIdleWithMenu();
+    } else {
+      const tashkent = getTashkentTimeParts();
+      let logs = [];
+      try {
+        logs = JSON.parse(rx.adherenceLogsJson || "[]");
+      } catch {
+        logs = [];
+      }
+      const nextLogs = [{ date: `${tashkent.dateStr} ${tashkent.hhmm}`, taken: true, source: "TELEGRAM" }, ...logs];
+      await prisma.prescription.update({
+        where: { id: rx.id },
+        data: { adherenceLogsJson: JSON.stringify(nextLogs) },
+      });
+      reply = makeBotReply(
+        `✅ <b>${escapeHtml(rx.medicationName)}</b> qabul qilindi deb belgilandi (${tashkent.hhmm}). Barakalla!`,
+        [[{ text: "💊 Barcha dorilar", callbackData: "PATIENT:MEDS" }, { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
+      );
+    }
+  } else if (callbackData.startsWith("MED_TAKEN:") && linkedUser?.role === "PATIENT") {
+    const logId = callbackData.split(":")[1];
+    const log = await prisma.medReminderLog.findUnique({
+      where: { id: logId },
+      include: { prescription: { include: { patient: true } } },
+    });
+    if (!log || log.prescription?.patient?.userId !== linkedUser.id) {
+      setIdleWithMenu();
+    } else {
+      const now = new Date();
+      const tashkent = getTashkentTimeParts(now);
+      let adherence = [];
+      try {
+        adherence = JSON.parse(log.prescription.adherenceLogsJson || "[]");
+      } catch {
+        adherence = [];
+      }
+      await prisma.$transaction([
+        prisma.medReminderLog.update({
+          where: { id: log.id },
+          data: { status: "TAKEN", respondedAt: now, nextRemindAt: null },
+        }),
+        prisma.prescription.update({
+          where: { id: log.prescriptionId },
+          data: {
+            adherenceLogsJson: JSON.stringify([
+              { date: `${tashkent.dateStr} ${tashkent.hhmm}`, taken: true, source: "TELEGRAM_REMINDER" },
+              ...adherence,
+            ]),
+          },
+        }),
+      ]);
+      reply = makeBotReply(
+        `✅ <b>${escapeHtml(log.prescription.medicationName)}</b> (${log.prescription.dosage}) qabul qilindi deb belgilandi!`,
+        [[{ text: "💊 Dorilarim", callbackData: "PATIENT:MEDS" }, { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
+      );
+    }
+  } else if (callbackData.startsWith("MED_SNOOZE:") && linkedUser?.role === "PATIENT") {
+    const logId = callbackData.split(":")[1];
+    const log = await prisma.medReminderLog.findUnique({
+      where: { id: logId },
+      include: { prescription: { include: { patient: true } } },
+    });
+    if (!log || log.prescription?.patient?.userId !== linkedUser.id) {
+      setIdleWithMenu();
+    } else if (log.snoozeCount >= 2) {
+      reply = makeBotReply(
+        `⚠️ Ushbu doza allaqachon 2 marta kechiktirilgan. Iltimos dorini o'z vaqtida iching.`,
+        [[{ text: "✅ Hozir ichdim", callbackData: `MED_TAKEN:${log.id}` }]]
+      );
+    } else {
+      const nextRemindAt = new Date(Date.now() + 30 * 60000);
+      await prisma.medReminderLog.update({
+        where: { id: log.id },
+        data: {
+          status: "SNOOZED",
+          snoozeCount: log.snoozeCount + 1,
+          nextRemindAt,
+          respondedAt: new Date(),
+        },
+      });
+      reply = makeBotReply(
+        `⏰ Tushunarli! <b>${escapeHtml(log.prescription.medicationName)}</b> eslatmasi 30 daqiqadan keyin qayta yuboriladi.`,
+        [[{ text: "✅ Ichib bo'ldim", callbackData: `MED_TAKEN:${log.id}` }]]
+      );
+    }
+  }
   // ==================== ADMIN IN TELEGRAM ====================
   else if (callbackData === "ADMIN:REMIND_ALL" && linkedUser?.role === "ADMIN_RECEPTION") {
     const rem = await sendDoctorVisitReminders();
@@ -1718,7 +2035,7 @@ export async function processTelegramUpdate(update, options = {}) {
     const [pendingAccs, openComplaints, activeSubs] = await Promise.all([
       prisma.user.count({ where: { verificationStatus: "PENDING" } }),
       prisma.complaint.count({ where: { status: { not: "VERIFIED_COMPLETED" } } }),
-      prisma.user.count({ where: { subscriptionStatus: "ACTIVE" } }),
+      prisma.user.count({ where: { role: "PATIENT", subscriptionStatus: "ACTIVE" } }),
     ]);
     reply = makeBotReply(
       `📊 <b>OnaCare Jonli Holat</b>\n• Tasdiqlash kutilayotgan hisoblar: ${pendingAccs}\n• Ochiq shikoyatlar: ${openComplaints}\n• Faol obunalar: ${activeSubs}`,
@@ -1803,7 +2120,7 @@ export async function processTelegramUpdate(update, options = {}) {
       } else if (reply.buttons && reply.buttons.length > 0) {
         replyMarkup = {
           inline_keyboard: reply.buttons.map((row) =>
-            row.map((b) => ({ text: b.text, callback_data: b.callbackData }))
+            row.map(mapTelegramInlineButton)
           ),
         };
       }

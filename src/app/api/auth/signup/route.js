@@ -87,7 +87,7 @@ export async function POST(req) {
             : role === "ADMIN_RECEPTION"
                 ? "Tuman Tibbiyot Birlashmasi — Qabulxona va SLA Nazorati"
                 : resolvedLocation.polyclinicName;
-        const defaultSlots = role === "FAMILY_MD"
+        const defaultSlots = role === "FAMILY_MD" || role === "PSYCHOLOGIST"
             ? [
                 { slotId: `slot-${Date.now()}-1`, startHourOffset: 3, endHourOffset: 5, bookedPatientId: null },
                 { slotId: `slot-${Date.now()}-2`, startHourOffset: 7, endHourOffset: 9, bookedPatientId: null },
@@ -98,6 +98,8 @@ export async function POST(req) {
         const phone = (body.phone || "").trim();
         const mahalla = (body.mahalla || "").trim();
         const dateOfBirth = (body.dateOfBirth || "").trim();
+        const rawDeliveryDate = body.deliveryDate ? new Date(body.deliveryDate) : null;
+        const deliveryDate = rawDeliveryDate && !Number.isNaN(rawDeliveryDate.getTime()) ? rawDeliveryDate : null;
         const bloodType = (body.bloodType || "").trim() || "I don't know";
         const customSpecialty = (body.specialty || "").trim().slice(0, 120);
         const expertiseArea = (body.expertiseArea || customSpecialty || "").trim().slice(0, 160);
@@ -107,8 +109,8 @@ export async function POST(req) {
         const experienceYears = Number.isFinite(expRaw) && expRaw >= 0 ? Math.min(expRaw, 65) : null;
         const bioSummary = (body.bioSummary || "").trim().slice(0, 400) || null;
         const telegramHandle = (body.telegramHandle || "").trim().slice(0, 64) || null;
-        // Patients and Doctors/Physicians must be verified by an Administrator before entering the portal
-        const requiresAdminVerification = role === "PATIENT" || role === "OVABMU_MD" || role === "FAMILY_MD";
+        // Patients, Doctors, and Psychologists must be verified by an Administrator before entering the portal
+        const requiresAdminVerification = role === "PATIENT" || role === "OVABMU_MD" || role === "FAMILY_MD" || role === "PSYCHOLOGIST";
         const initialVerificationStatus = requiresAdminVerification
             ? "PENDING"
             : "VERIFIED";
@@ -129,9 +131,11 @@ export async function POST(req) {
                             ? "Akusher-ginekolog (OvaBMU)"
                             : role === "FAMILY_MD"
                                 ? "Hududiy oilaviy shifokor"
-                                : role === "ADMIN_RECEPTION"
-                                    ? "Qabulxona & SLA koordinatori"
-                                    : "Bemor"),
+                                : role === "PSYCHOLOGIST"
+                                    ? "Perinatal psixolog"
+                                    : role === "ADMIN_RECEPTION"
+                                        ? "Qabulxona & SLA koordinatori"
+                                        : "Bemor"),
                     expertiseArea: expertiseArea || null,
                     experienceYears,
                     bioSummary,
@@ -163,6 +167,7 @@ export async function POST(req) {
                         jshshirEncrypted: encryptField(rawJshshir),
                         jshshirMasked: maskJshshir(rawJshshir),
                         dateOfBirth,
+                        deliveryDate,
                         phone,
                         district,
                         mahalla,

@@ -33,6 +33,12 @@ export default function sitemap() {
       alternates,
     },
     {
+      url: `${SITE_URL}/hamjamiyat`,
+      lastModified,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
       url: `${SITE_URL}/privacy`,
       lastModified,
       changeFrequency: "monthly",

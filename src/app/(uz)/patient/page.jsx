@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { IconAlertOctagon, IconBrandTelegram, IconCheck, IconChevronDown, IconChevronUp, IconCircleCheck, IconCrown, IconFlask, IconHeartbeat, IconKey, IconMapPin, IconMessageCircle, IconPhoneCall, IconPill, IconPlus, IconSend, IconShieldCheck, IconStethoscope, IconUser, IconX, } from "@tabler/icons-react";
+import { IconAlertOctagon, IconBell, IconBrandTelegram, IconCalendarEvent, IconCheck, IconChevronDown, IconChevronUp, IconCircleCheck, IconCrown, IconFlask, IconHeartHandshake, IconHeartbeat, IconKey, IconMapPin, IconMessageCircle, IconPhoneCall, IconPill, IconPlus, IconSend, IconShieldCheck, IconStethoscope, IconUser, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -9,9 +9,11 @@ import { Emergency103Banner } from "@/components/Emergency103Banner";
 import { GpsConsentButton } from "@/components/GpsConsentButton";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { VitalsTrendChart } from "@/components/VitalsTrendChart";
 import { CONDITION_SEVERITY_OPTIONS, EXTENDED_SYMPTOMS_CATALOG, getSeverityMeta, getSymptomLabel, PRIMARY_RED_FLAG_SYMPTOMS, } from "@/lib/symptoms-catalog";
 import { VISIT_DESTINATION_OPTIONS } from "@/lib/geo";
 import { PATIENT_PLANS } from "@/lib/subscriptions";
+import { computeEpdsScore, EPDS_QUESTIONS, MOOD_SCALE } from "@/lib/wellbeing-catalog";
 const COPY = {
     uz: {
         loading: "Shaxsiy kabinet yuklanmoqda...",
@@ -95,6 +97,35 @@ const COPY = {
         confirmErr: "Tashrifni tasdiqlashda xatolik yuz berdi.",
         confirmOk: "Shifokor tashrifi tasdiqlandi! Salomat bo'ling.",
         adherenceOk: "Dori qabul qilinganligi belgilandi.",
+        wbTitle: "Kunlik holat check-in (Ona va chaqaloq)",
+        wbSub: "Bugungi kayfiyatingiz, og'riq va chaqaloq holatini 30 soniyada belgilang",
+        wbMoodLabel: "Bugun o'zingizni qanday his qilyapsiz?",
+        wbPainLabel: "Og'riq darajasi:",
+        wbBleedingLabel: "Qon ketishi:",
+        wbFeverLabel: "Ona harorati 38°C+",
+        wbFeedLabel: "Chaqaloq emishi:",
+        wbJaundiceLabel: "Teri sarg'ayishi",
+        wbBabyTempLabel: "Chaqaloq harorati",
+        wbDeliveryLabel: "Tug'ruq sanasi (ixtiyoriy):",
+        wbEpdsToggle: "Haftalik EPDS ruhiy holat skriningi (10 savol)",
+        wbSubmitBtn: "Kunlik holatni saqlash",
+        wbSavedOk: "Kunlik holat saqlandi!",
+        wbUrgent103: "Shoshilinch 103 ogohlantirishi yuborildi! Iltimos, darhol 103 ga qo'ng'iroq qiling.",
+        wbJumpSymptom: "Tibbiy shikoyat / belgilar bo'limiga o'tish ↓",
+        wbSuggestPsych: "Psixolog bilan bepul suhbat boshlash ↓",
+        rxReminderLabel: "Telegram eslatma vaqtlari (masalan: 08:00, 20:00)",
+        rxSaveReminderBtn: "Vaqtni saqlash",
+        rxReminderSavedOk: "Dori eslatma vaqtlari saqlandi!",
+        psychTitle: "Psixolog bilan suhbat va seanslar",
+        psychSub: "Shifoxona tahlillaringizdan alohida saqlanadigan maxfiy ruhiy qo'llab-quvvatlash",
+        psychEmpty: "Hozircha tasdiqlangan psixologlar qo'shilmoqda.",
+        psychConsentGrant: "Rozilik berish (PsychConsent)",
+        psychConsentWithdraw: "Rozilikni bekor qilish",
+        psychBookBtn: "Seans band qilish",
+        psychTopicPlaceholder: "Suhbat mavzusi...",
+        psychSessionsTitle: "Belgilangan seanslarim",
+        psychChatTitle: "Psixolog bilan shaxsiy chat",
+        psychChatPlaceholder: "Psixologga yozing...",
     },
     ru: {
         loading: "Загрузка личного кабинета...",
@@ -178,6 +209,35 @@ const COPY = {
         confirmErr: "Ошибка при подтверждении визита.",
         confirmOk: "Визит врача подтвержден! Будьте здоровы.",
         adherenceOk: "Прием лекарства отмечен.",
+        wbTitle: "Ежедневный чек-ин (Мама и малыш)",
+        wbSub: "Отметьте настроение, самочувствие и состояние малыша за 30 секунд",
+        wbMoodLabel: "Как вы себя чувствуете сегодня?",
+        wbPainLabel: "Уровень боли:",
+        wbBleedingLabel: "Выделения:",
+        wbFeverLabel: "Температура у мамы 38°C+",
+        wbFeedLabel: "Кормление малыша:",
+        wbJaundiceLabel: "Желтушность кожи",
+        wbBabyTempLabel: "Температура у малыша",
+        wbDeliveryLabel: "Дата родов (опц.):",
+        wbEpdsToggle: "Еженедельный скрининг EPDS (10 вопросов)",
+        wbSubmitBtn: "Сохранить ежедневный чек-ин",
+        wbSavedOk: "Ежедневный чек-ин сохранен!",
+        wbUrgent103: "Отправлено экстренное оповещение 103! Пожалуйста, немедленно позвоните 103.",
+        wbJumpSymptom: "Перейти к медицинским симптомам ↓",
+        wbSuggestPsych: "Начать беседу с психологом ↓",
+        rxReminderLabel: "Время напоминаний в Telegram (напр. 08:00, 20:00)",
+        rxSaveReminderBtn: "Сохранить время",
+        rxReminderSavedOk: "Время напоминаний сохранено!",
+        psychTitle: "Консультации и сеансы с психологом",
+        psychSub: "Приватная психологическая поддержка, изолированная от больничного EHR",
+        psychEmpty: "Проверенные психологи скоро появятся в списке.",
+        psychConsentGrant: "Дать согласие (PsychConsent)",
+        psychConsentWithdraw: "Отозвать согласие",
+        psychBookBtn: "Записаться на сеанс",
+        psychTopicPlaceholder: "Тема консультации...",
+        psychSessionsTitle: "Мои запланированные сеансы",
+        psychChatTitle: "Личный чат с психологом",
+        psychChatPlaceholder: "Напишите психологу...",
     },
     en: {
         loading: "Loading your portal...",
@@ -261,6 +321,35 @@ const COPY = {
         confirmErr: "Could not confirm visit.",
         confirmOk: "Home visit confirmed! Wishing you a smooth recovery.",
         adherenceOk: "Medicine dose marked as taken.",
+        wbTitle: "Daily Wellbeing Check-in (Mother & Baby)",
+        wbSub: "Log today's mood, recovery check, and baby feeding in 30 seconds",
+        wbMoodLabel: "How are you feeling today?",
+        wbPainLabel: "Pain level:",
+        wbBleedingLabel: "Bleeding:",
+        wbFeverLabel: "Mother fever 38°C+",
+        wbFeedLabel: "Baby feeding:",
+        wbJaundiceLabel: "Skin jaundice",
+        wbBabyTempLabel: "Baby high temp",
+        wbDeliveryLabel: "Delivery date (optional):",
+        wbEpdsToggle: "Weekly EPDS Wellbeing Screening (10 questions)",
+        wbSubmitBtn: "Save Daily Check-in",
+        wbSavedOk: "Daily check-in saved!",
+        wbUrgent103: "Urgent 103 alert dispatched! Please call 103 emergency services right away.",
+        wbJumpSymptom: "Go to Medical Symptoms & Complaint ↓",
+        wbSuggestPsych: "Start Free Chat with a Psychologist ↓",
+        rxReminderLabel: "Telegram Reminder Times (e.g. 08:00, 20:00)",
+        rxSaveReminderBtn: "Save Times",
+        rxReminderSavedOk: "Medication reminder times saved!",
+        psychTitle: "Perinatal Psychologist & Sessions",
+        psychSub: "Private emotional support kept strictly separate from hospital clinical EHR",
+        psychEmpty: "Verified perinatal psychologists will appear here soon.",
+        psychConsentGrant: "Grant Consent (PsychConsent)",
+        psychConsentWithdraw: "Withdraw Consent",
+        psychBookBtn: "Book Session",
+        psychTopicPlaceholder: "Session topic...",
+        psychSessionsTitle: "My Scheduled Sessions",
+        psychChatTitle: "Direct Psychologist Chat",
+        psychChatPlaceholder: "Message your psychologist...",
     },
 };
 function getLabTooltip(testName, lang) {
@@ -322,11 +411,43 @@ export default function PatientPortalPage() {
     const [sendingChat, setSendingChat] = useState(false);
     const [payMethod, setPayMethod] = useState("PAYME");
     const [buyingPlanCode, setBuyingPlanCode] = useState(null);
+    const [wbMood, setWbMood] = useState(4);
+    const [wbMotherPain, setWbMotherPain] = useState("none");
+    const [wbMotherBleeding, setWbMotherBleeding] = useState("normal");
+    const [wbMotherFever, setWbMotherFever] = useState(false);
+    const [wbBabyFeeding, setWbBabyFeeding] = useState("good");
+    const [wbBabyJaundice, setWbBabyJaundice] = useState(false);
+    const [wbBabyTempHigh, setWbBabyTempHigh] = useState(false);
+    const [wbDeliveryDate, setWbDeliveryDate] = useState("");
+    const [wbEpdsOpen, setWbEpdsOpen] = useState(false);
+    const [wbEpdsAnswers, setWbEpdsAnswers] = useState(() => Array(10).fill(0));
+    const [submittingWb, setSubmittingWb] = useState(false);
+    const [wbResult, setWbResult] = useState(null);
+    const [rxReminderDrafts, setRxReminderDrafts] = useState({});
+    const [savingRxId, setSavingRxId] = useState(null);
+    const [selectedPsychId, setSelectedPsychId] = useState("");
+    const [psychSessionType, setPsychSessionType] = useState("CHAT");
+    const [psychSessionAt, setPsychSessionAt] = useState(() => new Date(Date.now() + 24 * 3600000).toISOString().slice(0, 16));
+    const [psychTopic, setPsychTopic] = useState("");
+    const [psychActionBusy, setPsychActionBusy] = useState(false);
+    const [psychChatBody, setPsychChatBody] = useState("");
+    const [sendingPsychChat, setSendingPsychChat] = useState(false);
     const activeCalls = useMemo(() => data?.activeCalls ?? [], [data?.activeCalls]);
     const call = activeCalls[0];
     const ownPatient = data?.patients?.[0];
     const complaints = useMemo(() => data?.complaints ?? [], [data?.complaints]);
     const directMessages = useMemo(() => data?.directMessages ?? [], [data?.directMessages]);
+    const psychologists = useMemo(() => (data?.users ?? []).filter((u) => u.role === "PSYCHOLOGIST"), [data?.users]);
+    const psychConsents = useMemo(() => data?.psychConsents ?? [], [data?.psychConsents]);
+    const psychSessions = useMemo(() => data?.psychSessions ?? [], [data?.psychSessions]);
+    const activePsychId = selectedPsychId || psychologists[0]?.id || "";
+    const psychIdSet = useMemo(() => new Set(psychologists.map((p) => p.id)), [psychologists]);
+    const doctorChatMessages = useMemo(() => directMessages.filter((m) => !psychIdSet.has(m.senderUserId) && !psychIdSet.has(m.recipientUserId) && m.senderRole !== "PSYCHOLOGIST"), [directMessages, psychIdSet]);
+    const psychChatMessages = useMemo(() => directMessages.filter((m) => activePsychId && (m.senderUserId === activePsychId || m.recipientUserId === activePsychId)), [directMessages, activePsychId]);
+    const activePrescriptions = useMemo(() => {
+        const list = ownPatient?.prescriptions ?? call?.patient?.prescriptions ?? [];
+        return list;
+    }, [ownPatient?.prescriptions, call?.patient?.prescriptions]);
     const currentSubTier = authUser?.subscriptionTier || ownPatient?.subscriptionTier || "FREE";
     const effectiveLat = gpsLat ?? authUser?.latitude ?? ownPatient?.latitude ?? null;
     const effectiveLng = gpsLng ?? authUser?.longitude ?? ownPatient?.longitude ?? null;
@@ -535,11 +656,140 @@ export default function PatientPortalPage() {
             showToast("success", t.adherenceOk);
         }
     };
+    const handleWellbeingSubmit = async (e) => {
+        e.preventDefault();
+        setSubmittingWb(true);
+        try {
+            const payload = {
+                mood: wbMood,
+                answers: {
+                    motherPain: wbMotherPain,
+                    motherBleeding: wbMotherBleeding,
+                    motherFever: wbMotherFever,
+                    newbornFeeding: wbBabyFeeding,
+                    newbornJaundice: wbBabyJaundice,
+                    newbornTempHigh: wbBabyTempHigh,
+                },
+                ...(wbEpdsOpen ? { epdsAnswers: wbEpdsAnswers } : {}),
+                ...(wbDeliveryDate ? { deliveryDate: wbDeliveryDate } : {}),
+                source: "WEB",
+            };
+            const res = await fetchWithAuth("/api/patient/wellbeing", {
+                method: "POST",
+                body: JSON.stringify(payload),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || "Failed to save check-in");
+                return;
+            }
+            setWbResult(json.evaluation || null);
+            await refreshData();
+            showToast(json.evaluation?.epdsSelfHarmFlag || json.evaluation?.hasPhysicalRedFlag ? "error" : "success", json.evaluation?.epdsSelfHarmFlag ? t.wbUrgent103 : t.wbSavedOk);
+        }
+        finally {
+            setSubmittingWb(false);
+        }
+    };
+    const handleSaveRxReminder = async (rx) => {
+        setSavingRxId(rx.id);
+        try {
+            const draftVal = rxReminderDrafts[rx.id];
+            const timesStr = draftVal?.timesText ?? (rx.reminderTimes ?? []).join(", ");
+            const enabled = draftVal?.enabled ?? rx.remindersEnabled !== false;
+            const reminderTimes = timesStr.split(",").map((s) => s.trim()).filter(Boolean);
+            const res = await fetchWithAuth(`/api/patient/prescriptions/${rx.id}/reminders`, {
+                method: "PATCH",
+                body: JSON.stringify({ reminderTimes, remindersEnabled: enabled }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || "Could not update reminders");
+                return;
+            }
+            await refreshData();
+            showToast("success", t.rxReminderSavedOk);
+        }
+        finally {
+            setSavingRxId(null);
+        }
+    };
+    const handlePsychConsent = async (psychId, grant) => {
+        setPsychActionBusy(true);
+        try {
+            const res = await fetchWithAuth("/api/psychologist/sessions", {
+                method: "POST",
+                body: JSON.stringify({
+                    action: grant ? "GRANT_CONSENT" : "WITHDRAW_CONSENT",
+                    psychologistId: psychId,
+                }),
+            });
+            if (res.ok) {
+                await refreshData();
+                showToast("success", grant ? t.psychConsentGrant : t.psychConsentWithdraw);
+            }
+        }
+        finally {
+            setPsychActionBusy(false);
+        }
+    };
+    const handleBookPsychSession = async (e) => {
+        e.preventDefault();
+        if (!activePsychId)
+            return;
+        setPsychActionBusy(true);
+        try {
+            const res = await fetchWithAuth("/api/psychologist/sessions", {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "BOOK_SESSION",
+                    psychologistId: activePsychId,
+                    sessionType: psychSessionType,
+                    scheduledAt: new Date(psychSessionAt).toISOString(),
+                    topic: psychTopic.trim() || undefined,
+                }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                showToast("error", json.error || "Failed to book session");
+                return;
+            }
+            setPsychTopic("");
+            await refreshData();
+            showToast("success", t.psychBookBtn);
+        }
+        finally {
+            setPsychActionBusy(false);
+        }
+    };
+    const handleSendPsychChat = async (e) => {
+        e.preventDefault();
+        if (!psychChatBody.trim() || !activePsychId)
+            return;
+        setSendingPsychChat(true);
+        try {
+            const res = await fetchWithAuth("/api/messages", {
+                method: "POST",
+                body: JSON.stringify({
+                    recipientUserId: activePsychId,
+                    body: psychChatBody.trim(),
+                }),
+            });
+            if (res.ok) {
+                setPsychChatBody("");
+                await refreshData();
+            }
+        }
+        finally {
+            setSendingPsychChat(false);
+        }
+    };
     if (loading) {
         return (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
         {t.loading}
       </div>);
     }
+    const wbEpdsPreview = wbEpdsOpen ? computeEpdsScore(wbEpdsAnswers) : null;
     return (<div className="mx-auto max-w-3xl space-y-4">
       <Emergency103Banner />
 
@@ -581,8 +831,142 @@ export default function PatientPortalPage() {
         </div>
       </div>
 
+      {/* Daily Wellbeing & EPDS Check-in Card (Phase 1) */}
+      <section className="rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="font-heading text-sm font-bold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-1.5">
+              <IconHeartHandshake className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+              <span>{t.wbTitle}</span>
+            </h2>
+            <p className="text-xs text-[#525954] dark:text-[#B8C2BA] mt-0.5">{t.wbSub}</p>
+          </div>
+          {ownPatient?.deliveryDate && (<span className="rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-1 text-[10px] font-mono font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+              {String(ownPatient.deliveryDate).slice(0, 10)}
+            </span>)}
+        </div>
+
+        <form onSubmit={handleWellbeingSubmit} className="space-y-3">
+          <div className="space-y-1.5">
+            <span className="block text-[11px] font-semibold text-[#525954] dark:text-[#B8C2BA]">
+              {t.wbMoodLabel}
+            </span>
+            <div className="grid grid-cols-5 gap-1.5">
+              {MOOD_SCALE.map((m) => {
+                const active = wbMood === m.value;
+                return (<button key={m.value} type="button" onClick={() => setWbMood(m.value)} className={`flex flex-col items-center justify-center gap-0.5 rounded-sm border py-2 px-1 text-center transition-colors ${active
+                        ? "border-[#244C40] bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] ring-1 ring-[#244C40]"
+                        : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] text-[#525954]"}`}>
+                    <span className="text-lg leading-none">{m.emoji}</span>
+                    <span className="text-[10px] font-semibold truncate max-w-full">
+                      {lang === "ru" ? m.ru : lang === "en" ? m.en : m.uz}
+                    </span>
+                  </button>);
+            })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <div>
+              <label className="block text-[11px] font-semibold text-[#525954] mb-1">{t.wbPainLabel}</label>
+              <select value={wbMotherPain} onChange={(e) => setWbMotherPain(e.target.value)} className="min-h-[38px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-1.5 text-xs">
+                <option value="none">Yo&apos;q / None</option>
+                <option value="mild">Biroz / Mild</option>
+                <option value="severe">Kuchli / Severe</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[#525954] mb-1">{t.wbBleedingLabel}</label>
+              <select value={wbMotherBleeding} onChange={(e) => setWbMotherBleeding(e.target.value)} className="min-h-[38px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-1.5 text-xs">
+                <option value="normal">Me&apos;yorda / Normal</option>
+                <option value="heavy">Ko&apos;p / Heavy</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[#525954] mb-1">{t.wbFeedLabel}</label>
+              <select value={wbBabyFeeding} onChange={(e) => setWbBabyFeeding(e.target.value)} className="min-h-[38px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-1.5 text-xs">
+                <option value="good">Yaxshi / Good</option>
+                <option value="less">Kam / Less</option>
+                <option value="refusing">Rad etmoqda / Refusing</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={wbMotherFever} onChange={(e) => setWbMotherFever(e.target.checked)} className="h-4 w-4 rounded border-[#DDD8CC]"/>
+              <span>{t.wbFeverLabel}</span>
+            </label>
+            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={wbBabyJaundice} onChange={(e) => setWbBabyJaundice(e.target.checked)} className="h-4 w-4 rounded border-[#DDD8CC]"/>
+              <span>{t.wbJaundiceLabel}</span>
+            </label>
+            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" checked={wbBabyTempHigh} onChange={(e) => setWbBabyTempHigh(e.target.checked)} className="h-4 w-4 rounded border-[#DDD8CC]"/>
+              <span>{t.wbBabyTempLabel}</span>
+            </label>
+          </div>
+
+          {!ownPatient?.deliveryDate && (<div>
+              <label htmlFor="wb-delivery" className="block text-[11px] font-semibold text-[#525954] mb-1">
+                {t.wbDeliveryLabel}
+              </label>
+              <input id="wb-delivery" type="date" value={wbDeliveryDate} onChange={(e) => setWbDeliveryDate(e.target.value)} className="min-h-[38px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-1.5 text-xs"/>
+            </div>)}
+
+          <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] overflow-hidden">
+            <button type="button" onClick={() => setWbEpdsOpen((v) => !v)} className="w-full flex items-center justify-between px-3.5 py-2.5 text-left text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+              <span>
+                {t.wbEpdsToggle}{wbEpdsPreview ? ` (${wbEpdsPreview.totalScore}/30)` : ""}
+              </span>
+              {wbEpdsOpen ? <IconChevronUp className="h-4 w-4"/> : <IconChevronDown className="h-4 w-4"/>}
+            </button>
+            {wbEpdsOpen && (<div className="border-t border-[#DDD8CC] dark:border-[#2F3733] p-3 space-y-3">
+                {EPDS_QUESTIONS.map((q, qIdx) => (<div key={q.index} className="space-y-1.5">
+                    <p className="text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                      {lang === "ru" ? q.ru : lang === "en" ? q.en : q.uz}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {q.options.map((opt) => {
+                        const selected = wbEpdsAnswers[qIdx] === opt.score;
+                        return (<button key={opt.score} type="button" onClick={() => setWbEpdsAnswers((prev) => prev.map((v, idx) => (idx === qIdx ? opt.score : v)))} className={`text-left rounded-sm border px-2.5 py-1.5 text-[11px] transition-colors ${selected
+                                ? "border-[#244C40] bg-[#244C40] text-[#F7F5EF] font-semibold"
+                                : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F]"}`}>
+                            {lang === "ru" ? opt.ru : lang === "en" ? opt.en : opt.uz}
+                          </button>);
+                    })}
+                    </div>
+                  </div>))}
+              </div>)}
+          </div>
+
+          <button type="submit" disabled={submittingWb} className="w-full min-h-[42px] rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] py-2 text-xs font-semibold text-[#F7F5EF] disabled:opacity-50">
+            {submittingWb ? "..." : t.wbSubmitBtn}
+          </button>
+        </form>
+
+        {wbResult && (<div className="space-y-2">
+            {(wbResult.epdsSelfHarmFlag || wbResult.hasPhysicalRedFlag) && (<div className="rounded-sm border border-[#9E4747] bg-[#F3EAE7] p-3 text-xs text-[#7A2E2E] space-y-1.5">
+                <p className="font-bold">{t.wbUrgent103}</p>
+                <div className="flex flex-wrap gap-2">
+                  <a href="tel:103" className="inline-flex items-center gap-1 rounded-sm bg-[#9E4747] px-3 py-1 font-semibold text-white">
+                    <IconPhoneCall className="h-3.5 w-3.5"/> 103
+                  </a>
+                  <a href="#symptom-checkin-section" className="inline-flex items-center rounded-sm border border-[#9E4747] bg-white px-3 py-1 font-semibold text-[#7A2E2E]">
+                    {t.wbJumpSymptom}
+                  </a>
+                </div>
+              </div>)}
+            {wbResult.suggestPsychologist && (<a href="#psychologist-support" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline">
+                {t.wbSuggestPsych}
+              </a>)}
+          </div>)}
+
+        {(ownPatient?.wellbeingCheckins ?? []).length > 0 && (<VitalsTrendChart records={ownPatient.wellbeingCheckins} mode="mood"/>)}
+      </section>
+
       {/* Complaint Submission + Paramedic Destination & GPS */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+      <section id="symptom-checkin-section" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
@@ -741,9 +1125,9 @@ export default function PatientPortalPage() {
         </div>
 
         <div className="max-h-56 overflow-y-auto space-y-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3">
-          {directMessages.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 text-center py-3">
+          {doctorChatMessages.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 text-center py-3">
               {t.chatEmpty}
-            </p>) : (directMessages.map((msg) => {
+            </p>) : (doctorChatMessages.map((msg) => {
             const isMine = msg.senderUserId === authUser?.id || msg.senderRole === "PATIENT";
             return (<div key={msg.id} className={`rounded-xl p-2.5 text-xs max-w-[88%] ${isMine
                     ? "ml-auto bg-teal-600 text-white"
@@ -1134,36 +1518,6 @@ export default function PatientPortalPage() {
               </div>)}
           </section>
 
-          {/* Active Medicines & Adherence */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
-              {t.rxTitle}
-            </h2>
-            {(call.patient?.prescriptions ?? []).map((rx) => (<div key={rx.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 p-3">
-                <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                    {rx.medicationName} — {rx.dosage}
-                  </p>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300">
-                    {rx.frequency} •{" "}
-                    {lang === "ru"
-                    ? rx.instructionsRu
-                    : lang === "en"
-                        ? rx.instructionsEn
-                        : rx.instructionsUz}
-                  </p>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
-                    {t.loggedDoses} {(rx.adherenceLogs ?? []).length}
-                  </p>
-                </div>
-                <button onClick={() => handleAdherence(rx.id)} className="inline-flex items-center gap-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 px-3 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/60">
-                  <IconCheck className="h-3.5 w-3.5"/>
-                  {t.takenBtn}
-                </button>
-              </div>))}
-          </section>
-
           {/* Hospital Results */}
           <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
             <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
@@ -1214,5 +1568,178 @@ export default function PatientPortalPage() {
               </div>)}
           </section>
         </>)}
+
+      {/* Active Medicines, Adherence & Telegram Reminders */}
+      {activePrescriptions.length > 0 && (<section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+            <IconPill className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+            {t.rxTitle}
+          </h2>
+          <div className="space-y-2.5">
+            {activePrescriptions.map((rx) => {
+                const draft = rxReminderDrafts[rx.id];
+                const timesText = draft?.timesText ?? (rx.reminderTimes ?? []).join(", ");
+                const remindersEnabled = draft?.enabled ?? rx.remindersEnabled !== false;
+                return (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        {rx.medicationName} — {rx.dosage}
+                      </p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                        {rx.frequency} •{" "}
+                        {lang === "ru"
+                        ? rx.instructionsRu
+                        : lang === "en"
+                            ? rx.instructionsEn
+                            : rx.instructionsUz}
+                      </p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                        {t.loggedDoses} {(rx.adherenceLogs ?? []).length}
+                      </p>
+                    </div>
+                    <button type="button" onClick={() => handleAdherence(rx.id)} className="inline-flex items-center gap-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 px-3 py-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/60">
+                      <IconCheck className="h-3.5 w-3.5"/>
+                      {t.takenBtn}
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                      <input type="checkbox" checked={remindersEnabled} onChange={(e) => setRxReminderDrafts((prev) => ({
+                        ...prev,
+                        [rx.id]: {
+                            timesText,
+                            enabled: e.target.checked,
+                        },
+                    }))} className="h-3.5 w-3.5 accent-teal-600"/>
+                      <IconBell className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                      <span>{t.rxReminderLabel}</span>
+                    </label>
+                    <input type="text" value={timesText} onChange={(e) => setRxReminderDrafts((prev) => ({
+                        ...prev,
+                        [rx.id]: {
+                            timesText: e.target.value,
+                            enabled: remindersEnabled,
+                        },
+                    }))} placeholder="08:00, 20:00" className="flex-1 min-w-[140px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs font-mono text-slate-900 dark:text-slate-100"/>
+                    <button type="button" disabled={savingRxId === rx.id} onClick={() => handleSaveRxReminder(rx)} className="rounded-lg bg-slate-900 dark:bg-teal-600 px-3 py-1 text-[11px] font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50">
+                      {savingRxId === rx.id ? "..." : t.rxSaveReminderBtn}
+                    </button>
+                  </div>
+                </div>);
+            })}
+          </div>
+        </section>)}
+
+      {/* Perinatal Psychologist Support, Consent, Sessions & Direct Chat */}
+      <section id="psychologist-support" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-4">
+        <div>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+            <IconHeartHandshake className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+            {t.psychTitle}
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t.psychSub}</p>
+        </div>
+
+        {psychologists.length === 0 ? (<p className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3 text-xs text-slate-500 dark:text-slate-400">
+            {t.psychEmpty}
+          </p>) : (<>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {psychologists.map((psych) => {
+                    const isSelected = psych.id === activePsychId;
+                    const hasConsent = psychConsents.some((c) => c.psychologistId === psych.id && c.status === "ACTIVE");
+                    return (<div key={psych.id} className={`rounded-xl border p-3 space-y-2 transition ${isSelected
+                            ? "border-teal-600 bg-teal-50/40 dark:bg-teal-950/30"
+                            : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <button type="button" onClick={() => setSelectedPsychId(psych.id)} className="text-left">
+                          <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{psych.fullName}</p>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                            {psych.specialty || psych.expertiseArea || "Perinatal"} • {psych.district}
+                            {psych.experienceYears ? ` • ${psych.experienceYears} ${t.expYearsWord}` : ""}
+                          </p>
+                        </button>
+                        {hasConsent && (<span className="rounded-full bg-emerald-100 dark:bg-emerald-950/70 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                            ACTIVE
+                          </span>)}
+                      </div>
+                      <button type="button" disabled={psychActionBusy} onClick={() => handlePsychConsent(psych.id, !hasConsent)} className={`w-full rounded-lg px-2.5 py-1.5 text-[11px] font-bold border transition disabled:opacity-50 ${hasConsent
+                            ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100"
+                            : "border-teal-600 bg-teal-700 text-white hover:bg-teal-800"}`}>
+                        {hasConsent ? t.psychConsentWithdraw : t.psychConsentGrant}
+                      </button>
+                    </div>);
+                })}
+            </div>
+
+            {activePsychId && (() => {
+                    const selectedConsentActive = psychConsents.some((c) => c.psychologistId === activePsychId && c.status === "ACTIVE");
+                    return (<div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <form onSubmit={handleBookPsychSession} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50 p-3 space-y-2">
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <IconCalendarEvent className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+                      {t.psychBookBtn}
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <select value={psychSessionType} onChange={(e) => setPsychSessionType(e.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100">
+                        <option value="CHAT">Chat</option>
+                        <option value="VOICE">Voice</option>
+                        <option value="VIDEO">Video</option>
+                        <option value="TELEGRAM_CALL">Telegram Call</option>
+                      </select>
+                      <input type="datetime-local" value={psychSessionAt} onChange={(e) => setPsychSessionAt(e.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
+                    </div>
+                    <input type="text" value={psychTopic} onChange={(e) => setPsychTopic(e.target.value)} placeholder={t.psychTopicPlaceholder} className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100"/>
+                    <button type="submit" disabled={psychActionBusy || !selectedConsentActive} className="w-full rounded-lg bg-slate-900 dark:bg-teal-600 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-500 disabled:opacity-50">
+                      {t.psychBookBtn}
+                    </button>
+                  </form>
+
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/50 p-3 space-y-2">
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{t.psychChatTitle}</p>
+                    {!selectedConsentActive && (<p className="text-[11px] text-amber-700 dark:text-amber-300">
+                        {t.psychConsentGrant}
+                      </p>)}
+                    <div className="max-h-36 overflow-y-auto space-y-1.5">
+                      {psychChatMessages.length === 0 ? (<p className="text-[11px] text-slate-500 dark:text-slate-400">—</p>) : (psychChatMessages.map((m) => {
+                            const isMine = m.senderUserId === authUser?.id || m.senderRole === "PATIENT";
+                            return (<div key={m.id} className={`rounded-lg px-2.5 py-1.5 text-[11px] max-w-[90%] ${isMine
+                                    ? "ml-auto bg-teal-600 text-white"
+                                    : "mr-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"}`}>
+                              <p className="font-bold text-[10px] opacity-80">{m.senderName}</p>
+                              <p>{m.body}</p>
+                            </div>);
+                        }))}
+                    </div>
+                    <form onSubmit={handleSendPsychChat} className="flex gap-1.5">
+                      <input type="text" value={psychChatBody} onChange={(e) => setPsychChatBody(e.target.value)} disabled={!selectedConsentActive} placeholder={t.psychChatPlaceholder} className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 disabled:opacity-50"/>
+                      <button type="submit" disabled={sendingPsychChat || !selectedConsentActive || !psychChatBody.trim()} className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50">
+                        <IconSend className="h-3.5 w-3.5"/>
+                      </button>
+                    </form>
+                  </div>
+                </div>);
+                })()}
+
+            {psychSessions.length > 0 && (<div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{t.psychSessionsTitle}</p>
+                {psychSessions.map((s) => (<div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-2 text-xs">
+                    <div>
+                      <span className="font-bold text-slate-900 dark:text-slate-100">
+                        {s.psychologist?.fullName || "Psychologist"}
+                      </span>{" "}
+                      <span className="text-slate-500 dark:text-slate-400">
+                        • {s.sessionType} • {new Date(s.scheduledAt).toLocaleString("en-GB")}
+                      </span>
+                      {s.topic && <p className="text-[11px] text-slate-600 dark:text-slate-300">{s.topic}</p>}
+                    </div>
+                    <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                      {s.status}
+                    </span>
+                  </div>))}
+              </div>)}
+          </>)}
+      </section>
     </div>);
 }

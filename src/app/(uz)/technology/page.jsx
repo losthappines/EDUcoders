@@ -49,7 +49,7 @@ const TECH_COPY = {
       "Shikoyat + GPS manzil, hamshira/shifokor boradigan joyni tanlash, shifokor bilan maslahat chati va obuna",
     archShifokorTitle: "Shifokor shaxsiy kabineti",
     archShifokorDesc:
-      "Ekspertiza, tajriba yili va GPS ulashish, eng yaqin bemorlarni ko'rish, joyida tasdiqlash va obuna",
+      "Ekspertiza, tajriba yili va GPS ulashish, eng yaqin bemorlarni ko'rish va joyida tasdiqlash",
     pipelineTitle: "4 bosqichli avtomatik koordinator (SI jarayoni)",
     pipelineSteps: [
       {
@@ -146,7 +146,7 @@ const TECH_COPY = {
       "Жалоба с GPS, выбор точки приезда врача/медсестры, прямой чат с врачом и подписка",
     archShifokorTitle: "Кабинет врача",
     archShifokorDesc:
-      "Специализация, стаж и GPS, список ближайших пациенток, подтверждение осмотра на месте и подписка",
+      "Специализация, стаж и GPS, список ближайших пациенток и подтверждение осмотра на месте",
     pipelineTitle: "4-шаговый координатор (Конвейер ИИ)",
     pipelineSteps: [
       {
@@ -243,7 +243,7 @@ const TECH_COPY = {
       "Submit complaints with GPS, choose visit destination, direct advice chat & optional subscriptions",
     archShifokorTitle: "Doctor Portal",
     archShifokorDesc:
-      "Share specialty, experience & GPS, view nearest patients, verify visits on-site & subscriptions",
+      "Share specialty, experience & GPS, view nearest patients & verify visits on-site",
     pipelineTitle: "4-Step Care Continuity Pipeline",
     pipelineSteps: [
       {

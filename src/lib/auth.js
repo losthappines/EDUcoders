@@ -9,6 +9,7 @@ export const VALID_ROLES = [
     "FAMILY_MD",
     "PATIENT",
     "ADMIN_RECEPTION",
+    "PSYCHOLOGIST",
 ];
 export function hashPassword(password) {
     const salt = crypto.randomBytes(16).toString("hex");
@@ -335,6 +336,8 @@ export function getPortalPathForRole(role) {
         case "OVABMU_MD":
         case "FAMILY_MD":
             return "/clinical";
+        case "PSYCHOLOGIST":
+            return "/psychologist";
         case "ADMIN_RECEPTION":
             return "/admin";
     }

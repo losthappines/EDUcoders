@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { IconAlertTriangle, IconBell, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconCrown, IconCurrentLocation, IconExternalLink, IconFileCode, IconFlask, IconHeartbeat, IconLock, IconMapPin, IconMessageCircle, IconPill, IconPlus, IconRobot, IconSend, IconStethoscope, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconBell, IconBrandTelegram, IconBuildingHospital, IconCircleCheck, IconCurrentLocation, IconExternalLink, IconFileCode, IconFlask, IconHeartbeat, IconLock, IconMapPin, IconMessageCircle, IconPill, IconPlus, IconRobot, IconSend, IconStethoscope, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
@@ -11,7 +11,7 @@ import { FhirBundleModal } from "@/components/FhirBundleModal";
 import { AgentTraceModal } from "@/components/AgentTraceModal";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { getSeverityMeta, getSymptomLabel, PRIMARY_RED_FLAG_SYMPTOMS, } from "@/lib/symptoms-catalog";
-import { DOCTOR_PLANS } from "@/lib/subscriptions";
+import { inferReminderTimesFromFrequency } from "@/lib/wellbeing-catalog";
 const CLINICAL_COPY = {
     uz: {
         ovabmuTitle: "Tug'ruqxona shifokori — Chiqarish va patronaj boshqaruvi",
@@ -52,11 +52,6 @@ const CLINICAL_COPY = {
         chatEmpty: "Ushbu bemor bilan hali xabarlar yo'q.",
         chatPlaceholder: "Bemorga maslahat yozing (Web + Telegram)...",
         chatSendBtn: "Yuborish",
-        subTitle: "Shifokor obuna rejalari",
-        subSub: "GPS radar, Telegram eslatmalar va ustuvor bemor biriktirish",
-        subBuyBtn: "Faollashtirish",
-        subActiveBtn: "Amaldagi reja ✓",
-        subOk: "Shifokor obunasi faollashtirildi!",
         telegramCta: "Telegram bot",
         rosterTitle: "Bemorlar ro'yxati",
         loadingEhr: "Bemor ma'lumotlari yuklanmoqda...",
@@ -119,6 +114,12 @@ const CLINICAL_COPY = {
         labErr: "Tahlil buyurtmasi uchun shifokor huquqi zarur.",
         rxOk: "Dori qo'shildi:",
         rxErr: "Retsept yozish uchun shifokor huquqi zarur.",
+        wellbeingSectionTitle: "Kunlik kayfiyat va EPDS ko'rsatkichi",
+        latestEpdsLabel: "Oxirgi EPDS:",
+        psychRiskAlert: "Psixologik xavf aniqlandi",
+        selfHarmAlert: "SHOSHILINCH: EPDS Q10 (103 SLA)",
+        rxReminderTimesLabel: "Telegram eslatma vaqtlari (24s)",
+        rxRemindersOn: "10 daqiqa oldin eslatish faol",
     },
     ru: {
         ovabmuTitle: "Врач роддома — Выписка и передача на патронаж",
@@ -159,11 +160,6 @@ const CLINICAL_COPY = {
         chatEmpty: "Сообщений с этим пациентом пока нет.",
         chatPlaceholder: "Напишите совет пациенту (Web + Telegram)...",
         chatSendBtn: "Отправить",
-        subTitle: "Подписки для врачей",
-        subSub: "GPS-радар ближайших пациентов и напоминания в Telegram",
-        subBuyBtn: "Активировать",
-        subActiveBtn: "Активный тариф ✓",
-        subOk: "Подписка врача активирована!",
         telegramCta: "Telegram-бот",
         rosterTitle: "Список пациенток",
         loadingEhr: "Загрузка карты пациентки...",
@@ -226,6 +222,12 @@ const CLINICAL_COPY = {
         labErr: "Для назначения анализа нужны права врача.",
         rxOk: "Рецепт добавлен:",
         rxErr: "Для выписки рецепта нужны права врача.",
+        wellbeingSectionTitle: "Ежедневное настроение и EPDS",
+        latestEpdsLabel: "Последний EPDS:",
+        psychRiskAlert: "Выявлен психологический риск",
+        selfHarmAlert: "СРОЧНО: EPDS Q10 (103 SLA)",
+        rxReminderTimesLabel: "Время напоминаний в Telegram (24ч)",
+        rxRemindersOn: "Напоминание за 10 мин активно",
     },
     en: {
         ovabmuTitle: "Hospital Doctor — Discharge & Home Care Handoff",
@@ -266,11 +268,6 @@ const CLINICAL_COPY = {
         chatEmpty: "No direct messages with this patient yet.",
         chatPlaceholder: "Message patient with advice (Web + Telegram)...",
         chatSendBtn: "Send",
-        subTitle: "Doctor Subscription Plans",
-        subSub: "Unlock GPS nearest-patient radar, Telegram reminders & multi-district dispatch",
-        subBuyBtn: "Activate Plan",
-        subActiveBtn: "Current Plan ✓",
-        subOk: "Doctor subscription activated!",
         telegramCta: "Telegram Bot",
         rosterTitle: "Patient Roster",
         loadingEhr: "Loading patient records...",
@@ -333,6 +330,12 @@ const CLINICAL_COPY = {
         labErr: "Doctor permissions required to order labs.",
         rxOk: "Prescription added:",
         rxErr: "Doctor permissions required to prescribe.",
+        wellbeingSectionTitle: "Daily Mood & EPDS Screening",
+        latestEpdsLabel: "Latest EPDS:",
+        psychRiskAlert: "Psychological risk flagged",
+        selfHarmAlert: "URGENT: EPDS Q10 (103 SLA)",
+        rxReminderTimesLabel: "Telegram Reminder Times (24h)",
+        rxRemindersOn: "10m pre-dose Telegram reminders active",
     },
 };
 export default function ClinicalDashboardPage() {
@@ -358,8 +361,6 @@ export default function ClinicalDashboardPage() {
     const [verifyingComp, setVerifyingComp] = useState(false);
     const [chatBody, setChatBody] = useState("");
     const [sendingChat, setSendingChat] = useState(false);
-    const [docPayMethod, setDocPayMethod] = useState("PAYME");
-    const [buyingDocPlan, setBuyingDocPlan] = useState(null);
     const [discharging, setDischarging] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const [orderingLab, setOrderingLab] = useState(false);
@@ -369,6 +370,9 @@ export default function ClinicalDashboardPage() {
     const [rxMed, setRxMed] = useState("Magne B6 Forte");
     const [rxDose, setRxDose] = useState("100 mg");
     const [rxFreq, setRxFreq] = useState("2x daily");
+    const [rxReminderTimes, setRxReminderTimes] = useState("08:00, 20:00");
+    const [rxReminderEdited, setRxReminderEdited] = useState(false);
+    const [rxRemindersEnabled, setRxRemindersEnabled] = useState(true);
     const [sbp, setSbp] = useState("128");
     const [dbp, setDbp] = useState("82");
     const [hr, setHr] = useState("84");
@@ -389,7 +393,6 @@ export default function ClinicalDashboardPage() {
     const needsProfileSetup = Boolean(authUser && (!authUser.expertiseArea || authUser.experienceYears == null || authUser.latitude == null));
     const activeDocLat = docLat ?? authUser?.latitude ?? null;
     const activeDocLng = docLng ?? authUser?.longitude ?? null;
-    const activeSubTier = authUser?.subscriptionTier || "FREE";
     const complaintMessages = useMemo(() => {
         if (!selectedComplaint)
             return directMessages;
@@ -522,25 +525,6 @@ export default function ClinicalDashboardPage() {
             setSendingChat(false);
         }
     };
-    const handleBuyDoctorSub = async (planCode) => {
-        setBuyingDocPlan(planCode);
-        try {
-            const res = await fetchWithAuth("/api/subscriptions", {
-                method: "POST",
-                body: JSON.stringify({ planCode, paymentMethod: docPayMethod }),
-            });
-            const json = await res.json();
-            if (!res.ok) {
-                showToast("error", json.error || "Failed to activate subscription");
-                return;
-            }
-            await refreshData();
-            showToast("success", t.subOk);
-        }
-        finally {
-            setBuyingDocPlan(null);
-        }
-    };
     const handleTriggerDischarge = async (patientId) => {
         setDischarging(true);
         try {
@@ -629,6 +613,10 @@ export default function ClinicalDashboardPage() {
         e.preventDefault();
         if (!selectedPatient)
             return;
+        const reminderTimes = rxReminderTimes
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
         const res = await fetchWithAuth("/api/clinical/orders", {
             method: "POST",
             body: JSON.stringify({
@@ -637,10 +625,13 @@ export default function ClinicalDashboardPage() {
                 medicationName: rxMed,
                 dosage: rxDose,
                 frequency: rxFreq,
+                reminderTimes,
+                remindersEnabled: rxRemindersEnabled,
             }),
         });
         if (res.ok) {
             setRxFormOpen(false);
+            setRxReminderEdited(false);
             await refreshData();
             showToast("success", `${t.rxOk} ${rxMed} ${rxDose}`);
         }
@@ -669,10 +660,6 @@ export default function ClinicalDashboardPage() {
                 <IconMapPin className="h-3 w-3"/>
                 {Number(activeDocLat).toFixed(4)}, {Number(activeDocLng).toFixed(4)}
               </span>)}
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2.5 py-0.5 font-bold text-amber-800 dark:text-amber-300">
-              <IconCrown className="h-3 w-3"/>
-              {activeSubTier}
-            </span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -880,54 +867,6 @@ export default function ClinicalDashboardPage() {
           </div>)}
       </section>
 
-      {/* Doctor Subscription Plans */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <IconCrown className="h-4 w-4 text-amber-500"/>
-              {t.subTitle}
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{t.subSub}</p>
-          </div>
-          <select value={docPayMethod} onChange={(e) => setDocPayMethod(e.target.value)} aria-label="Payment method" className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs text-slate-800 dark:text-slate-200">
-            <option value="PAYME">Payme</option>
-            <option value="CLICK">Click</option>
-            <option value="UZCARD">Uzcard</option>
-            <option value="HUMO">Humo</option>
-          </select>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {DOCTOR_PLANS.map((plan) => {
-            const isCurrent = activeSubTier === plan.code;
-            const title = lang === "ru" ? plan.nameRu : lang === "en" ? plan.nameEn : plan.nameUz;
-            const badge = lang === "ru" ? plan.badgeRu : lang === "en" ? plan.badgeEn : plan.badgeUz;
-            const feats = lang === "ru" ? plan.featuresRu : lang === "en" ? plan.featuresEn : plan.featuresUz;
-            return (<div key={plan.code} className={`rounded-xl border p-3.5 flex flex-col justify-between space-y-3 ${isCurrent
-                    ? "border-teal-500 bg-teal-50/40 dark:bg-teal-950/40"
-                    : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50"}`}>
-                <div className="space-y-1.5">
-                  <span className="inline-block rounded-full bg-amber-100 dark:bg-amber-950/70 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
-                    {badge}
-                  </span>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">{title}</h3>
-                  <ul className="space-y-1 text-[11px] text-slate-600 dark:text-slate-300">
-                    {feats.map((f, idx) => (<li key={idx} className="flex items-start gap-1">
-                        <IconCheck className="h-3.5 w-3.5 text-teal-600 shrink-0 mt-0.5"/>
-                        <span>{f}</span>
-                      </li>))}
-                  </ul>
-                </div>
-                <button type="button" disabled={isCurrent || buyingDocPlan === plan.code} onClick={() => handleBuyDoctorSub(plan.code)} className={`w-full min-h-[40px] rounded-lg py-2 text-xs font-bold transition ${isCurrent
-                    ? "bg-emerald-700 text-white opacity-95"
-                    : "bg-slate-900 dark:bg-teal-700 text-white hover:bg-slate-800 dark:hover:bg-teal-600"} disabled:opacity-60`}>
-                  {isCurrent ? t.subActiveBtn : buyingDocPlan === plan.code ? "..." : t.subBuyBtn}
-                </button>
-              </div>);
-        })}
-        </div>
-      </section>
-
       {/* VIEW 1: HOSPITAL DOCTOR */}
       {isOvabmu && (<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           <div className="lg:col-span-4 space-y-2.5">
@@ -1066,6 +1005,31 @@ export default function ClinicalDashboardPage() {
                     vitals: ehr.vitals,
                 }))}/>
 
+                {(selectedPatient.wellbeingCheckins ?? []).length > 0 && (() => {
+                    const checkins = selectedPatient.wellbeingCheckins || [];
+                    const latestEpds = checkins.find((c) => typeof c.epdsScore === "number");
+                    const hasSelfHarm = checkins.some((c) => c.epdsSelfHarmFlag || c.riskFlag === "SELF_HARM_CRITICAL");
+                    const hasPsychRisk = checkins.some((c) => c.riskFlag === "PSYCH_RISK" || (typeof c.epdsScore === "number" && c.epdsScore >= 13));
+                    return (<div className="space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                            {t.wellbeingSectionTitle} ({checkins.length})
+                          </span>
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                            {latestEpds && (<span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-mono text-slate-700 dark:text-slate-200">
+                                {t.latestEpdsLabel} {latestEpds.epdsScore}/30
+                              </span>)}
+                            {hasSelfHarm ? (<span className="rounded-full bg-rose-600 px-2.5 py-0.5 text-white">
+                                {t.selfHarmAlert}
+                              </span>) : hasPsychRisk ? (<span className="rounded-full bg-amber-100 dark:bg-amber-950/70 px-2.5 py-0.5 text-amber-800 dark:text-amber-300">
+                                {t.psychRiskAlert}
+                              </span>) : null}
+                          </div>
+                        </div>
+                        <VitalsTrendChart records={checkins} mode="mood"/>
+                      </div>);
+                })()}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
                     <div className="flex items-center justify-between">
@@ -1128,8 +1092,27 @@ export default function ClinicalDashboardPage() {
                           <label htmlFor="rx-freq" className="sr-only">
                             {t.rxFreqPlaceholder}
                           </label>
-                          <input id="rx-freq" name="frequency" value={rxFreq} onChange={(e) => setRxFreq(e.target.value)} placeholder={t.rxFreqPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
+                          <input id="rx-freq" name="frequency" value={rxFreq} onChange={(e) => {
+                        const val = e.target.value;
+                        setRxFreq(val);
+                        if (!rxReminderEdited) {
+                            setRxReminderTimes(inferReminderTimesFromFrequency(val).join(", "));
+                        }
+                    }} placeholder={t.rxFreqPlaceholder} className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100" required/>
                         </div>
+                        <div className="space-y-1">
+                          <label htmlFor="rx-reminder-times" className="block text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                            {t.rxReminderTimesLabel}
+                          </label>
+                          <input id="rx-reminder-times" name="reminderTimes" value={rxReminderTimes} onChange={(e) => {
+                        setRxReminderEdited(true);
+                        setRxReminderTimes(e.target.value);
+                    }} placeholder="08:00, 20:00" className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:text-slate-100"/>
+                        </div>
+                        <label className="flex items-center gap-2 text-[11px] font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                          <input type="checkbox" checked={rxRemindersEnabled} onChange={(e) => setRxRemindersEnabled(e.target.checked)} className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600"/>
+                          <span>{t.rxRemindersOn}</span>
+                        </label>
                         <button type="submit" className="w-full min-h-[40px] rounded-lg bg-teal-700 py-2 text-xs font-semibold text-white hover:bg-teal-800">
                           {t.saveRxBtn}
                         </button>
@@ -1137,7 +1120,7 @@ export default function ClinicalDashboardPage() {
 
                     <div className="space-y-2">
                       {selectedPatient.prescriptions.map((rx) => (<div key={rx.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-2">
                             <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
                               {rx.medicationName} ({rx.dosage})
                             </span>
@@ -1152,6 +1135,9 @@ export default function ClinicalDashboardPage() {
                           <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                             {rx.frequency} • {rx.durationDays} {t.daysWord} • {rx.polyclinicPharmacy}
                           </p>
+                          {rx.remindersEnabled !== false && (rx.reminderTimes ?? []).length > 0 && (<p className="mt-1 inline-flex items-center gap-1 rounded bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2 py-0.5 font-mono text-[10px] font-semibold text-teal-800 dark:text-teal-300">
+                              🔔 {(rx.reminderTimes ?? []).join(", ")}
+                            </p>)}
                           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                             {lang === "ru" ? rx.instructionsRu : lang === "en" ? rx.instructionsEn : rx.instructionsUz}
                           </p>
@@ -1356,6 +1342,31 @@ export default function ClinicalDashboardPage() {
                         : t.verifySubmitBtn}
                   </button>
                 </form>
+
+                {(selectedCall.patient?.wellbeingCheckins ?? []).length > 0 && (() => {
+                    const checkins = selectedCall.patient.wellbeingCheckins || [];
+                    const latestEpds = checkins.find((c) => typeof c.epdsScore === "number");
+                    const hasSelfHarm = checkins.some((c) => c.epdsSelfHarmFlag || c.riskFlag === "SELF_HARM_CRITICAL");
+                    const hasPsychRisk = checkins.some((c) => c.riskFlag === "PSYCH_RISK" || (typeof c.epdsScore === "number" && c.epdsScore >= 13));
+                    return (<div className="space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                            {t.wellbeingSectionTitle} ({checkins.length})
+                          </span>
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                            {latestEpds && (<span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-mono text-slate-700 dark:text-slate-200">
+                                {t.latestEpdsLabel} {latestEpds.epdsScore}/30
+                              </span>)}
+                            {hasSelfHarm ? (<span className="rounded-full bg-rose-600 px-2.5 py-0.5 text-white">
+                                {t.selfHarmAlert}
+                              </span>) : hasPsychRisk ? (<span className="rounded-full bg-amber-100 dark:bg-amber-950/70 px-2.5 py-0.5 text-amber-800 dark:text-amber-300">
+                                {t.psychRiskAlert}
+                              </span>) : null}
+                          </div>
+                        </div>
+                        <VitalsTrendChart records={checkins} mode="mood"/>
+                      </div>);
+                })()}
 
                 {selectedCall.symptomCheckins.length > 0 && (<div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2.5">
                     <h3 className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">

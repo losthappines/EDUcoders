@@ -4,6 +4,7 @@ import { decryptField } from "@/lib/crypto";
 import { canViewClinicalNotes, recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { computeSlaMetrics, evaluateAllSlaTimers, getSimulatedNow, getSimulatedOffsetHours, } from "@/lib/sla-queue";
 import { haversineDistanceKm, resolveCoordinatesForLocation } from "@/lib/geo";
+import { parseReminderTimesJson } from "@/lib/wellbeing-catalog";
 function sanitizeUser(u) {
     return {
         id: u.id,
@@ -38,7 +39,7 @@ export async function GET(req) {
         await evaluateAllSlaTimers();
         const simulatedNow = await getSimulatedNow();
         const timeOffsetHours = await getSimulatedOffsetHours();
-        const [users, rawPatients, rawCalls, invoices, auditLogs, rawComplaints, rawMessages, rawSubscriptions] = await Promise.all([
+        const [users, rawPatients, rawCalls, invoices, auditLogs, rawComplaints, rawMessages, rawSubscriptions, rawPsychConsents, rawPsychSessions] = await Promise.all([
             prisma.user.findMany({ orderBy: { createdAt: "asc" } }),
             prisma.patient.findMany({
                 orderBy: { createdAt: "asc" },
@@ -47,6 +48,7 @@ export async function GET(req) {
                     ehrRecords: { orderBy: { createdAt: "asc" } },
                     labReports: { orderBy: { reportedAt: "desc" } },
                     prescriptions: { orderBy: { createdAt: "asc" } },
+                    wellbeingCheckins: { orderBy: { createdAt: "desc" }, take: 30 },
                 },
             }),
             prisma.activeCall.findMany({
@@ -107,9 +109,29 @@ export async function GET(req) {
                 include: { user: { select: { id: true, fullName: true, role: true } } },
                 take: 40,
             }),
+            prisma.psychConsent.findMany({
+                orderBy: { consentedAt: "desc" },
+                include: {
+                    psychologist: {
+                        select: { id: true, fullName: true, specialty: true, district: true, experienceYears: true },
+                    },
+                },
+            }),
+            prisma.psychSession.findMany({
+                orderBy: { scheduledAt: "asc" },
+                include: {
+                    psychologist: {
+                        select: { id: true, fullName: true, specialty: true },
+                    },
+                    patient: {
+                        select: { id: true, fullName: true, district: true },
+                    },
+                },
+            }),
         ]);
         const currentUserRow = users.find((u) => u.id === actor.userId);
         const allowClinical = canViewClinicalNotes(actor.role);
+        const isPsychologist = actor.role === "PSYCHOLOGIST";
         const scopedPatients = rawPatients
             .filter((p) => {
             if (p.status === "PENDING_VERIFICATION" || p.status === "REJECTED") {
@@ -122,6 +144,9 @@ export async function GET(req) {
                 return (p.polyclinicId === actor.polyclinicId ||
                     p.assignedFamilyDoctorId === actor.userId);
             }
+            if (isPsychologist) {
+                return rawPsychConsents.some((c) => c.patientId === p.id && c.psychologistId === actor.userId && c.status === "ACTIVE");
+            }
             return true;
         })
             .map((p) => ({
@@ -129,36 +154,56 @@ export async function GET(req) {
             assignedFamilyDoctor: p.assignedFamilyDoctor
                 ? sanitizeUser(p.assignedFamilyDoctor)
                 : null,
-            allergies: JSON.parse(p.allergiesJson || "[]"),
-            ehrRecords: p.ehrRecords.map((ehr) => ({
-                id: ehr.id,
-                patientId: ehr.patientId,
-                authorId: ehr.authorId,
-                recordType: ehr.recordType,
-                diagnosisIcd10: allowClinical || actor.role === "PATIENT"
-                    ? ehr.diagnosisIcd10
-                    : "[REDACTED]",
-                diagnosisText: allowClinical || actor.role === "PATIENT"
-                    ? ehr.diagnosisText
-                    : "[RBAC REDACTED — CLINICAL ROLE ONLY]",
-                severity: ehr.severity,
-                clinicalNotes: allowClinical
-                    ? decryptField(ehr.clinicalNotesEncrypted)
-                    : "[RBAC REDACTED — AES-256 CLINICAL ACCESS ONLY]",
-                encryptionCipherPreview: ehr.clinicalNotesEncrypted.slice(0, 34) + "...",
-                vitals: JSON.parse(ehr.vitalsJson || "{}"),
-                procedures: allowClinical ? JSON.parse(ehr.proceduresJson || "[]") : [],
-                dischargeDocumentKey: allowClinical ? ehr.dischargeDocumentKey : null,
-                createdAt: ehr.createdAt,
-            })),
-            labReports: p.labReports.map((lr) => ({
-                ...lr,
-                results: JSON.parse(lr.resultsJson || "[]"),
-            })),
-            prescriptions: p.prescriptions.map((rx) => ({
-                ...rx,
-                adherenceLogs: JSON.parse(rx.adherenceLogsJson || "[]"),
-            })),
+            allergies: isPsychologist ? [] : JSON.parse(p.allergiesJson || "[]"),
+            ehrRecords: isPsychologist
+                ? []
+                : p.ehrRecords.map((ehr) => ({
+                    id: ehr.id,
+                    patientId: ehr.patientId,
+                    authorId: ehr.authorId,
+                    recordType: ehr.recordType,
+                    diagnosisIcd10: allowClinical || actor.role === "PATIENT"
+                        ? ehr.diagnosisIcd10
+                        : "[REDACTED]",
+                    diagnosisText: allowClinical || actor.role === "PATIENT"
+                        ? ehr.diagnosisText
+                        : "[RBAC REDACTED — CLINICAL ROLE ONLY]",
+                    severity: ehr.severity,
+                    clinicalNotes: allowClinical
+                        ? decryptField(ehr.clinicalNotesEncrypted)
+                        : "[RBAC REDACTED — AES-256 CLINICAL ACCESS ONLY]",
+                    encryptionCipherPreview: ehr.clinicalNotesEncrypted.slice(0, 34) + "...",
+                    vitals: JSON.parse(ehr.vitalsJson || "{}"),
+                    procedures: allowClinical ? JSON.parse(ehr.proceduresJson || "[]") : [],
+                    dischargeDocumentKey: allowClinical ? ehr.dischargeDocumentKey : null,
+                    createdAt: ehr.createdAt,
+                })),
+            labReports: isPsychologist
+                ? []
+                : p.labReports.map((lr) => ({
+                    ...lr,
+                    results: JSON.parse(lr.resultsJson || "[]"),
+                })),
+            prescriptions: isPsychologist
+                ? []
+                : p.prescriptions.map((rx) => ({
+                    ...rx,
+                    reminderTimes: parseReminderTimesJson(rx.reminderTimesJson, rx.frequency),
+                    adherenceLogs: JSON.parse(rx.adherenceLogsJson || "[]"),
+                })),
+            wellbeingCheckins: (p.wellbeingCheckins || []).map((w) => {
+                let answers = {};
+                try {
+                    answers = JSON.parse(w.answersJson || "{}");
+                }
+                catch {
+                    answers = {};
+                }
+                return {
+                    ...w,
+                    answers,
+                };
+            }),
         }));
         const scopedPatientIds = new Set(scopedPatients.map((p) => p.id));
         const scopedPatientById = new Map(scopedPatients.map((p) => [p.id, p]));
@@ -250,8 +295,10 @@ export async function GET(req) {
                     : rawMessages;
 
         const scopedSubscriptions = actor.role === "ADMIN_RECEPTION"
-            ? rawSubscriptions
-            : rawSubscriptions.filter((s) => s.userId === actor.userId);
+            ? rawSubscriptions.filter((s) => s.targetRole === "PATIENT")
+            : actor.role === "PATIENT"
+                ? rawSubscriptions.filter((s) => s.userId === actor.userId)
+                : [];
 
         const scopedInvoices = actor.role === "PATIENT"
             ? invoices.filter((inv) => scopedPatientIds.has(inv.patientId))
@@ -261,16 +308,28 @@ export async function GET(req) {
             ? verifiedUsers
                 .filter((u) => u.id === actor.userId ||
                 u.role === "FAMILY_MD" ||
+                u.role === "PSYCHOLOGIST" ||
                 scopedPatients.some((p) => p.assignedFamilyDoctorId === u.id))
                 .map(sanitizeUser)
             : verifiedUsers.map(sanitizeUser);
         const pendingVerificationsCount = actor.role === "ADMIN_RECEPTION"
             ? users.filter((u) => (u.role === "PATIENT" ||
                 u.role === "OVABMU_MD" ||
-                u.role === "FAMILY_MD") &&
+                u.role === "FAMILY_MD" ||
+                u.role === "PSYCHOLOGIST") &&
                 u.verificationStatus === "PENDING").length
             : 0;
-        const scopedAuditLogs = actor.role === "PATIENT" ? [] : auditLogs;
+        const scopedAuditLogs = actor.role === "PATIENT" || actor.role === "PSYCHOLOGIST" ? [] : auditLogs;
+        const scopedPsychConsents = actor.role === "PATIENT"
+            ? rawPsychConsents.filter((c) => scopedPatientIds.has(c.patientId))
+            : actor.role === "PSYCHOLOGIST"
+                ? rawPsychConsents.filter((c) => c.psychologistId === actor.userId)
+                : [];
+        const scopedPsychSessions = actor.role === "PATIENT"
+            ? rawPsychSessions.filter((s) => scopedPatientIds.has(s.patientId))
+            : actor.role === "PSYCHOLOGIST"
+                ? rawPsychSessions.filter((s) => s.psychologistId === actor.userId)
+                : [];
         if (req.nextUrl.searchParams.get("auditView") === "1") {
             await recordAuditLog({
                 actor,
@@ -298,6 +357,8 @@ export async function GET(req) {
             subscriptions: scopedSubscriptions,
             invoices: scopedInvoices,
             auditLogs: scopedAuditLogs,
+            psychConsents: scopedPsychConsents,
+            psychSessions: scopedPsychSessions,
         });
     }
     catch (error) {

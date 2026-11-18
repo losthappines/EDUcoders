@@ -9,6 +9,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 function getPortalHref(role) {
   if (role === "PATIENT") return "/patient";
+  if (role === "PSYCHOLOGIST") return "/psychologist";
   if (role === "ADMIN_RECEPTION") return "/admin";
   return "/clinical";
 }
@@ -18,6 +19,7 @@ const NAV_COPY = {
     subtitle: "Onalar va chaqaloqlar uchun uyda g'amxo'rlik",
     howItWorks: "Qanday ishlaydi",
     conditions: "Shartlar va qamrov",
+    community: "Onalar hamjamiyati",
     faq: "Savol-javob",
     privacy: "Maxfiylik",
     languageLabel: "Til",
@@ -30,6 +32,7 @@ const NAV_COPY = {
     subtitle: "Домашняя забота о мамах и малышах",
     howItWorks: "Как это работает",
     conditions: "Условия визита",
+    community: "Сообщество мам",
     faq: "Вопросы и ответы",
     privacy: "Конфиденциальность",
     languageLabel: "Язык",
@@ -42,6 +45,7 @@ const NAV_COPY = {
     subtitle: "Postpartum Home Care & Family Follow-Up",
     howItWorks: "How we help",
     conditions: "Visit terms",
+    community: "Mothers Community",
     faq: "FAQ",
     privacy: "Privacy",
     languageLabel: "Language",
@@ -71,7 +75,7 @@ export function PublicHeader({ showAnchors = false }) {
           </span>
         </Link>
 
-        <nav aria-label="Primary navigation" className="hidden lg:flex items-center gap-7 text-xs font-medium tracking-wide text-[#525954] dark:text-[#B6BCB6]">
+        <nav aria-label="Primary navigation" className="hidden lg:flex items-center gap-6 text-xs font-medium tracking-wide text-[#525954] dark:text-[#B6BCB6]">
           {showAnchors ? (
             <>
               <a href="#care-steps" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
@@ -80,14 +84,22 @@ export function PublicHeader({ showAnchors = false }) {
               <a href="#visit-conditions" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
                 {t.conditions}
               </a>
+              <Link href="/hamjamiyat" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
+                {t.community}
+              </Link>
               <a href="#faq" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
                 {t.faq}
               </a>
             </>
           ) : (
-            <Link href={homeHref} className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
-              {t.howItWorks}
-            </Link>
+            <>
+              <Link href={homeHref} className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
+                {t.howItWorks}
+              </Link>
+              <Link href="/hamjamiyat" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
+                {t.community}
+              </Link>
+            </>
           )}
           <Link href="/privacy" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
             {t.privacy}
@@ -163,14 +175,22 @@ export function PublicHeader({ showAnchors = false }) {
                 <a href="#visit-conditions" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
                   {t.conditions}
                 </a>
+                <Link href="/hamjamiyat" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
+                  {t.community}
+                </Link>
                 <a href="#faq" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
                   {t.faq}
                 </a>
               </>
             ) : (
-              <Link href={homeHref} onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
-                {t.howItWorks}
-              </Link>
+              <>
+                <Link href={homeHref} onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
+                  {t.howItWorks}
+                </Link>
+                <Link href="/hamjamiyat" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
+                  {t.community}
+                </Link>
+              </>
             )}
             <Link href="/privacy" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
               {t.privacy}

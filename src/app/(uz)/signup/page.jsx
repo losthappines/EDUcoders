@@ -2,7 +2,7 @@
 import React, { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { IconAlertTriangle, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClipboardText, IconClock, IconCopy, IconExternalLink, IconEye, IconEyeOff, IconMapPin, IconNurse, IconShieldCheck, IconSparkles, IconStethoscope, IconUser, IconUserPlus, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClipboardText, IconClock, IconCopy, IconExternalLink, IconEye, IconEyeOff, IconHeartHandshake, IconMapPin, IconNurse, IconShieldCheck, IconSparkles, IconStethoscope, IconUser, IconUserPlus, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { PublicHeader } from "@/components/PublicHeader";
@@ -72,6 +72,25 @@ const PERSONA_CARDS = [
         },
         icon: <IconNurse className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]"/>,
     },
+    {
+        persona: "PSYCHOLOGIST",
+        title: {
+            uz: "Perinatal psixolog",
+            ru: "Перинатальный психолог",
+            en: "Perinatal Psychologist",
+        },
+        desc: {
+            uz: "Onalar ruhiy salomatligi, EPDS skrining, rozilik asosidagi suhbatlar va seanslar",
+            ru: "Эмоциональная поддержка мам, скрининг EPDS и консультации по согласию",
+            en: "Maternal mental wellbeing, EPDS screening & consent-based counseling sessions",
+        },
+        tag: {
+            uz: "Psixolog kabineti",
+            ru: "Кабинет психолога",
+            en: "Psychologist portal",
+        },
+        icon: <IconHeartHandshake className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]"/>,
+    },
 ];
 const COPY = {
     uz: {
@@ -79,9 +98,9 @@ const COPY = {
         subtitle: "Avval kim ekanligingizni tanlang, so'ngra SI yordamchisi, hisob shakli yoki Telegram bot orqali tez ro'yxatdan o'ting.",
         step1Title: "1-qadam: Siz kimsiz?",
         step2Title: "2-qadam: Ro'yxatdan o'tish usulini tanlang",
-        aiCardTitle: "SI yordamchisi",
+        aiCardTitle: "SI yordamchisi (Gemini 3.5 Flash)",
         aiCardBadge: "Tavsiya etiladi",
-        aiCardDesc: "Sun'iy intellekt sizdan ismingiz, holatingiz va manzilingizni so'rab shaklni o'zi to'ldirib beradi.",
+        aiCardDesc: "Savol bering yoki ma'lumotlaringizni yozing — Gemini 3.5 Flash javob beradi va shaklni o'zi to'ldiradi.",
         tradCardTitle: "Hisob shakli (An'anaviy)",
         tradCardDesc: "Standart ro'yxatdan o'tish maydonlarini o'zingiz qo'lda to'ldiring.",
         telegramCardTitle: "Telegram bot orqali",
@@ -93,9 +112,9 @@ const COPY = {
         doctorHospital: "Tug'ruqxona shifokori (OvaBMU)",
         doctorFamily: "Hududiy oilaviy shifokor",
         specialtyLabel: "Qaysi soha / Mutaxassislik",
-        specialtyPlaceholder: "Masalan: Akusher-ginekolog, Oilaviy shifokor, Pediatr",
+        specialtyPlaceholder: "Masalan: Akusher-ginekolog, Oilaviy shifokor, Perinatal psixolog",
         expertiseLabel: "Asosiy ekspertiza yo'nalishi",
-        expertisePlaceholder: "Masalan: Tug'ruqdan keyingi nazorat, qon bosimi",
+        expertisePlaceholder: "Masalan: Tug'ruqdan keyingi nazorat, ruhiy qo'llab-quvvatlash",
         experienceLabel: "Ish tajribasi (yil)",
         experiencePlaceholder: "Masalan: 6",
         gpsLabel: "GPS joylashuvni ulashish (ixtiyoriy)",
@@ -129,6 +148,7 @@ const COPY = {
         emptySearch: "Mos natija topilmadi",
         customHint: "o'zingiz yozishingiz mumkin",
         dob: "Tug'ilgan sana",
+        deliveryDate: "Chaqaloq tug'ilgan sanasi (ixtiyoriy)",
         bloodType: "Qon guruhi",
         bloodPlaceholder: "Qon guruhini tanlang...",
         districtError: "Iltimos, ro'yxatdan tuman yoki shahringizni tanlang.",
@@ -142,7 +162,7 @@ const COPY = {
         already: "Allaqachon hisobingiz bormi?",
         signInHere: "Bu yerda kiring",
         loadingForm: "Ro'yxatdan o'tish shakli yuklanmoqda...",
-        verifyNotice: "Bemorlar, shifokorlar va kuzatuv hamshiralari ro'yxatdan o'tgandan so'ng tizimga kirishdan oldin administrator tomonidan tasdiqlanadi.",
+        verifyNotice: "Bemorlar, shifokorlar, hamshiralar va psixologlar ro'yxatdan o'tgandan so'ng administrator tomonidan tasdiqlanadi.",
         pendingTitle: "Arizangiz qabul qilindi — tasdiqlash kutilmoqda",
         pendingDesc: "Xavfsizlik va bemorlar ma'lumotlarini himoyalash uchun barcha bemor, shifokor va hamshira hisoblari poliklinika administratori tomonidan tasdiqlanadi. Tasdiqlangandan so'ng elektron pochtangiz va parolingiz bilan tizimga kirishingiz mumkin.",
         pendingStatusBadge: "Administrator tasdig'ini kutmoqda",
@@ -160,9 +180,9 @@ const COPY = {
         subtitle: "Выберите вашу роль и удобный способ регистрации: ИИ-помощник, стандартная форма или Telegram-бот.",
         step1Title: "Шаг 1: Кем вы являетесь?",
         step2Title: "Шаг 2: Выберите способ регистрации",
-        aiCardTitle: "ИИ-помощник",
-        aiCardBadge: "Быстро и просто",
-        aiCardDesc: "ИИ задаст вопросы об имени, опыте, специализации и адресе и сам заполнит анкету.",
+        aiCardTitle: "ИИ-помощник (Gemini 3.5 Flash)",
+        aiCardBadge: "Быстро и умно",
+        aiCardDesc: "Задайте любой вопрос или напишите данные сразу — Gemini 3.5 Flash ответит и заполнит анкету за вас.",
         tradCardTitle: "Стандартная форма",
         tradCardDesc: "Заполните все поля регистрационной анкеты вручную.",
         telegramCardTitle: "Через Telegram-бот",
@@ -210,6 +230,7 @@ const COPY = {
         emptySearch: "Ничего не найдено",
         customHint: "продолжайте ввод для своего варианта",
         dob: "Дата рождения",
+        deliveryDate: "Дата рождения малыша (необяз.)",
         bloodType: "Группа крови",
         bloodPlaceholder: "Выберите группу крови...",
         districtError: "Пожалуйста, выберите ваш район или город из списка.",
@@ -223,9 +244,9 @@ const COPY = {
         already: "Уже есть аккаунт?",
         signInHere: "Войти здесь",
         loadingForm: "Загрузка формы регистрации...",
-        verifyNotice: "Новые аккаунты пациентов, врачей и медсестер проходят проверку администратором перед входом в систему.",
+        verifyNotice: "Новые аккаунты пациентов, врачей, медсестер и психологов проходят проверку администратором перед входом в систему.",
         pendingTitle: "Заявка отправлена — ожидается проверка",
-        pendingDesc: "Для защиты медицинских данных новые аккаунты пациентов, врачей и медсестер подтверждаются администратором клиники. После подтверждения вы сможете войти с вашим email и паролем.",
+        pendingDesc: "Для защиты медицинских данных новые аккаунты пациентов, врачей и психологов подтверждаются администратором клиники. После подтверждения вы сможете войти с вашим email и паролем.",
         pendingStatusBadge: "Ожидает подтверждения администратором",
         pendingGoLogin: "Перейти ко входу",
         pendingBackHome: "На главную",
@@ -241,9 +262,9 @@ const COPY = {
         subtitle: "Select your role, then sign up through our AI Helper, Traditional Form, or Telegram Bot.",
         step1Title: "Step 1: Who are you?",
         step2Title: "Step 2: Choose your signup channel",
-        aiCardTitle: "AI Sign-Up Helper",
-        aiCardBadge: "Easy & Guided",
-        aiCardDesc: "AI asks about your name, medical expertise, experience & location and fills out your profile.",
+        aiCardTitle: "AI Assistant (Gemini 3.5 Flash)",
+        aiCardBadge: "Smart Q&A",
+        aiCardDesc: "Ask questions anytime or share details naturally — Gemini 3.5 Flash answers and fills your profile.",
         tradCardTitle: "Traditional Account Form",
         tradCardDesc: "Fill in the standard registration fields manually yourself.",
         telegramCardTitle: "Via Telegram Bot",
@@ -255,9 +276,9 @@ const COPY = {
         doctorHospital: "Hospital Doctor (Maternity)",
         doctorFamily: "Local Family Doctor",
         specialtyLabel: "Field / Medical Specialty",
-        specialtyPlaceholder: "e.g. OB-GYN, Family Doctor, Pediatrician",
+        specialtyPlaceholder: "e.g. OB-GYN, Family Doctor, Perinatal Psychologist",
         expertiseLabel: "Clinical Expertise Focus",
-        expertisePlaceholder: "e.g. Postpartum recovery & hypertension risk",
+        expertisePlaceholder: "e.g. Postpartum recovery & emotional support",
         experienceLabel: "Years of Experience",
         experiencePlaceholder: "e.g. 6",
         gpsLabel: "Share GPS Location (Optional)",
@@ -291,6 +312,7 @@ const COPY = {
         emptySearch: "No matches found",
         customHint: "keep typing to use your own entry",
         dob: "Date of Birth",
+        deliveryDate: "Baby Delivery Date (Optional)",
         bloodType: "Blood Type",
         bloodPlaceholder: "Select blood type...",
         districtError: "Please select your district or city from the list.",
@@ -304,9 +326,9 @@ const COPY = {
         already: "Already have an account?",
         signInHere: "Sign In here",
         loadingForm: "Loading registration form...",
-        verifyNotice: "Patient, Doctor, and Monitoring Nurse accounts require verification by a clinic Administrator before you can sign in.",
+        verifyNotice: "Patient, Doctor, Monitoring Nurse, and Psychologist accounts require verification by a clinic Administrator before you can sign in.",
         pendingTitle: "Registration Submitted — Verification Pending",
-        pendingDesc: "To keep patient records safe, all new patient, doctor, and nurse registrations are verified by an Administrator. Once approved, you can sign in with your email and password.",
+        pendingDesc: "To keep patient records safe, all new patient, doctor, nurse, and psychologist registrations are verified by an Administrator. Once approved, you can sign in with your email and password.",
         pendingStatusBadge: "Pending Admin Verification",
         pendingGoLogin: "Go to Sign In",
         pendingBackHome: "Back to Home",
@@ -326,6 +348,8 @@ function parseInitialSelection(param) {
         return { persona: "PATIENT", presetRole: "PATIENT" };
     if (upper === "NURSE")
         return { persona: "NURSE", presetRole: "FAMILY_MD" };
+    if (upper === "PSYCHOLOGIST")
+        return { persona: "PSYCHOLOGIST", presetRole: "PSYCHOLOGIST" };
     if (upper === "DOCTOR")
         return { persona: "DOCTOR" };
     if (upper === "OVABMU_MD")
@@ -357,6 +381,7 @@ function SignupFormInner() {
     const [district, setDistrict] = useState("");
     const [mahalla, setMahalla] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
+    const [deliveryDate, setDeliveryDate] = useState("");
     const [bloodType, setBloodType] = useState("");
     const [specialty, setSpecialty] = useState("");
     const [expertiseArea, setExpertiseArea] = useState("");
@@ -378,9 +403,11 @@ function SignupFormInner() {
         ? "PATIENT"
         : selectedPersona === "ADMIN_RECEPTION"
             ? "ADMIN_RECEPTION"
-            : selectedPersona === "NURSE"
-                ? "FAMILY_MD"
-                : doctorSubRole;
+            : selectedPersona === "PSYCHOLOGIST"
+                ? "PSYCHOLOGIST"
+                : selectedPersona === "NURSE"
+                    ? "FAMILY_MD"
+                    : doctorSubRole;
     const regionNames = useMemo(() => UZ_REGIONS.map((r) => r.name), []);
     const selectedRegionObj = useMemo(() => UZ_REGIONS.find((r) => r.name === region) ?? null, [region]);
     const districtNames = useMemo(() => {
@@ -488,6 +515,8 @@ function SignupFormInner() {
             setFullName(draft.fullName);
         if (draft.dateOfBirth)
             setDateOfBirth(draft.dateOfBirth);
+        if (draft.deliveryDate)
+            setDeliveryDate(draft.deliveryDate);
         if (draft.phone && draft.phone !== phone)
             handlePhoneChange(draft.phone);
         if (draft.region)
@@ -558,6 +587,7 @@ function SignupFormInner() {
                 district: payload.district,
                 mahalla: payload.mahalla,
                 dateOfBirth: payload.dateOfBirth,
+                deliveryDate: payload.deliveryDate || undefined,
                 bloodType: payload.bloodType,
             });
             if (!res.ok) {
@@ -587,7 +617,7 @@ function SignupFormInner() {
             setError(t.districtError);
             return;
         }
-        const isDocOrNurse = selectedPersona === "DOCTOR" || selectedPersona === "NURSE";
+        const isSpecialist = selectedPersona === "DOCTOR" || selectedPersona === "NURSE" || selectedPersona === "PSYCHOLOGIST";
         await performSignup({
             persona: selectedPersona,
             fullName,
@@ -596,11 +626,13 @@ function SignupFormInner() {
             role: effectiveRole,
             specialty: selectedPersona === "NURSE"
                 ? specialty.trim() || "Patronaj hamshirasi (Monitoring Nurse)"
-                : selectedPersona === "DOCTOR"
-                    ? specialty.trim() || undefined
-                    : undefined,
-            expertiseArea: isDocOrNurse ? (expertiseArea.trim() || specialty.trim() || undefined) : undefined,
-            experienceYears: isDocOrNurse && experienceYears !== "" ? Number(experienceYears) : undefined,
+                : selectedPersona === "PSYCHOLOGIST"
+                    ? specialty.trim() || "Perinatal psixolog"
+                    : selectedPersona === "DOCTOR"
+                        ? specialty.trim() || undefined
+                        : undefined,
+            expertiseArea: isSpecialist ? (expertiseArea.trim() || specialty.trim() || undefined) : undefined,
+            experienceYears: isSpecialist && experienceYears !== "" ? Number(experienceYears) : undefined,
             latitude,
             longitude,
             phone: phone.trim(),
@@ -608,12 +640,13 @@ function SignupFormInner() {
             district: district.trim(),
             mahalla: selectedPersona === "PATIENT" ? mahalla.trim() : undefined,
             dateOfBirth: selectedPersona === "PATIENT" ? dateOfBirth : undefined,
+            deliveryDate: selectedPersona === "PATIENT" ? (deliveryDate || undefined) : undefined,
             bloodType: selectedPersona === "PATIENT" ? bloodType : undefined,
         });
     };
     const handleAiCreateAccount = async (draft) => {
         applyDraftToForm(draft);
-        const isDocOrNurse = draft.persona === "DOCTOR" || draft.persona === "NURSE";
+        const isSpecialist = draft.persona === "DOCTOR" || draft.persona === "NURSE" || draft.persona === "PSYCHOLOGIST";
         await performSignup({
             persona: draft.persona,
             fullName: draft.fullName,
@@ -622,11 +655,13 @@ function SignupFormInner() {
             role: draft.role,
             specialty: draft.persona === "NURSE"
                 ? draft.specialty.trim() || "Patronaj hamshirasi (Monitoring Nurse)"
-                : draft.persona === "DOCTOR"
-                    ? draft.specialty.trim() || undefined
-                    : undefined,
-            expertiseArea: isDocOrNurse ? (draft.expertiseArea?.trim() || draft.specialty.trim() || undefined) : undefined,
-            experienceYears: isDocOrNurse && draft.experienceYears !== "" && draft.experienceYears !== undefined
+                : draft.persona === "PSYCHOLOGIST"
+                    ? draft.specialty.trim() || "Perinatal psixolog"
+                    : draft.persona === "DOCTOR"
+                        ? draft.specialty.trim() || undefined
+                        : undefined,
+            expertiseArea: isSpecialist ? (draft.expertiseArea?.trim() || draft.specialty.trim() || undefined) : undefined,
+            experienceYears: isSpecialist && draft.experienceYears !== "" && draft.experienceYears !== undefined
                 ? Number(draft.experienceYears)
                 : undefined,
             latitude: draft.latitude,
@@ -636,6 +671,7 @@ function SignupFormInner() {
             district: draft.district.trim(),
             mahalla: draft.persona === "PATIENT" ? draft.mahalla.trim() : undefined,
             dateOfBirth: draft.persona === "PATIENT" ? draft.dateOfBirth : undefined,
+            deliveryDate: draft.persona === "PATIENT" ? (draft.deliveryDate || deliveryDate || undefined) : undefined,
             bloodType: draft.persona === "PATIENT" ? draft.bloodType : undefined,
         });
     };
@@ -651,6 +687,7 @@ function SignupFormInner() {
                 : true,
             fullName: fullName || base.fullName,
             dateOfBirth: dateOfBirth || base.dateOfBirth,
+            deliveryDate: deliveryDate || base.deliveryDate,
             phone: phone || base.phone,
             region: region || base.region,
             district: district || base.district,
@@ -764,12 +801,12 @@ function SignupFormInner() {
         </p>
       </div>
 
-      {/* Step 1: Who are you? (Patient / Doctor / Monitoring Nurse) */}
+      {/* Step 1: Who are you? (Patient / Doctor / Monitoring Nurse / Psychologist) */}
       <fieldset className="space-y-3.5">
         <legend className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#244C40] dark:text-[#A7BBAA]">
           {t.step1Title}
         </legend>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {PERSONA_CARDS.map((card) => {
             const active = selectedPersona === card.persona;
             return (<button key={card.persona} type="button" aria-pressed={active} onClick={() => handleSelectPersona(card.persona)} className={`flex flex-col justify-between gap-3 rounded-sm border p-4 text-left transition-colors ${active
@@ -973,7 +1010,7 @@ function SignupFormInner() {
                     </p>)}
                 </div>
 
-                {(selectedPersona === "DOCTOR" || selectedPersona === "NURSE") && (<>
+                {(selectedPersona === "DOCTOR" || selectedPersona === "NURSE" || selectedPersona === "PSYCHOLOGIST") && (<>
                     <div>
                       <label htmlFor="signup-specialty" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
                         {t.specialtyLabel}
@@ -1020,6 +1057,13 @@ function SignupFormInner() {
                                 : bt.labelUz}
                           </option>))}
                       </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="signup-delivery-date" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
+                        {t.deliveryDate}
+                      </label>
+                      <input id="signup-delivery-date" name="deliveryDate" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
                     </div>
                   </>)}
               </div>

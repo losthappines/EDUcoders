@@ -15,6 +15,8 @@ function getPortalForRole(role) {
         case "OVABMU_MD":
         case "FAMILY_MD":
             return "/clinical";
+        case "PSYCHOLOGIST":
+            return "/psychologist";
         case "ADMIN_RECEPTION":
             return "/admin";
     }
@@ -22,6 +24,7 @@ function getPortalForRole(role) {
 function isProtectedPortalPath(pathname) {
     return (pathname.startsWith("/patient") ||
         pathname.startsWith("/clinical") ||
+        pathname.startsWith("/psychologist") ||
         pathname.startsWith("/admin"));
 }
 function isRoleAllowedOnPath(role, pathname) {
@@ -30,6 +33,8 @@ function isRoleAllowedOnPath(role, pathname) {
     if (pathname.startsWith("/clinical")) {
         return role === "OVABMU_MD" || role === "FAMILY_MD";
     }
+    if (pathname.startsWith("/psychologist"))
+        return role === "PSYCHOLOGIST";
     if (pathname.startsWith("/admin"))
         return role === "ADMIN_RECEPTION";
     return true;
@@ -46,6 +51,8 @@ const SHELL_COPY = {
         ovabmuSub: "Bemorlarni uyga chiqarish va shifokorga yo'naltirish",
         familyBadge: "Oilaviy shifokor",
         familySub: "Poliklinika va 24 soatlik uy ko'rigi",
+        psychBadge: "Perinatal psixolog",
+        psychSub: "Onalar ruhiy holati, EPDS skrining va shaxsiy seanslar",
         adminBadge: "Qabulxona va nazorat",
         adminSub: "24 soatlik tashriflar nazorati va hisobotlar",
         adminOverviewNav: "Umumiy nazorat",
@@ -80,6 +87,8 @@ const SHELL_COPY = {
         ovabmuSub: "Выписка пациенток и направление к семейному врачу",
         familyBadge: "Семейный врач",
         familySub: "Поликлиника и домашний осмотр в течение 24 часов",
+        psychBadge: "Перинатальный психолог",
+        psychSub: "Эмоциональная поддержка мам, скрининг EPDS и сеансы",
         adminBadge: "Координатор клиники",
         adminSub: "Контроль 24-часовых визитов и отчетность",
         adminOverviewNav: "Обзор клиники",
@@ -114,6 +123,8 @@ const SHELL_COPY = {
         ovabmuSub: "Prepare discharge summaries & arrange home visits",
         familyBadge: "Family Doctor",
         familySub: "Local clinic & 24-hour home check-ups",
+        psychBadge: "Perinatal Psychologist",
+        psychSub: "Postpartum emotional wellbeing, EPDS screening & sessions",
         adminBadge: "Clinic Coordinator",
         adminSub: "24-hour visit tracking, reception & summaries",
         adminOverviewNav: "Clinic Overview",
@@ -317,11 +328,17 @@ export function AppShell({ children }) {
                     subtitle: t.familySub,
                     icon: <IconStethoscope className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
                 }
-                : {
-                    badge: t.adminBadge,
-                    subtitle: t.adminSub,
-                    icon: <IconShieldCheck className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
-                };
+                : authUser.role === "PSYCHOLOGIST"
+                    ? {
+                        badge: t.psychBadge,
+                        subtitle: t.psychSub,
+                        icon: <IconHeartHandshake className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+                    }
+                    : {
+                        badge: t.adminBadge,
+                        subtitle: t.adminSub,
+                        icon: <IconShieldCheck className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+                    };
     return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] transition-colors duration-200">
       {/* Strictly Role-Isolated Portal Header (Responsive at 375px) */}
       <header className="border-b border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] transition-colors duration-200">

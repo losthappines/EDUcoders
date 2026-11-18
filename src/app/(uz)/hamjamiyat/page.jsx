@@ -1,0 +1,710 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  IconArrowRight,
+  IconBell,
+  IconBrandTelegram,
+  IconCalendarEvent,
+  IconCheck,
+  IconCopy,
+  IconHeadphones,
+  IconHeartHandshake,
+  IconLock,
+  IconMicrophone,
+  IconPhoneCall,
+  IconShieldCheck,
+  IconStethoscope,
+  IconUsersGroup,
+} from "@tabler/icons-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { usePlatform } from "@/context/PlatformContext";
+import { PublicHeader } from "@/components/PublicHeader";
+import { SiteFooter } from "@/components/SiteFooter";
+import { MOOD_SCALE } from "@/lib/wellbeing-catalog";
+
+const COMMUNITY_COPY = {
+  uz: {
+    eyebrow: "Onalar hamjamiyati va perinatal ruhiy ko'mak",
+    heroTitle: "Tug'ruqdan keyin siz yolg'iz emassiz.",
+    heroDesc:
+      "Yangi onalar uchun yoshga mos xavfsiz davralar, kunlik kayfiyat tekshiruvi (EPDS), tasdiqlangan perinatal psixologlar bilan shaxsiy seanslar va Telegram hamjamiyat.",
+    primaryCta: "Onalar hamjamiyatiga qo'shilish",
+    psychCta: "Psixolog sifatida qo'shilish",
+    emergencyBanner:
+      "Shoshilinch jismoniy yoki ruhiy holatlarda (kuchli qon ketish, yuqori isitma, o'ziga zarar yetkazish fikri) darhol 103 ga qo'ng'iroq qiling.",
+    metricsMothers: "Ro'yxatdan o'tgan onalar",
+    metricsSessions: "Band qilingan psixolog seanslari",
+    metricsSpecialists: "Tasdiqlangan mutaxassislar",
+    cohortsTitle: "Chaqaloq yoshiga ko'ra onalar davralari",
+    cohortsSub:
+      "Haqiqiy foydalanuvchi oqimlari asosida anonimlashtirilgan guruhlar — har bir ona o'ziga o'xshash bosqichdagi onalar bilan birga.",
+    cohorts: [
+      { key: "d0_30", label: "0–30 kunlik davr", desc: "Chaqaloq bilan ilk kunlar, emizish va tiklanish" },
+      { key: "m1_3", label: "1–3 oylik davr", desc: "Uyqu ritmi, kolika va kundalik parvarish" },
+      { key: "m3_6", label: "3–6 oylik davr", desc: "Chaqaloq o'sishi, charchoqni yengish va qo'llab-quvvatlash" },
+      { key: "m6_12", label: "6–12 oylik davr", desc: "Qo'shimcha ovqat, onaning o'ziga vaqt ajratishi" },
+    ],
+    mothersWord: "ona",
+    circlesTitle: "Haftalik jonli audio va psixolog davralari",
+    circlesSub: "Kamerasiz, sokin muhitda mutaxassis va boshqa onalar bilan suhbatlashing.",
+    rsvpBtn: "Joy band qilish",
+    rsvpedBtn: "Band qilindi ✓",
+    specialistsTitle: "Tasdiqlangan perinatal psixologlar va oilaviy shifokorlar",
+    specialistsSub:
+      "Psixologlar faqat sizning aniq roziligingiz (PsychConsent) bilan kayfiyat va EPDS natijalarini ko'radi. Tibbiy EHR tahlillari alohida saqlanadi.",
+    specialistsEmpty: "Mutaxassislar jamoasi tasdiqlash jarayonida — ro'yxat tez orada to'ldiriladi.",
+    expWord: "yil tajriba",
+    bookConsult: "Kabinetda rozilik va seans",
+    voicePreviewTitle: "Ovozli kunlik check-in namunasi (Interaktiv ko'rik)",
+    voicePreviewSub:
+      "Ona ovoz orqali holatini aytganda tizim kayfiyat bali (1–5) va shoshilinch belgilarni qanday ajratishini sinab ko'ring.",
+    voiceTryBtn: "Namuna matnni sinash",
+    voiceSamples: [
+      {
+        id: "calm",
+        label: "Yaxshi kun",
+        transcript: "Bugun chaqalog'im yaxshi emdi, o'zim ham 6 soat uxladim, kayfiyatim yaxshi.",
+        mood: 4,
+        tags: ["Uyqu barqaror", "Emizish yaxshi"],
+        flag: "GREEN",
+      },
+      {
+        id: "tired",
+        label: "Tashvish va charchoq",
+        transcript: "Uch kundan beri uxlay olmayapman, sababsiz xavotir va yig'i kelyapti.",
+        mood: 2,
+        tags: ["EPDS skrining tavsiya etiladi", "Psixolog ko'magi"],
+        flag: "PSYCH_RISK",
+      },
+    ],
+    privacyTitle: "Maxfiylik va klinik ma'lumotlardan ajratilganlik kafolati",
+    privacyPoints: [
+      "Psixolog kabineti hech qachon shifoxona EHR tashxislari, JSHSHIR yoki laboratoriya tahlillarini ko'ra olmaydi.",
+      "Kundalik kayfiyat yozuvlaringizni psixologga ochish faqat sizning «Rozilik berish / Bekor qilish» tugmangiz bilan boshqariladi.",
+      "Faqat EPDS Q10 (o'ziga zarar yetkazish xavfi) holatida 1 soatlik 103 SLA ogohlantirishi hudud shifokori va psixologiga yuboriladi.",
+    ],
+    tgTitle: "Telegram bot va Mini App orqali tezkor ulanish",
+    tgSub:
+      "Ertalab 09:00 da 1-bosish kayfiyat check-in, dori ichishdan 10 daqiqa oldin eslatmalar va psixolog bilan shaxsiy muloqot.",
+    tgCopy: "Havolani nusxalash",
+    tgCopied: "Nusxalandi ✓",
+    tgOpen: "Telegram botni ochish",
+    faqTitle: "Ko'p beriladigan savollar",
+    faqs: [
+      {
+        q: "Onalar hamjamiyati va kunlik check-in bepulmi?",
+        a: "Ha. Kundalik kayfiyat tekshiruvi, haftalik EPDS skrining, Telegram dori eslatmalari va onalar davralari barcha ro'yxatdan o'tgan onalar uchun bepul.",
+      },
+      {
+        q: "Psixolog mening shifoxona tahlillarimni ko'ra oladimi?",
+        a: "Yo'q. Tizimda tibbiy EHR (EhrRecord, LabReport) va psixologik yozuvlar (PsychNote, PsychConsent) qat'iy ajratilgan.",
+      },
+      {
+        q: "Rozilikni keyinroq bekor qilsam bo'ladimi?",
+        a: "Ha, istalgan payt Bemor kabinetidagi «Psixolog» bo'limida 1 bosish bilan rozilikni bekor qilishingiz mumkin.",
+      },
+    ],
+  },
+  ru: {
+    eyebrow: "Сообщество мам и перинатальная поддержка",
+    heroTitle: "После родов вы не остаетесь один на один.",
+    heroDesc:
+      "Бережные круги по возрасту малыша, ежедневная проверка самочувствия и EPDS, сеансы с проверенными перинатальными психологами и Telegram-сообщество.",
+    primaryCta: "Присоединиться к сообществу",
+    psychCta: "Для психологов",
+    emergencyBanner:
+      "При угрожающих физических или кризисных состояниях (сильное кровотечение, высокая температура, мысли о самоповреждении) немедленно звоните 103.",
+    metricsMothers: "Зарегистрированных мам",
+    metricsSessions: "Забронированных сеансов",
+    metricsSpecialists: "Проверенных специалистов",
+    cohortsTitle: "Группы мам по возрасту малыша",
+    cohortsSub: "Анонимизированная статистика реальных потоков: вы всегда среди мам на том же этапе.",
+    cohorts: [
+      { key: "d0_30", label: "0–30 дней", desc: "Первые недели после роддома, ГВ и восстановление" },
+      { key: "m1_3", label: "1–3 месяца", desc: "Режим сна, колики и адаптация семьи" },
+      { key: "m3_6", label: "3–6 месяцев", desc: "Развитие малыша, профилактика выгорания" },
+      { key: "m6_12", label: "6–12 месяцев", desc: "Прикорм и возвращение ресурса мамы" },
+    ],
+    mothersWord: "мам",
+    circlesTitle: "Еженедельные аудио-круги поддержки",
+    circlesSub: "Спокойный формат без видеокамер с психологом и другими мамами.",
+    rsvpBtn: "Записаться",
+    rsvpedBtn: "Вы записаны ✓",
+    specialistsTitle: "Проверенные перинатальные психологи и семейные врачи",
+    specialistsSub:
+      "Психолог видит отметки настроения и EPDS только после вашего явного согласия (PsychConsent). Клинические анализы и диагнозы EHR изолированы.",
+    specialistsEmpty: "Специалисты проходят верификацию — список обновляется в реальном времени.",
+    expWord: "лет стажа",
+    bookConsult: "Перейти в кабинет",
+    voicePreviewTitle: "Демо голосового чек-ина (Интерактивный предпросмотр)",
+    voicePreviewSub:
+      "Посмотрите, как голосовой ответ мамы превращается в шкалу настроения (1–5) и сигналы заботы.",
+    voiceTryBtn: "Выбрать пример",
+    voiceSamples: [
+      {
+        id: "calm",
+        label: "Спокойный день",
+        transcript: "Сегодня малыш хорошо поел, я поспала 6 часов, чувствую себя уверенно.",
+        mood: 4,
+        tags: ["Сон стабилен", "ГВ в норме"],
+        flag: "GREEN",
+      },
+      {
+        id: "tired",
+        label: "Тревога и усталость",
+        transcript: "Три дня почти не сплю, постоянная тревога без причины и слезы.",
+        mood: 2,
+        tags: ["Рекомендован скрининг EPDS", "Поддержка психолога"],
+        flag: "PSYCH_RISK",
+      },
+    ],
+    privacyTitle: "Гарантия приватности и изоляции медкарты",
+    privacyPoints: [
+      "Кабинет психолога технически не имеет доступа к больничному EHR, ПИНФЛ и анализам крови.",
+      "Доступ к дневнику настроения включается и отзывается вами в один клик.",
+      "Лишь при кризисном ответе EPDS Q10 включается 1-часовой 103 SLA для экстренной помощи.",
+    ],
+    tgTitle: "Быстрый доступ через Telegram-бота и Mini App",
+    tgSub:
+      "Утренний чек-ин в 09:00, напоминания о лекарствах за 10 минут до приема и прямая связь с психологом.",
+    tgCopy: "Копировать ссылку",
+    tgCopied: "Скопировано ✓",
+    tgOpen: "Открыть Telegram-бота",
+    faqTitle: "Частые вопросы",
+    faqs: [
+      {
+        q: "Бесплатны ли сообщество и ежедневные чек-ины?",
+        a: "Да. Ежедневный трекер настроения, еженедельный EPDS, напоминания о лекарствах и групповые круги бесплатны для всех мам.",
+      },
+      {
+        q: "Видит ли психолог мои больничные анализы?",
+        a: "Нет. Клинические записи (EhrRecord, LabReport) и заметки психолога (PsychNote) строго разделены на уровне сервера.",
+      },
+      {
+        q: "Можно ли отозвать согласие?",
+        a: "Да, в любое время в разделе «Психолог» вашего личного кабинета.",
+      },
+    ],
+  },
+  en: {
+    eyebrow: "Mothers Community & Perinatal Mental Wellbeing",
+    heroTitle: "You never have to navigate postpartum alone.",
+    heroDesc:
+      "Age-matched newborn circles, 1-tap daily mood & EPDS check-ins, private consultations with verified perinatal psychologists, and instant Telegram support.",
+    primaryCta: "Join the Mothers Community",
+    psychCta: "Join as a Psychologist",
+    emergencyBanner:
+      "For urgent medical or mental health emergencies (heavy bleeding, high fever, thoughts of self-harm), call 103 immediately.",
+    metricsMothers: "Verified Mothers",
+    metricsSessions: "Booked Psych Sessions",
+    metricsSpecialists: "Verified Specialists",
+    cohortsTitle: "Live Newborn Age Circles",
+    cohortsSub: "Anonymized live community cohorts matching your baby's exact stage.",
+    cohorts: [
+      { key: "d0_30", label: "0–30 Days", desc: "First weeks home, feeding rhythm & physical recovery" },
+      { key: "m1_3", label: "1–3 Months", desc: "Sleep shifts, soothing & emotional adjustment" },
+      { key: "m3_6", label: "3–6 Months", desc: "Growth milestones, maternal rest & burnout prevention" },
+      { key: "m6_12", label: "6–12 Months", desc: "First solids, returning to routines & community" },
+    ],
+    mothersWord: "mothers",
+    circlesTitle: "Weekly Audio Support Circles",
+    circlesSub: "Camera-free calm sessions guided by verified perinatal specialists.",
+    rsvpBtn: "Reserve Spot",
+    rsvpedBtn: "Reserved ✓",
+    specialistsTitle: "Verified Perinatal Psychologists & Family Doctors",
+    specialistsSub:
+      "Psychologists only view wellbeing & EPDS trends with your explicit PsychConsent. Clinical EHR lab results remain strictly separated.",
+    specialistsEmpty: "Verified specialists will appear here as soon as coordinator onboarding completes.",
+    expWord: "yrs exp",
+    bookConsult: "Manage Consent & Book",
+    voicePreviewTitle: "Voice Check-in Preview (Interactive Demo)",
+    voicePreviewSub:
+      "Preview how spoken daily check-ins map to a 1–5 mood score and supportive follow-up prompts.",
+    voiceTryBtn: "Preview sample",
+    voiceSamples: [
+      {
+        id: "calm",
+        label: "Steady Day",
+        transcript: "Baby fed well today and I got 6 hours of sleep — feeling calmer and rested.",
+        mood: 4,
+        tags: ["Sleep steady", "Feeding good"],
+        flag: "GREEN",
+      },
+      {
+        id: "tired",
+        label: "Overwhelmed",
+        transcript: "I haven't slept well for three nights and keep feeling anxious for no clear reason.",
+        mood: 2,
+        tags: ["EPDS check recommended", "Psychologist support"],
+        flag: "PSYCH_RISK",
+      },
+    ],
+    privacyTitle: "Privacy & Strict EHR Separation Guarantee",
+    privacyPoints: [
+      "Psychologists can never view hospital discharge diagnoses, JSHSHIR, or blood test results.",
+      "You control wellbeing sharing via an explicit opt-in consent toggle and can revoke anytime.",
+      "Only an EPDS Q10 self-harm alert triggers a 1-hour 103 SLA escalation to protect safety.",
+    ],
+    tgTitle: "Connect via Telegram Bot & Mini App",
+    tgSub:
+      "Receive gentle 09:00 morning mood check-ins, 10-minute medication reminders, and 1-tap Mini App portal access.",
+    tgCopy: "Copy Invite Link",
+    tgCopied: "Copied ✓",
+    tgOpen: "Open Telegram Bot",
+    faqTitle: "Frequently Asked Questions",
+    faqs: [
+      {
+        q: "Is the community and daily wellbeing check-in free?",
+        a: "Yes. Daily mood tracking, weekly EPDS screening, Telegram medication reminders, and peer circles are free for mothers.",
+      },
+      {
+        q: "Can psychologists read my clinical hospital records?",
+        a: "No. Server-side RBAC keeps hospital EHR records and lab panels strictly separated from psychological wellbeing notes.",
+      },
+      {
+        q: "Can I withdraw psychologist consent later?",
+        a: "Yes. One tap in your Patient Portal under «Psixolog» immediately stops sharing.",
+      },
+    ],
+  },
+};
+
+const AUDIO_CIRCLES = [
+  {
+    id: "circle-thu",
+    dayUz: "Payshanba • 19:00 (Toshkent)",
+    dayRu: "Четверг • 19:00 (Ташкент)",
+    dayEn: "Thursday • 19:00 (Tashkent)",
+    titleUz: "Ilk 40 kun: uyqusizlik va xavotir bilan kelishish",
+    titleRu: "Первые 40 дней: как справляться с бессонницей и тревогой",
+    titleEn: "First 40 days: coping with sleeplessness & anxiety",
+    host: "Perinatal psixolog • Audio (kamerasiz)",
+  },
+  {
+    id: "circle-sat",
+    dayUz: "Shanba • 11:00 (Toshkent)",
+    dayRu: "Суббота • 11:00 (Ташкент)",
+    dayEn: "Saturday • 11:00 (Tashkent)",
+    titleUz: "Emizish, charchoq va yaqinlaringizdan yordam so'rash",
+    titleRu: "Грудное вскармливание, усталость и поддержка семьи",
+    titleEn: "Breastfeeding, fatigue & asking family for support",
+    host: "OnaCare oilaviy shifokor + onalar davrasi",
+  },
+];
+
+export default function CommunityPage() {
+  const { lang } = useLanguage();
+  const { authUser } = usePlatform();
+  const t = COMMUNITY_COPY[lang] || COMMUNITY_COPY.uz;
+  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "OnaCarePatronajBot";
+  const tgInviteUrl = `https://t.me/${botUsername}?start=community`;
+
+  const [overview, setOverview] = useState(null);
+  const [rsvpedCircles, setRsvpedCircles] = useState([]);
+  const [selectedSampleId, setSelectedSampleId] = useState("calm");
+  const [copiedTg, setCopiedTg] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/community/overview", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (active && json) setOverview(json);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const toggleRsvp = (id) => {
+    setRsvpedCircles((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const activeSample =
+    t.voiceSamples.find((s) => s.id === selectedSampleId) || t.voiceSamples[0];
+  const sampleMood = MOOD_SCALE.find((m) => m.value === activeSample.mood) || MOOD_SCALE[2];
+
+  const handleCopyTg = async () => {
+    try {
+      await navigator.clipboard.writeText(tgInviteUrl);
+      setCopiedTg(true);
+      setTimeout(() => setCopiedTg(false), 2000);
+    } catch {
+      // ignore clipboard errors
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8]">
+      <PublicHeader />
+
+      <main className="flex-1">
+        {/* Emergency 103 top bar */}
+        <div className="border-b border-[#D9B8AE] dark:border-[#6B3A3A] bg-[#F3EAE7] dark:bg-[#2A201E]">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 sm:px-8 py-2.5 text-xs text-[#7A2E2E] dark:text-[#F4C9C2]">
+            <p className="font-medium leading-snug">{t.emergencyBanner}</p>
+            <a
+              href="tel:103"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-[#7A2E2E] px-3 py-1.5 text-[11px] font-semibold text-[#F7F5EF] hover:bg-[#5E2121]"
+            >
+              <IconPhoneCall className="h-3.5 w-3.5" />
+              103
+            </a>
+          </div>
+        </div>
+
+        {/* Hero */}
+        <section className="border-b border-[#DDD8CC] dark:border-[#2F3733] py-14 sm:py-20">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <div className="lg:col-span-7 space-y-6">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
+                {t.eyebrow}
+              </p>
+              <h1 className="font-heading text-3xl sm:text-5xl font-bold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] leading-[1.12]">
+                {t.heroTitle}
+              </h1>
+              <p className="text-sm sm:text-base text-[#525954] dark:text-[#B8C2BA] leading-relaxed max-w-2xl">
+                {t.heroDesc}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link
+                  href={authUser?.role === "PATIENT" ? "/patient#psychologist-support" : "/signup?role=PATIENT"}
+                  className="inline-flex min-h-[46px] items-center gap-2 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] px-5 py-2.5 text-xs font-semibold text-[#F7F5EF] transition-colors"
+                >
+                  <IconHeartHandshake className="h-4 w-4" />
+                  <span>{t.primaryCta}</span>
+                  <IconArrowRight className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href="/signup?role=PSYCHOLOGIST"
+                  className="inline-flex min-h-[46px] items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-5 py-2.5 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] transition-colors"
+                >
+                  <span>{t.psychCta}</span>
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-px bg-[#DDD8CC] dark:bg-[#2F3733] border border-[#DDD8CC] dark:border-[#2F3733]">
+              <div className="bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex items-baseline justify-between gap-2">
+                <span className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.metricsMothers}</span>
+                <span className="font-heading text-2xl font-bold text-[#244C40] dark:text-[#A7BBAA]">
+                  {overview?.totalVerifiedMothers ?? 0}
+                </span>
+              </div>
+              <div className="bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex items-baseline justify-between gap-2">
+                <span className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.metricsSessions}</span>
+                <span className="font-heading text-2xl font-bold text-[#244C40] dark:text-[#A7BBAA]">
+                  {overview?.totalCompletedOrBookedSessions ?? 0}
+                </span>
+              </div>
+              <div className="bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex items-baseline justify-between gap-2">
+                <span className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.metricsSpecialists}</span>
+                <span className="font-heading text-2xl font-bold text-[#244C40] dark:text-[#A7BBAA]">
+                  {overview?.specialists?.length ?? 0}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Newborn Age Cohorts */}
+        <section className="border-b border-[#DDD8CC] dark:border-[#2F3733] py-14">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 space-y-8">
+            <div className="max-w-2xl space-y-2">
+              <h2 className="font-heading text-2xl font-bold tracking-tight flex items-center gap-2">
+                <IconUsersGroup className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+                <span>{t.cohortsTitle}</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-[#525954] dark:text-[#B8C2BA]">{t.cohortsSub}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {t.cohorts.map((cohort) => {
+                const count = overview?.cohorts?.[cohort.key] ?? 0;
+                return (
+                  <div
+                    key={cohort.key}
+                    className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex flex-col justify-between gap-4"
+                  >
+                    <div className="space-y-1.5">
+                      <span className="inline-block rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-0.5 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+                        {cohort.label}
+                      </span>
+                      <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">
+                        {cohort.desc}
+                      </p>
+                    </div>
+                    <div className="flex items-baseline justify-between border-t border-[#DDD8CC] dark:border-[#2F3733] pt-3">
+                      <span className="font-heading text-xl font-bold text-[#292E2B] dark:text-[#F3F0E8]">
+                        {count} {t.mothersWord}
+                      </span>
+                      <Link
+                        href="/signup?role=PATIENT"
+                        className="text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline"
+                      >
+                        →
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Audio Circles + Interactive Voice Check-in Preview */}
+        <section className="border-b border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#1D221F]/60 py-14">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-6 space-y-4">
+              <div className="space-y-1">
+                <h2 className="font-heading text-xl font-bold flex items-center gap-2">
+                  <IconHeadphones className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+                  <span>{t.circlesTitle}</span>
+                </h2>
+                <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.circlesSub}</p>
+              </div>
+              <div className="space-y-3">
+                {AUDIO_CIRCLES.map((circle) => {
+                  const reserved = rsvpedCircles.includes(circle.id);
+                  const title =
+                    lang === "ru" ? circle.titleRu : lang === "en" ? circle.titleEn : circle.titleUz;
+                  const day = lang === "ru" ? circle.dayRu : lang === "en" ? circle.dayEn : circle.dayUz;
+                  return (
+                    <div
+                      key={circle.id}
+                      className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] flex items-center gap-1.5">
+                          <IconCalendarEvent className="h-3.5 w-3.5" />
+                          <span>{day}</span>
+                        </p>
+                        <h3 className="text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">{title}</h3>
+                        <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA]">{circle.host}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleRsvp(circle.id)}
+                        className={`min-h-[40px] shrink-0 rounded-sm px-4 py-2 text-xs font-semibold transition-colors ${
+                          reserved
+                            ? "bg-[#EFECE3] dark:bg-[#242A27] border border-[#244C40] text-[#244C40] dark:text-[#A7BBAA]"
+                            : "bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF] hover:bg-[#1A382F]"
+                        }`}
+                      >
+                        {reserved ? t.rsvpedBtn : t.rsvpBtn}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="lg:col-span-6 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 space-y-4">
+              <div className="space-y-1">
+                <h2 className="font-heading text-lg font-bold flex items-center gap-2">
+                  <IconMicrophone className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+                  <span>{t.voicePreviewTitle}</span>
+                </h2>
+                <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">{t.voicePreviewSub}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {t.voiceSamples.map((sample) => (
+                  <button
+                    key={sample.id}
+                    type="button"
+                    onClick={() => setSelectedSampleId(sample.id)}
+                    className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      activeSample.id === sample.id
+                        ? "border-[#244C40] bg-[#244C40] text-[#F7F5EF]"
+                        : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8]"
+                    }`}
+                  >
+                    {sample.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] p-4 space-y-3">
+                <p className="font-serif italic text-xs text-[#292E2B] dark:text-[#F3F0E8] leading-relaxed">
+                  &ldquo;{activeSample.transcript}&rdquo;
+                </p>
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+                  <span className="inline-flex items-center gap-1.5 rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] border border-[#DDD8CC] dark:border-[#2F3733] px-2.5 py-1 text-xs font-semibold">
+                    <span>{sampleMood.emoji}</span>
+                    <span>
+                      {sampleMood.value}/5 ({lang === "ru" ? sampleMood.ru : lang === "en" ? sampleMood.en : sampleMood.uz})
+                    </span>
+                  </span>
+                  {activeSample.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={`rounded-sm px-2.5 py-1 text-[11px] font-semibold ${
+                        activeSample.flag === "PSYCH_RISK"
+                          ? "bg-[#F3EAE7] text-[#7A2E2E] border border-[#D9B8AE]"
+                          : "bg-[#EFECE3] text-[#244C40] border border-[#A7BBAA]"
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Verified Specialists Directory */}
+        <section className="border-b border-[#DDD8CC] dark:border-[#2F3733] py-14">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 space-y-6">
+            <div className="max-w-2xl space-y-1.5">
+              <h2 className="font-heading text-2xl font-bold flex items-center gap-2">
+                <IconStethoscope className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+                <span>{t.specialistsTitle}</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-[#525954] dark:text-[#B8C2BA]">{t.specialistsSub}</p>
+            </div>
+
+            {!overview?.specialists || overview.specialists.length === 0 ? (
+              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 text-xs text-[#525954] dark:text-[#B8C2BA]">
+                {t.specialistsEmpty}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {overview.specialists.map((spec) => (
+                  <div
+                    key={spec.id}
+                    className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 flex flex-col justify-between gap-4"
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2 py-0.5 text-[10px] font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+                          {spec.role === "PSYCHOLOGIST" ? "PSYCHOLOGIST" : "FAMILY_MD"}
+                        </span>
+                        {typeof spec.experienceYears === "number" && (
+                          <span className="text-[11px] font-mono text-[#525954] dark:text-[#B8C2BA]">
+                            {spec.experienceYears} {t.expWord}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-heading text-base font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                        {spec.fullName}
+                      </h3>
+                      <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">
+                        {[spec.specialty, spec.expertiseArea, spec.district].filter(Boolean).join(" • ")}
+                      </p>
+                      {spec.bioSummary && (
+                        <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed pt-1">
+                          {spec.bioSummary}
+                        </p>
+                      )}
+                    </div>
+                    <Link
+                      href={authUser?.role === "PATIENT" ? "/patient#psychologist-support" : "/signup?role=PATIENT"}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4"
+                    >
+                      <span>{t.bookConsult}</span>
+                      <IconArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Privacy Guarantee + Telegram Invite + FAQ */}
+        <section className="py-14">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-6 space-y-6">
+              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 space-y-4">
+                <h2 className="font-heading text-lg font-bold flex items-center gap-2">
+                  <IconLock className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" />
+                  <span>{t.privacyTitle}</span>
+                </h2>
+                <ul className="space-y-2.5 text-xs text-[#525954] dark:text-[#B8C2BA]">
+                  {t.privacyPoints.map((pt, idx) => (
+                    <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                      <IconShieldCheck className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA] shrink-0 mt-0.5" />
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 space-y-4">
+                <h2 className="font-heading text-lg font-bold">{t.faqTitle}</h2>
+                <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3733]">
+                  {t.faqs.map((item, idx) => (
+                    <div key={idx} className="py-3 first:pt-0 last:pb-0 space-y-1">
+                      <h3 className="text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8]">{item.q}</h3>
+                      <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">{item.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-6">
+              <div className="rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#EFECE3] dark:bg-[#1D221F] p-6 space-y-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#244C40] text-[#F7F5EF]">
+                    <IconBrandTelegram className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h2 className="font-heading text-lg font-bold">{t.tgTitle}</h2>
+                    <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">{t.tgSub}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] p-4">
+                  {/* Minimal geometric QR badge */}
+                  <div
+                    className="h-24 w-24 shrink-0 rounded-sm border border-[#DDD8CC] bg-[#F7F5EF] p-2 flex items-center justify-center"
+                    aria-label="Telegram QR preview"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-full w-full text-[#244C40]" fill="currentColor">
+                      <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h2v2h-2v-2zm4 0h4v2h-4v-2zm-4 4h4v2h-4v-2zm2 4h6v-4h-2v2h-4v2zm4-6h2v2h-2v-2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 space-y-2.5 w-full">
+                    <div className="flex items-center gap-2 text-xs text-[#525954] dark:text-[#B8C2BA]">
+                      <IconBell className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA] shrink-0" />
+                      <span className="font-mono truncate">{tgInviteUrl}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={tgInviteUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex min-h-[40px] items-center gap-1.5 rounded-sm bg-[#244C40] px-4 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1A382F]"
+                      >
+                        <IconBrandTelegram className="h-4 w-4" />
+                        <span>{t.tgOpen}</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={handleCopyTg}
+                        className="inline-flex min-h-[40px] items-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#1D221F] px-3.5 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8]"
+                      >
+                        {copiedTg ? <IconCheck className="h-3.5 w-3.5" /> : <IconCopy className="h-3.5 w-3.5" />}
+                        <span>{copiedTg ? t.tgCopied : t.tgCopy}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}

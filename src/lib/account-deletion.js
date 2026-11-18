@@ -38,8 +38,13 @@ export async function permanentlyDeleteUserAccount({ userId }) {
 
     const pid = user.patientProfile?.id || null;
 
-    // 1. Delete patient profile & all patient-owned medical/visit records
+    // 1. Delete patient profile & all patient-owned medical/visit/wellbeing/psych records
     if (pid) {
+      await tx.psychNote.deleteMany({ where: { patientId: pid } });
+      await tx.psychSession.deleteMany({ where: { patientId: pid } });
+      await tx.psychConsent.deleteMany({ where: { patientId: pid } });
+      await tx.medReminderLog.deleteMany({ where: { patientId: pid } });
+      await tx.wellbeingCheckin.deleteMany({ where: { patientId: pid } });
       await tx.directMessage.deleteMany({
         where: {
           OR: [
@@ -57,6 +62,9 @@ export async function permanentlyDeleteUserAccount({ userId }) {
       await tx.ehrRecord.deleteMany({ where: { patientId: pid } });
       await tx.patient.delete({ where: { id: pid } });
     } else {
+      await tx.psychNote.deleteMany({ where: { psychologistId: user.id } });
+      await tx.psychSession.deleteMany({ where: { psychologistId: user.id } });
+      await tx.psychConsent.deleteMany({ where: { psychologistId: user.id } });
       await tx.directMessage.deleteMany({
         where: {
           OR: [{ senderUserId: user.id }, { recipientUserId: user.id }],

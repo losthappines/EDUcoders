@@ -67,10 +67,25 @@ export async function POST(req) {
       activeToken
     );
 
+    const miniAppUrl = (process.env.NEXT_PUBLIC_TG_WEBAPP_URL || "").trim() || `${proto}://${host}/tg`;
+    const menuRes = await callTelegramApi(
+      "setChatMenuButton",
+      {
+        menu_button: {
+          type: "web_app",
+          text: "📱 Kabinet",
+          web_app: { url: miniAppUrl },
+        },
+      },
+      activeToken
+    );
+
     const status = await getTelegramBotStatus();
     return NextResponse.json({
       ok: Boolean(setRes?.ok),
       webhookResult: setRes,
+      menuButtonResult: menuRes,
+      miniAppUrl,
       status,
     });
   } catch (error) {

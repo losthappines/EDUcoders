@@ -3,14 +3,40 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #F7F5EF;
+  --foreground: #292E2B;
+  --oc-canvas: #F7F5EF;
+  --oc-surface: #FFFFFF;
+  --oc-subtle: #EFECE3;
+  --oc-ink: #292E2B;
+  --oc-ink-muted: #525954;
+  --oc-forest: #244C40;
+  --oc-forest-hover: #1A382F;
+  --oc-sage: #A7BBAA;
+  --oc-rose: #D9B8AE;
+  --oc-rose-soft: #F3EAE7;
+  --oc-rose-ink: #7A2E2E;
+  --oc-border: #DDD8CC;
+  --oc-border-strong: #C9C2B3;
   color-scheme: light;
 }
 
 .dark {
-  --background: #020617;
-  --foreground: #f1f5f9;
+  --background: #161A18;
+  --foreground: #F3F0E8;
+  --oc-canvas: #161A18;
+  --oc-surface: #1D221F;
+  --oc-subtle: #242A27;
+  --oc-ink: #F3F0E8;
+  --oc-ink-muted: #B6BCB6;
+  --oc-forest: #2C5B4D;
+  --oc-forest-hover: #356D5C;
+  --oc-sage: #6E8572;
+  --oc-rose: #C89E92;
+  --oc-rose-soft: #2A201E;
+  --oc-rose-ink: #F4C9C2;
+  --oc-border: #2F3632;
+  --oc-border-strong: #404A44;
   color-scheme: dark;
 }
 
@@ -18,6 +44,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-manrope), var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-lora), Georgia, serif;
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -26,9 +54,18 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--oc-canvas);
+  color: var(--oc-ink);
+  font-family: var(--font-sans);
   overflow-x: hidden;
+}
+
+h1, h2, h3, .font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-editorial-serif {
+  font-family: var(--font-serif);
 }
 
 a:focus-visible,
@@ -37,7 +74,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 2px solid #0f766e;
+  outline: 2px solid var(--oc-forest);
   outline-offset: 2px;
 }
 
@@ -47,9 +84,10 @@ summary:focus-visible {
 .dark select:focus-visible,
 .dark textarea:focus-visible,
 .dark summary:focus-visible {
-  outline-color: #2dd4bf;
+  outline-color: var(--oc-sage);
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+

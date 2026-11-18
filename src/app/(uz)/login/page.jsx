@@ -19,7 +19,7 @@ const DEMO_ACCOUNTS = [
             ru: "Зульфия Рустамова • Личный кабинет",
             en: "Zulfiya Rustamova • Personal portal",
         },
-        icon: <IconUser className="h-4 w-4 text-teal-700 dark:text-teal-400"/>,
+        icon: <IconUser className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
     },
     {
         email: "a.rahimova@ovabmu.uz",
@@ -33,7 +33,7 @@ const DEMO_ACCOUNTS = [
             ru: "Д-р Азиза Рахимова • Кабинет врача",
             en: "Dr. Aziza Rahimova • Doctor workspace",
         },
-        icon: <IconBuildingHospital className="h-4 w-4 text-indigo-700 dark:text-indigo-400"/>,
+        icon: <IconBuildingHospital className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
     },
     {
         email: "d.toshmatova@op14.uz",
@@ -47,7 +47,7 @@ const DEMO_ACCOUNTS = [
             ru: "Д-р Дильноза Тошматова • Визиты на дом",
             en: "Dr. Dilnoza Toshmatova • Home visits",
         },
-        icon: <IconStethoscope className="h-4 w-4 text-emerald-700 dark:text-emerald-400"/>,
+        icon: <IconStethoscope className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
     },
     {
         email: "sh.alimov@ssv.uz",
@@ -61,7 +61,7 @@ const DEMO_ACCOUNTS = [
             ru: "Шерзод Алимов • Контроль визитов",
             en: "Sherzod Alimov • Visit oversight",
         },
-        icon: <IconShieldCheck className="h-4 w-4 text-slate-700 dark:text-slate-300"/>,
+        icon: <IconShieldCheck className="h-4 w-4 text-[#292E2B] dark:text-[#F3F0E8]"/>,
     },
 ];
 const COPY = {
@@ -158,100 +158,100 @@ export default function LoginPage() {
             setBusy(false);
         }
     };
-    return (<div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+    return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
       <PublicHeader />
 
-      <main className="flex-1 flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Sign In Card */}
-          <div className="lg:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm space-y-5">
-            <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 text-[11px] font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                <IconLock className="h-3 w-3"/>
+      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12 sm:py-16">
+        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+          {/* Sign In Panel */}
+          <div className="lg:col-span-7 border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 sm:p-9 rounded-sm space-y-6">
+            <div className="border-b border-[#DDD8CC] dark:border-[#2F3733] pb-5">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#244C40] dark:text-[#A7BBAA]">
+                <IconLock className="h-3.5 w-3.5"/>
                 {t.badge}
               </span>
-              <h1 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">
+              <h1 className="font-heading mt-2 text-2xl sm:text-3xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8]">
                 {t.title}
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-sm text-[#525954] dark:text-[#B8C2BA] mt-2 leading-relaxed">
                 {t.subtitle}
               </p>
             </div>
 
-            {error && (<div role="alert" className="flex items-center gap-2 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 px-3.5 py-2.5 text-xs font-semibold text-rose-800 dark:text-rose-200">
+            {error && (<div role="alert" className="flex items-center gap-2.5 border-l-4 border-[#9E4747] bg-[#F3EAE7] dark:bg-[#2E1E1D] px-4 py-3 text-xs font-semibold text-[#7A2E2E] dark:text-[#F0C8C4]">
                 <IconAlertTriangle className="h-4 w-4 shrink-0"/>
                 <span>{error}</span>
               </div>)}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="login-email" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="login-email" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
                   {t.emailLabel}
                 </label>
-                <input id="login-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
+                <input id="login-email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.emailPlaceholder} className="w-full min-h-[44px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2.5 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label htmlFor="login-password" className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="login-password" className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA]">
                     {t.passwordLabel}
                   </label>
-                  <Link href="/forgot-password" className="text-xs font-semibold text-teal-700 dark:text-teal-400 hover:underline">
+                  <Link href="/forgot-password" className="text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
                     {t.forgotPassword}
                   </Link>
                 </div>
                 <div className="relative">
-                  <input id="login-password" name="password" type={showPw ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.passwordPlaceholder} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
-                  <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200" aria-label={t.togglePw}>
+                  <input id="login-password" name="password" type={showPw ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t.passwordPlaceholder} className="w-full min-h-[44px] rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2.5 pr-11 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+                  <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center text-[#525954] hover:text-[#292E2B] dark:text-[#B8C2BA] dark:hover:text-[#F3F0E8]" aria-label={t.togglePw}>
                     {showPw ? (<IconEyeOff className="h-4 w-4"/>) : (<IconEye className="h-4 w-4"/>)}
                   </button>
                 </div>
               </div>
 
-              <button type="submit" disabled={busy} className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50 transition">
+              <button type="submit" disabled={busy} className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-5 py-2.5 text-sm font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-50 transition-colors">
                 <IconLogin className="h-4 w-4"/>
                 {busy ? t.submitting : t.submit}
               </button>
             </form>
 
-            <p className="text-xs text-slate-600 dark:text-slate-300 text-center pt-1">
+            <p className="text-xs text-[#525954] dark:text-[#B8C2BA] text-center pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
               {t.newHere}{" "}
-              <Link href="/signup?role=PATIENT" className="font-semibold text-teal-700 dark:text-teal-400 hover:underline">
+              <Link href="/signup?role=PATIENT" className="font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
                 {t.createAccount}
               </Link>
             </p>
           </div>
 
           {/* Demo Accounts Quick-Sign-In Panel */}
-          <div className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-3">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+          <div className="lg:col-span-5 border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#1D221F] p-6 rounded-sm space-y-4">
+            <div className="border-b border-[#DDD8CC] dark:border-[#2F3733] pb-3">
+              <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
                 {t.demoTitle}
               </h2>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-[#525954] dark:text-[#B8C2BA] mt-1 leading-relaxed">
                 {t.demoSub}
               </p>
             </div>
 
-            <div className="space-y-2">
-              {DEMO_ACCOUNTS.map((acc) => (<button key={acc.email} type="button" disabled={busy} onClick={() => handleDemoLogin(acc.email)} className="w-full min-h-[44px] flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 px-3.5 py-2.5 text-left hover:border-teal-300 dark:hover:border-teal-700 hover:bg-teal-50/50 dark:hover:bg-teal-950/30 transition disabled:opacity-50">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+            <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3733] border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] rounded-sm">
+              {DEMO_ACCOUNTS.map((acc) => (<button key={acc.email} type="button" disabled={busy} onClick={() => handleDemoLogin(acc.email)} className="w-full min-h-[52px] flex items-center justify-between px-3.5 py-3 text-left hover:bg-[#F7F5EF] dark:hover:bg-[#242A27] transition-colors disabled:opacity-50">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] border border-[#DDD8CC] dark:border-[#2F3733]">
                       {acc.icon}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                      <p className="text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] truncate">
                         {acc.label[lang]}
                       </p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                      <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] truncate">
                         {acc.sub[lang]}
                       </p>
-                      <p className="font-mono text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                      <p className="font-mono text-[10px] text-[#767E78] dark:text-[#8E9890] truncate">
                         {acc.email}
                       </p>
                     </div>
                   </div>
-                  <IconArrowRight className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500"/>
+                  <IconArrowRight className="h-4 w-4 shrink-0 text-[#525954] dark:text-[#B8C2BA]"/>
                 </button>))}
             </div>
           </div>

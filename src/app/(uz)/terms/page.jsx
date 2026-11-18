@@ -94,41 +94,41 @@ export default function TermsPage() {
   const homeHref = lang === "ru" ? "/ru" : lang === "en" ? "/en" : "/";
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8]">
       <PublicHeader />
 
-      <main className="flex-1 mx-auto w-full max-w-4xl px-4 py-10 space-y-6">
-        <div className="space-y-3">
-          <Link href={homeHref} className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:underline">
+      <main className="flex-1 mx-auto w-full max-w-4xl px-5 sm:px-8 py-12 space-y-10">
+        <div className="space-y-4 border-b border-[#DDD8CC] dark:border-[#2F3632] pb-8">
+          <Link href={homeHref} className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
             <IconArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             {t.back}
           </Link>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA] flex items-center gap-1.5 pt-2">
             <IconFileDescription className="h-3.5 w-3.5" aria-hidden="true" />
             {t.badge}
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-950 dark:text-white">
+          </p>
+          <h1 className="font-heading text-2xl sm:text-4xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8]">
             {t.title}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{t.updated}</p>
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+          <p className="font-mono text-xs text-[#525954] dark:text-[#B6BCB6]">{t.updated}</p>
+          <p className="text-sm sm:text-base text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
             {t.intro}
           </p>
         </div>
 
         <Emergency103Banner />
 
-        <div className="space-y-4">
+        <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3632] border-b border-[#DDD8CC] dark:border-[#2F3632]">
           {t.sections.map((sec, idx) => (
             <section
               key={idx}
-              className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-2"
+              className="py-8 first:pt-2 space-y-3"
             >
-              <h2 className="text-base font-bold text-slate-950 dark:text-white flex items-center gap-2">
-                {idx === 0 && <IconPhoneCall className="h-4 w-4 text-rose-600 shrink-0" aria-hidden="true" />}
+              <h2 className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-2">
+                {idx === 0 && <IconPhoneCall className="h-4 w-4 text-[#7A2E2E] dark:text-[#C89E92] shrink-0" aria-hidden="true" />}
                 {sec.title}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+              <p className="text-sm text-[#525954] dark:text-[#B6BCB6] leading-relaxed">
                 {sec.body}
               </p>
             </section>

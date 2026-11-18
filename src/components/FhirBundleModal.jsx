@@ -51,7 +51,7 @@ export function FhirBundleModal({ activeCallId, onClose }) {
         URL.revokeObjectURL(url);
     };
     const tabs = ["ALL", "Patient", "Encounter", "CarePlan", "Task", "MedicationRequest"];
-    return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
+    return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-[#292E2B]/75 p-4">
       <div className="flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-5 py-4 bg-slate-50 dark:bg-slate-950/60">
           <div className="flex items-center gap-2.5">

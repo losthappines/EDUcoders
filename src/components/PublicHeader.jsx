@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { IconArrowRight, IconHeartHandshake, IconLogin, IconLogout, IconMenu2, IconUserPlus, IconX } from "@tabler/icons-react";
+import { IconArrowRight, IconLogin, IconLogout, IconMenu2, IconUserPlus, IconX } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -60,59 +60,49 @@ export function PublicHeader({ showAnchors = false }) {
   const homeHref = lang === "ru" ? "/ru" : lang === "en" ? "/en" : "/";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2.5">
-        <Link href={homeHref} className="flex items-center gap-2.5 min-w-0 min-h-[44px]">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs">
-            <IconHeartHandshake className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate">
-                OnaCare
-              </span>
-              <span className="rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[10px] font-bold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 whitespace-nowrap">
-                24 soat
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-slate-300 hidden lg:block truncate">
-              {t.subtitle}
-            </p>
-          </div>
+    <header className="sticky top-0 z-30 border-b border-[#DDD8CC] dark:border-[#2F3632] bg-[#F7F5EF] dark:bg-[#161A18]">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 py-3.5">
+        <Link href={homeHref} className="flex items-baseline gap-2.5 min-w-0 min-h-[44px] py-1">
+          <span className="font-heading text-xl font-bold tracking-tight text-[#244C40] dark:text-[#F3F0E8]">
+            OnaCare
+          </span>
+          <span className="hidden xl:inline text-[11px] font-medium tracking-wide text-[#525954] dark:text-[#B6BCB6] border-l border-[#DDD8CC] dark:border-[#2F3632] pl-2.5 truncate">
+            {t.subtitle}
+          </span>
         </Link>
 
-        <nav aria-label="Primary navigation" className="hidden lg:flex items-center gap-5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+        <nav aria-label="Primary navigation" className="hidden lg:flex items-center gap-7 text-xs font-medium tracking-wide text-[#525954] dark:text-[#B6BCB6]">
           {showAnchors ? (
             <>
-              <a href="#care-steps" className="hover:text-teal-700 dark:hover:text-teal-400 transition py-2">
+              <a href="#care-steps" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
                 {t.howItWorks}
               </a>
-              <a href="#visit-conditions" className="hover:text-teal-700 dark:hover:text-teal-400 transition py-2">
+              <a href="#visit-conditions" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
                 {t.conditions}
               </a>
-              <a href="#faq" className="hover:text-teal-700 dark:hover:text-teal-400 transition py-2">
+              <a href="#faq" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
                 {t.faq}
               </a>
             </>
           ) : (
-            <Link href={homeHref} className="hover:text-teal-700 dark:hover:text-teal-400 transition py-2">
+            <Link href={homeHref} className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
               {t.howItWorks}
             </Link>
           )}
-          <Link href="/privacy" className="hover:text-teal-700 dark:hover:text-teal-400 transition py-2">
+          <Link href="/privacy" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] transition-colors py-2">
             {t.privacy}
           </Link>
         </nav>
 
         {/* Desktop controls */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2.5">
           <LanguageSwitcher />
           <ThemeToggle />
           {authChecked && authUser ? (
             <>
               <Link
                 href={getPortalHref(authUser.role)}
-                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-teal-700 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-teal-800 transition whitespace-nowrap"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] dark:hover:bg-[#356D5C] px-4 py-2 text-xs font-semibold text-[#F7F5EF] transition-colors whitespace-nowrap"
               >
                 {t.openPortal}
                 <IconArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -120,7 +110,7 @@ export function PublicHeader({ showAnchors = false }) {
               <button
                 type="button"
                 onClick={logout}
-                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition whitespace-nowrap"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] px-3 py-2 text-xs font-medium text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors whitespace-nowrap"
               >
                 <IconLogout className="h-3.5 w-3.5" aria-hidden="true" />
                 {t.signOut}
@@ -130,14 +120,14 @@ export function PublicHeader({ showAnchors = false }) {
             <>
               <Link
                 href="/login"
-                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition whitespace-nowrap"
+                className="inline-flex min-h-[40px] items-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors whitespace-nowrap"
               >
                 <IconLogin className="h-3.5 w-3.5" aria-hidden="true" />
                 {t.signIn}
               </Link>
               <Link
                 href="/signup?role=PATIENT"
-                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-teal-700 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-teal-800 transition whitespace-nowrap"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] dark:hover:bg-[#356D5C] px-4 py-2 text-xs font-semibold text-[#F7F5EF] transition-colors whitespace-nowrap"
               >
                 <IconUserPlus className="h-3.5 w-3.5" aria-hidden="true" />
                 {t.signUp}
@@ -146,7 +136,7 @@ export function PublicHeader({ showAnchors = false }) {
           )}
         </div>
 
-        {/* Mobile controls + hamburger button (>=44px tap targets) */}
+        {/* Mobile controls + menu button (>=44px tap targets) */}
         <div className="flex md:hidden items-center gap-1.5 shrink-0">
           <ThemeToggle />
           <button
@@ -154,7 +144,7 @@ export function PublicHeader({ showAnchors = false }) {
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
             aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors"
           >
             {menuOpen ? <IconX className="h-5 w-5" aria-hidden="true" /> : <IconMenu2 className="h-5 w-5" aria-hidden="true" />}
           </button>
@@ -163,44 +153,44 @@ export function PublicHeader({ showAnchors = false }) {
 
       {/* Collapsible mobile drawer */}
       {menuOpen && (
-        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 space-y-3 shadow-md">
-          <nav aria-label="Mobile navigation" className="flex flex-col gap-1 text-xs font-semibold text-slate-800 dark:text-slate-100">
+        <div className="md:hidden border-t border-[#DDD8CC] dark:border-[#2F3632] bg-[#F7F5EF] dark:bg-[#161A18] px-5 py-5 space-y-4">
+          <nav aria-label="Mobile navigation" className="flex flex-col divide-y divide-[#DDD8CC] dark:divide-[#2F3632] text-sm font-medium text-[#292E2B] dark:text-[#F3F0E8]">
             {showAnchors ? (
               <>
-                <a href="#care-steps" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center rounded-lg px-2.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <a href="#care-steps" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
                   {t.howItWorks}
                 </a>
-                <a href="#visit-conditions" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center rounded-lg px-2.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <a href="#visit-conditions" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
                   {t.conditions}
                 </a>
-                <a href="#faq" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center rounded-lg px-2.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <a href="#faq" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
                   {t.faq}
                 </a>
               </>
             ) : (
-              <Link href={homeHref} onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center rounded-lg px-2.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <Link href={homeHref} onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
                 {t.howItWorks}
               </Link>
             )}
-            <Link href="/privacy" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center rounded-lg px-2.5 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <Link href="/privacy" onClick={() => setMenuOpen(false)} className="min-h-[44px] flex items-center py-2 hover:text-[#244C40]">
               {t.privacy}
             </Link>
           </nav>
 
-          <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+          <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#DDD8CC] dark:border-[#2F3632]">
+            <span className="text-xs font-medium text-[#525954] dark:text-[#B6BCB6]">
               {t.languageLabel}
             </span>
             <LanguageSwitcher />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className="grid grid-cols-2 gap-2.5 pt-1">
             {authChecked && authUser ? (
               <>
                 <Link
                   href={getPortalHref(authUser.role)}
                   onClick={() => setMenuOpen(false)}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-teal-700 px-3 py-2.5 text-xs font-semibold text-white hover:bg-teal-800 transition"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-3 py-2.5 text-xs font-semibold text-[#F7F5EF] transition-colors"
                 >
                   {t.openPortal}
                   <IconArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -211,7 +201,7 @@ export function PublicHeader({ showAnchors = false }) {
                     setMenuOpen(false);
                     logout();
                   }}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] px-3 py-2.5 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] transition-colors"
                 >
                   <IconLogout className="h-3.5 w-3.5" aria-hidden="true" />
                   {t.signOut}
@@ -222,7 +212,7 @@ export function PublicHeader({ showAnchors = false }) {
                 <Link
                   href="/login"
                   onClick={() => setMenuOpen(false)}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] px-3 py-2.5 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] transition-colors"
                 >
                   <IconLogin className="h-3.5 w-3.5" aria-hidden="true" />
                   {t.signIn}
@@ -230,7 +220,7 @@ export function PublicHeader({ showAnchors = false }) {
                 <Link
                   href="/signup?role=PATIENT"
                   onClick={() => setMenuOpen(false)}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-teal-700 px-3 py-2.5 text-xs font-semibold text-white hover:bg-teal-800 transition"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-3 py-2.5 text-xs font-semibold text-[#F7F5EF] transition-colors"
                 >
                   <IconUserPlus className="h-3.5 w-3.5" aria-hidden="true" />
                   {t.signUp}

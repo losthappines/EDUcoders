@@ -320,142 +320,140 @@ export default function TechnologyPage() {
   const homeHref = lang === "ru" ? "/ru" : lang === "en" ? "/en" : "/";
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
       <PublicHeader />
 
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-10 space-y-8">
-        <div className="space-y-3">
-          <Link href={homeHref} className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 dark:text-teal-300 hover:underline">
+      <main className="flex-1 mx-auto w-full max-w-6xl px-5 sm:px-8 py-12 space-y-14">
+        <div className="space-y-4 border-b border-[#DDD8CC] dark:border-[#2F3632] pb-8">
+          <Link href={homeHref} className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
             <IconArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             {t.backHome}
           </Link>
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 dark:bg-teal-950/60 px-3 py-1 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-              <IconBuildingHospital className="h-3.5 w-3.5" aria-hidden="true" />
-              {t.badge}
-            </span>
-            <h1 className="mt-3 text-2xl sm:text-3xl font-bold text-slate-950 dark:text-white">
-              {t.title}
-            </h1>
-            <p className="mt-2 text-sm text-slate-700 dark:text-slate-300 max-w-3xl leading-relaxed">
-              {t.subtitle}
-            </p>
-          </div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA] flex items-center gap-2 pt-2">
+            <IconBuildingHospital className="h-4 w-4" aria-hidden="true" />
+            {t.badge}
+          </p>
+          <h1 className="font-heading text-2xl sm:text-4xl font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8]">
+            {t.title}
+          </h1>
+          <p className="text-sm sm:text-base text-[#525954] dark:text-[#B6BCB6] max-w-3xl leading-relaxed">
+            {t.subtitle}
+          </p>
         </div>
 
-        {/* For Professionals Portal Links (Moved off main homepage) */}
-        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3">
-          <h2 className="text-sm font-bold text-slate-950 dark:text-white">
+        {/* Institutional & Professional Portals */}
+        <section className="space-y-4">
+          <h2 className="font-heading text-base font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
             {t.proTitle}
           </h2>
-          <div className="flex flex-wrap gap-2.5 text-xs">
+          <div className="flex flex-wrap gap-3 text-xs">
             <Link
               href="/login"
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-teal-700 px-4 py-2 font-semibold text-white hover:bg-teal-800 transition"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] dark:hover:bg-[#356D5C] px-5 py-2.5 font-semibold text-[#F7F5EF] transition-colors"
             >
               <IconStethoscope className="h-4 w-4" aria-hidden="true" />
               {t.proDoctorLogin}
             </Link>
             <Link
               href="/signup?role=DOCTOR"
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] px-5 py-2.5 font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors"
             >
-              <IconUserPlus className="h-4 w-4 text-teal-700 dark:text-teal-400" aria-hidden="true" />
+              <IconUserPlus className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
               {t.proDoctorSignup}
             </Link>
             <Link
               href="/login"
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] px-5 py-2.5 font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors"
             >
-              <IconShieldCheck className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+              <IconShieldCheck className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
               {t.proCoordLogin}
             </Link>
             <Link
               href="/telegram"
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/50 px-4 py-2 font-semibold text-sky-900 dark:text-sky-200 hover:bg-sky-100 dark:hover:bg-sky-900/60 transition"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3632] bg-[#EFECE3] dark:bg-[#242A27] px-5 py-2.5 font-semibold text-[#244C40] dark:text-[#F3F0E8] hover:bg-[#E4DFD2] dark:hover:bg-[#2F3632] transition-colors"
             >
-              <IconBrandTelegram className="h-4 w-4 text-sky-700 dark:text-sky-400" aria-hidden="true" />
+              <IconBrandTelegram className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
               {t.proTgConsole}
             </Link>
           </div>
         </section>
 
-        {/* Moved Platform Architecture Section */}
-        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-5">
-          <div className="space-y-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300">
+        {/* System Architecture (3-Column Swiss Grid) */}
+        <section className="border-t border-[#DDD8CC] dark:border-[#2F3632] pt-10 space-y-6">
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#244C40] dark:text-[#A7BBAA]">
               {t.archEyebrow}
-            </span>
-            <h2 className="text-xl font-bold text-slate-950 dark:text-white">
+            </p>
+            <h2 className="font-heading text-xl sm:text-2xl font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
               {t.archTitle}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+            <p className="text-xs sm:text-sm text-[#525954] dark:text-[#B6BCB6] max-w-3xl">
               {t.archSub}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4 space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+          <div className="grid grid-cols-1 lg:grid-cols-3 border-t border-l border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F]">
+            <div className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] p-6 space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#525954] dark:text-[#B6BCB6]">
                 {t.archChannelsTitle}
               </p>
-              <div className="space-y-2 text-xs">
-                <Link href="/telegram" className="flex items-center justify-between gap-2 rounded-lg border border-sky-200 dark:border-sky-800 bg-white dark:bg-slate-900 p-3 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition">
-                  <span className="flex items-center gap-2 font-semibold text-sky-900 dark:text-sky-200">
-                    <IconBrandTelegram className="h-4 w-4 text-sky-700 dark:text-sky-400 shrink-0" aria-hidden="true" />
+              <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3632] border-y border-[#DDD8CC] dark:border-[#2F3632] text-xs">
+                <Link href="/telegram" className="flex items-center justify-between gap-2 py-3 hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors">
+                  <span className="flex items-center gap-2 font-medium">
+                    <IconBrandTelegram className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
                     {t.archChannelTelegram}
                   </span>
-                  <IconArrowRight className="h-3.5 w-3.5 text-sky-700 shrink-0" aria-hidden="true" />
+                  <IconArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 </Link>
-                <Link href="/signup" className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                  <span className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
-                    <IconUserPlus className="h-4 w-4 text-teal-700 dark:text-teal-400 shrink-0" aria-hidden="true" />
+                <Link href="/signup" className="flex items-center justify-between gap-2 py-3 hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors">
+                  <span className="flex items-center gap-2 font-medium">
+                    <IconUserPlus className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
                     {t.archChannelAccount}
                   </span>
-                  <IconArrowRight className="h-3.5 w-3.5 text-teal-700 shrink-0" aria-hidden="true" />
+                  <IconArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 </Link>
-                <Link href="/signup" className="flex items-center justify-between gap-2 rounded-lg border border-teal-200 dark:border-teal-800 bg-white dark:bg-slate-900 p-3 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition">
-                  <span className="flex items-center gap-2 font-semibold text-teal-900 dark:text-teal-200">
-                    <IconRobot className="h-4 w-4 text-teal-700 dark:text-teal-400 shrink-0" aria-hidden="true" />
+                <Link href="/signup" className="flex items-center justify-between gap-2 py-3 hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors">
+                  <span className="flex items-center gap-2 font-medium">
+                    <IconRobot className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
                     {t.archChannelAi}
                   </span>
-                  <IconArrowRight className="h-3.5 w-3.5 text-teal-700 shrink-0" aria-hidden="true" />
+                  <IconArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 </Link>
               </div>
             </div>
 
-            <div className="rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-4 flex flex-col justify-between space-y-3">
+            <div className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] bg-[#EFECE3]/60 dark:bg-[#242A27]/60 p-6 flex flex-col justify-between space-y-4">
               <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#244C40] dark:text-[#A7BBAA]">
                   {t.archHubTitle}
                 </p>
-                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#292E2B] dark:text-[#F3F0E8] leading-relaxed">
                   {t.archHubDesc}
                 </p>
               </div>
-              <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-300 hover:underline">
+              <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
                 {t.proCoordLogin} <IconArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </div>
 
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4 space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+            <div className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] p-6 space-y-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#525954] dark:text-[#B6BCB6]">
                 {t.archPortalsTitle}
               </p>
-              <div className="space-y-2 text-xs">
-                <div className="rounded-lg border border-teal-200 dark:border-teal-800 bg-white dark:bg-slate-900 p-3 space-y-1">
-                  <p className="font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
-                    <IconMapPin className="h-3.5 w-3.5 text-teal-700 dark:text-teal-400" aria-hidden="true" />
+              <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3632] border-y border-[#DDD8CC] dark:border-[#2F3632] text-xs">
+                <div className="py-3 space-y-1">
+                  <p className="font-heading font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-1.5">
+                    <IconMapPin className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
                     {t.archBemorTitle}
                   </p>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300">{t.archBemorDesc}</p>
+                  <p className="text-[11px] text-[#525954] dark:text-[#B6BCB6] leading-relaxed">{t.archBemorDesc}</p>
                 </div>
-                <div className="rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-900 p-3 space-y-1">
-                  <p className="font-bold text-slate-950 dark:text-white flex items-center gap-1.5">
-                    <IconStethoscope className="h-3.5 w-3.5 text-indigo-700 dark:text-indigo-400" aria-hidden="true" />
+                <div className="py-3 space-y-1">
+                  <p className="font-heading font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-1.5">
+                    <IconStethoscope className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
                     {t.archShifokorTitle}
                   </p>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300">{t.archShifokorDesc}</p>
+                  <p className="text-[11px] text-[#525954] dark:text-[#B6BCB6] leading-relaxed">{t.archShifokorDesc}</p>
                 </div>
               </div>
             </div>
@@ -463,58 +461,58 @@ export default function TechnologyPage() {
         </section>
 
         {/* Pipeline */}
-        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
-          <h2 className="text-base font-bold text-slate-950 dark:text-white flex items-center gap-2">
-            <IconRobot className="h-5 w-5 text-teal-700 dark:text-teal-400" aria-hidden="true" />
+        <section className="space-y-5">
+          <h2 className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-2">
+            <IconRobot className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
             {t.pipelineTitle}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 border-t border-l border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] text-xs">
             {t.pipelineSteps.map((s) => (
-              <div key={s.step} className="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-teal-700 font-mono text-[11px] font-bold text-white">
+              <div key={s.step} className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] p-5 flex items-start gap-4">
+                <span className="font-mono text-sm font-semibold text-[#244C40] dark:text-[#A7BBAA] tabular-nums">
                   {s.step}
                 </span>
                 <div>
-                  <p className="font-bold text-slate-950 dark:text-slate-100">{s.title}</p>
-                  <p className="text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">{s.desc}</p>
+                  <p className="font-heading font-semibold text-sm text-[#292E2B] dark:text-[#F3F0E8]">{s.title}</p>
+                  <p className="text-[#525954] dark:text-[#B6BCB6] mt-1.5 leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Security & Interop cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2">
-            <IconLock className="h-6 w-6 text-teal-700 dark:text-teal-400" aria-hidden="true" />
-            <h3 className="text-sm font-bold text-slate-950 dark:text-white">{t.securityTitle}</h3>
-            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{t.securityDesc}</p>
+        {/* Security & Interop Hairline Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F]">
+          <div className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] p-6 space-y-2.5">
+            <IconLock className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
+            <h3 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">{t.securityTitle}</h3>
+            <p className="text-xs text-[#525954] dark:text-[#B6BCB6] leading-relaxed">{t.securityDesc}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2">
-            <IconFileCode className="h-6 w-6 text-indigo-700 dark:text-indigo-400" aria-hidden="true" />
-            <h3 className="text-sm font-bold text-slate-950 dark:text-white">{t.interoperabilityTitle}</h3>
-            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{t.interoperabilityDesc}</p>
+          <div className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] p-6 space-y-2.5">
+            <IconFileCode className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
+            <h3 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">{t.interoperabilityTitle}</h3>
+            <p className="text-xs text-[#525954] dark:text-[#B6BCB6] leading-relaxed">{t.interoperabilityDesc}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2">
-            <IconClock className="h-6 w-6 text-amber-700 dark:text-amber-400" aria-hidden="true" />
-            <h3 className="text-sm font-bold text-slate-950 dark:text-white">{t.escalationTitle}</h3>
-            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{t.escalationDesc}</p>
+          <div className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] p-6 space-y-2.5">
+            <IconClock className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
+            <h3 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">{t.escalationTitle}</h3>
+            <p className="text-xs text-[#525954] dark:text-[#B6BCB6] leading-relaxed">{t.escalationDesc}</p>
           </div>
         </div>
 
         {/* Glossary */}
-        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
-          <h2 className="text-base font-bold text-slate-950 dark:text-white flex items-center gap-2">
-            <IconShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-400" aria-hidden="true" />
+        <section className="space-y-5">
+          <h2 className="font-heading text-lg font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-2">
+            <IconShieldCheck className="h-5 w-5 text-[#244C40] dark:text-[#A7BBAA]" aria-hidden="true" />
             {t.termsTitle}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-[#DDD8CC] dark:border-[#2F3632] bg-[#FFFFFF] dark:bg-[#1D221F] text-xs">
             {t.terms.map((item) => (
-              <div key={item.term} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3.5 space-y-1.5">
-                <div className="font-mono font-bold text-teal-800 dark:text-teal-300">
+              <div key={item.term} className="border-r border-b border-[#DDD8CC] dark:border-[#2F3632] p-4 space-y-1.5">
+                <div className="font-mono font-semibold text-[#244C40] dark:text-[#A7BBAA]">
                   <InfoTooltip label={item.term} explanation={item.explanation} />
                 </div>
-                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{item.explanation}</p>
+                <p className="text-[#525954] dark:text-[#B6BCB6] leading-relaxed">{item.explanation}</p>
               </div>
             ))}
           </div>

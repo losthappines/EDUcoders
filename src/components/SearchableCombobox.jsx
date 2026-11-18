@@ -29,11 +29,11 @@ export function SearchableCombobox({ id, name, label, value, onChange, options, 
                 setQuery("");
             }
         }}>
-      <label htmlFor={id} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+      <label htmlFor={id} className="block text-xs font-semibold uppercase tracking-[0.06em] text-[#525954] dark:text-[#B8C2BA] mb-1.5">
         {label}
       </label>
       <div className="relative">
-        <IconSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500"/>
+        <IconSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#767E78] dark:text-[#8E9890]"/>
         <input id={id} name={name} type="text" role="combobox" aria-expanded={open} aria-controls={listboxId} aria-autocomplete="list" autoComplete={autoComplete} required={required} disabled={disabled} value={displayValue} placeholder={activePlaceholder} onFocus={() => {
             if (!disabled) {
                 setQuery(allowCustom ? value : "");
@@ -57,26 +57,26 @@ export function SearchableCombobox({ id, name, label, value, onChange, options, 
                 setQuery("");
                 setOpen(false);
             }
-        }} className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 pl-8 pr-14 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none disabled:opacity-50"/>
+        }} className="min-h-[44px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] pl-8 pr-14 py-2 text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none disabled:opacity-50 transition-colors"/>
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
           {value && !disabled && (<button type="button" onClick={() => {
                 onChange("");
                 setQuery("");
                 setOpen(true);
-            }} aria-label={`Clear ${label}`} className="rounded p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+            }} aria-label={`Clear ${label}`} className="rounded-sm p-1 text-[#767E78] hover:text-[#292E2B] dark:hover:text-[#F3F0E8]">
               <IconX className="h-3.5 w-3.5"/>
             </button>)}
           <button type="button" disabled={disabled} onClick={() => {
             if (!disabled)
                 setOpen((v) => !v);
-        }} aria-label={`Toggle ${label} options`} className="rounded p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-50">
+        }} aria-label={`Toggle ${label} options`} className="rounded-sm p-1 text-[#767E78] hover:text-[#292E2B] dark:hover:text-[#F3F0E8] disabled:opacity-50">
             <IconChevronDown className="h-4 w-4"/>
           </button>
         </div>
       </div>
 
-      {open && !disabled && (<ul id={listboxId} role="listbox" aria-label={label} className="absolute z-40 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-lg text-xs">
-          {filteredOptions.length === 0 ? (<li className="px-3 py-2 text-slate-500 dark:text-slate-400">
+      {open && !disabled && (<ul id={listboxId} role="listbox" aria-label={label} className="absolute z-40 mt-1 max-h-52 w-full overflow-y-auto rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] py-1 shadow-sm text-xs">
+          {filteredOptions.length === 0 ? (<li className="px-3 py-2 text-[#525954] dark:text-[#B8C2BA]">
               {allowCustom ? `${emptyText} — ${customHint}` : emptyText}
             </li>) : (filteredOptions.map((opt) => {
                 const selected = opt === value;
@@ -86,9 +86,9 @@ export function SearchableCombobox({ id, name, label, value, onChange, options, 
                         onChange(opt);
                         setQuery("");
                         setOpen(false);
-                    }} className={`w-full px-3 py-2 text-left transition ${selected
-                        ? "bg-teal-50 dark:bg-teal-950/60 font-semibold text-teal-800 dark:text-teal-300"
-                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
+                    }} className={`w-full px-3 py-2 text-left transition-colors ${selected
+                        ? "bg-[#EFECE3] dark:bg-[#242A27] font-semibold text-[#244C40] dark:text-[#A7BBAA]"
+                        : "text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#F7F5EF] dark:hover:bg-[#242A27]"}`}>
                     {opt}
                   </button>
                 </li>);

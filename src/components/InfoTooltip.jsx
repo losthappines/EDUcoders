@@ -34,12 +34,12 @@ export function InfoTooltip({ label, explanation, className = "", }) {
             if (!wrapperRef.current?.contains(e.relatedTarget)) {
                 setOpen(false);
             }
-        }} className="inline-flex h-4 w-4 items-center justify-center rounded-full text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500">
+        }} className="inline-flex h-4 w-4 items-center justify-center rounded-sm text-[#525954] hover:text-[#244C40] dark:text-[#B8C2BA] dark:hover:text-[#A7BBAA] focus:outline-none focus:ring-2 focus:ring-[#244C40]">
         <IconInfoCircle className="h-3.5 w-3.5"/>
       </button>
 
-      {open && (<span id={tooltipId} role="tooltip" className="absolute bottom-full left-1/2 z-50 mb-2 w-60 -translate-x-1/2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 px-3 py-2 text-[11px] font-normal leading-relaxed text-white shadow-lg">
-          <strong className="block font-semibold text-teal-300 mb-0.5">
+      {open && (<span id={tooltipId} role="tooltip" className="absolute bottom-full left-1/2 z-50 mb-2 w-60 -translate-x-1/2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#292E2B] dark:bg-[#1D221F] px-3 py-2 text-[11px] font-normal leading-relaxed text-[#F7F5EF] shadow-sm">
+          <strong className="block font-semibold text-[#A7BBAA] mb-0.5">
             {label}
           </strong>
           {explanation}

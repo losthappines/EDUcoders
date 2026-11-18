@@ -104,13 +104,13 @@ export function AppShell({ children }) {
         }
     }, [isProtected, authChecked, authUser, pathname, router]);
     if (!isProtected) {
-        return (<div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+        return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
         {toast && (<div className="fixed bottom-4 right-4 z-50 max-w-md">
-            <div className={`rounded-xl border px-4 py-2.5 text-xs font-semibold shadow-lg ${toast.type === "error"
-                    ? "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/90 dark:text-rose-200"
+            <div className={`rounded-sm border-l-4 px-4 py-2.5 text-xs font-semibold shadow-sm ${toast.type === "error"
+                    ? "border-[#9E4747] bg-[#F3EAE7] text-[#7A2E2E] dark:bg-[#2E1E1D] dark:text-[#F0C8C4]"
                     : toast.type === "success"
-                        ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/90 dark:text-emerald-200"
-                        : "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/90 dark:text-amber-200"}`}>
+                        ? "border-[#244C40] bg-[#EFECE3] text-[#244C40] dark:border-[#A7BBAA] dark:bg-[#1D221F] dark:text-[#A7BBAA]"
+                        : "border-[#9A6B42] bg-[#F7F5EF] text-[#292E2B] dark:bg-[#242A27] dark:text-[#F3F0E8]"}`}>
               {toast.text}
             </div>
           </div>)}
@@ -118,12 +118,12 @@ export function AppShell({ children }) {
       </div>);
     }
     if (!authChecked || !authUser || !isRoleAllowedOnPath(authUser.role, pathname)) {
-        return (<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-        <div className="max-w-sm w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-sm space-y-3">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
+        return (<div className="min-h-screen flex items-center justify-center bg-[#F7F5EF] dark:bg-[#161A18] px-4">
+        <div className="max-w-sm w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 text-center space-y-3">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
             <IconLock className="h-5 w-5"/>
           </div>
-          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+          <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
             {!authChecked
                 ? lang === "ru"
                     ? "Проверка сессии..."
@@ -142,7 +142,7 @@ export function AppShell({ children }) {
                             ? "Access restricted — redirecting"
                             : "Ruxsat cheklangan — yo'naltirilmoqda"}
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-[#525954] dark:text-[#B8C2BA]">
             {!authChecked
                 ? lang === "ru"
                     ? "Подключение к вашему защищенному кабинету..."
@@ -162,7 +162,7 @@ export function AppShell({ children }) {
                             : "Siz faqat o'zingizning rolingizga tegishli kabinetni ko'rishingiz mumkin."}
           </p>
           {authChecked && (<div className="pt-1">
-              <Link href={!authUser ? "/login" : getPortalForRole(authUser.role)} className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-teal-700 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-800 transition">
+              <Link href={!authUser ? "/login" : getPortalForRole(authUser.role)} className="inline-flex min-h-[44px] items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-4 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] transition-colors">
                 {!authUser
                     ? lang === "ru"
                         ? "Перейти ко входу"
@@ -183,44 +183,44 @@ export function AppShell({ children }) {
         ? {
             badge: t.patientBadge,
             subtitle: t.patientSub,
-            icon: <IconHeartHandshake className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+            icon: <IconHeartHandshake className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
         }
         : authUser.role === "OVABMU_MD"
             ? {
                 badge: t.ovabmuBadge,
                 subtitle: t.ovabmuSub,
-                icon: <IconBuildingHospital className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+                icon: <IconBuildingHospital className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
             }
             : authUser.role === "FAMILY_MD"
                 ? {
                     badge: t.familyBadge,
                     subtitle: t.familySub,
-                    icon: <IconStethoscope className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+                    icon: <IconStethoscope className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
                 }
                 : {
                     badge: t.adminBadge,
                     subtitle: t.adminSub,
-                    icon: <IconShieldCheck className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+                    icon: <IconShieldCheck className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
                 };
-    return (<div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+    return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] transition-colors duration-200">
       {/* Strictly Role-Isolated Portal Header (Responsive at 375px) */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors duration-200">
+      <header className="border-b border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] transition-colors duration-200">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <Link href="/" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs hover:bg-teal-800 transition" title="OnaCare">
+            <Link href="/" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF] hover:bg-[#1B3A31] transition-colors" title="OnaCare">
               <IconHeartHandshake className="h-5 w-5"/>
             </Link>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <Link href="/" className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 hover:text-teal-700 dark:hover:text-teal-400 truncate">
+                <Link href="/" className="font-heading text-base font-semibold tracking-tight text-[#292E2B] dark:text-[#F3F0E8] hover:text-[#244C40] dark:hover:text-[#A7BBAA] truncate">
                   OnaCare
                 </Link>
-                <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[11px] font-semibold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 whitespace-nowrap">
+                <span className="inline-flex items-center gap-1 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2 py-0.5 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733] whitespace-nowrap">
                   {portalMeta.icon}
                   <span className="truncate max-w-[125px] sm:max-w-none">{portalMeta.badge}</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block truncate">
+              <p className="text-xs text-[#525954] dark:text-[#B8C2BA] hidden sm:block truncate">
                 {portalMeta.subtitle}
               </p>
             </div>
@@ -228,21 +228,21 @@ export function AppShell({ children }) {
 
           {/* Desktop actions */}
           <div className="hidden md:flex items-center gap-2 text-xs shrink-0">
-            <Link href="/telegram" className="inline-flex items-center gap-1 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 px-2.5 py-1.5 font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition">
+            <Link href="/telegram" className="inline-flex items-center gap-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-1.5 font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors">
               <IconBrandTelegram className="h-3.5 w-3.5"/>
               <span className="hidden xl:inline">Telegram Bot</span>
             </Link>
             <LanguageSwitcher />
             <ThemeToggle />
-            <span className="hidden lg:inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-              <IconLock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+            <span className="hidden lg:inline-flex items-center gap-1 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-1 font-medium text-[#292E2B] dark:text-[#F3F0E8] border border-[#DDD8CC] dark:border-[#2F3733]">
+              <IconLock className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
               <InfoTooltip label={t.privateBadge} explanation={t.privateTooltip}/>
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              <IconUserCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"/>
+            <span className="inline-flex items-center gap-1.5 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1 font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#A7BBAA] dark:border-[#6E8572]">
+              <IconUserCheck className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
               {authUser.fullName}
             </span>
-            <button type="button" onClick={logout} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition">
+            <button type="button" onClick={logout} className="inline-flex items-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-1.5 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors">
               <IconLogout className="h-3.5 w-3.5"/>
               {t.signOut}
             </button>
@@ -251,30 +251,30 @@ export function AppShell({ children }) {
           {/* Mobile actions */}
           <div className="flex md:hidden items-center gap-1.5 shrink-0">
             <ThemeToggle />
-            <button type="button" onClick={() => setMobileMenuOpen((v) => !v)} aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close portal menu" : "Open portal menu"} className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            <button type="button" onClick={() => setMobileMenuOpen((v) => !v)} aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close portal menu" : "Open portal menu"} className="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors">
               {mobileMenuOpen ? <IconX className="h-5 w-5"/> : <IconMenu2 className="h-5 w-5"/>}
             </button>
           </div>
         </div>
 
         {/* Mobile Drawer */}
-        {mobileMenuOpen && (<div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 space-y-3 text-xs">
+        {mobileMenuOpen && (<div className="md:hidden border-t border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-4 py-3 space-y-3 text-xs">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 font-semibold text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                <IconUserCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"/>
+              <span className="inline-flex items-center gap-1.5 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1 font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#A7BBAA] dark:border-[#6E8572]">
+                <IconUserCheck className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
                 {authUser.fullName}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                <IconLock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400"/>
+              <span className="inline-flex items-center gap-1 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-1 font-medium text-[#292E2B] dark:text-[#F3F0E8] border border-[#DDD8CC] dark:border-[#2F3733]">
+                <IconLock className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
                 {t.privateBadge}
               </span>
             </div>
-            <Link href="/telegram" onClick={() => setMobileMenuOpen(false)} className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 px-3 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300">
+            <Link href="/telegram" onClick={() => setMobileMenuOpen(false)} className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA]">
               <IconBrandTelegram className="h-4 w-4"/>
               Telegram Bot
             </Link>
             <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold text-slate-500 dark:text-slate-400">
+              <span className="font-semibold text-[#525954] dark:text-[#B8C2BA]">
                 {t.languageLabel}
               </span>
               <LanguageSwitcher />
@@ -282,21 +282,21 @@ export function AppShell({ children }) {
             <button type="button" onClick={() => {
                 setMobileMenuOpen(false);
                 logout();
-            }} className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            }} className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors">
               <IconLogout className="h-3.5 w-3.5"/>
               {t.signOut}
             </button>
-            {authUser.role === "ADMIN_RECEPTION" && (<div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className={`min-h-[44px] inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold border transition ${pathname === "/admin"
-                    ? "border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
-                    : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"}`}>
+            {authUser.role === "ADMIN_RECEPTION" && (<div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+                <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className={`min-h-[44px] inline-flex items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold border transition-colors ${pathname === "/admin"
+                    ? "border-[#244C40] bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
+                    : "border-[#DDD8CC] dark:border-[#2F3733] text-[#292E2B] dark:text-[#F3F0E8]"}`}>
                   {t.adminOverviewNav}
                 </Link>
-                <Link href="/admin/verifications" onClick={() => setMobileMenuOpen(false)} className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold border transition ${pathname.startsWith("/admin/verifications")
-                    ? "border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
-                    : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"}`}>
+                <Link href="/admin/verifications" onClick={() => setMobileMenuOpen(false)} className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-xs font-semibold border transition-colors ${pathname.startsWith("/admin/verifications")
+                    ? "border-[#244C40] bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
+                    : "border-[#DDD8CC] dark:border-[#2F3733] text-[#292E2B] dark:text-[#F3F0E8]"}`}>
                   {t.adminVerificationsNav}
-                  {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className="rounded-full bg-amber-600 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+                  {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className="rounded-sm bg-[#244C40] px-1.5 py-0.5 text-[10px] font-bold text-[#F7F5EF] leading-none">
                       {data?.pendingVerificationsCount}
                     </span>)}
                 </Link>
@@ -304,22 +304,22 @@ export function AppShell({ children }) {
           </div>)}
 
         {/* Admin Dashboard Sub-Navigation Bar */}
-        {authUser.role === "ADMIN_RECEPTION" && (<nav aria-label="Admin dashboard navigation" className="hidden md:block border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70">
+        {authUser.role === "ADMIN_RECEPTION" && (<nav aria-label="Admin dashboard navigation" className="hidden md:block border-t border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/70 dark:bg-[#242A27]">
             <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-2">
-              <Link href="/admin" className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${pathname === "/admin"
-                ? "bg-teal-700 text-white shadow-xs"
-                : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800"}`}>
+              <Link href="/admin" className={`inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors ${pathname === "/admin"
+                ? "bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]"
+                : "text-[#525954] dark:text-[#B8C2BA] hover:bg-[#DDD8CC]/60 dark:hover:bg-[#1D221F]"}`}>
                 <IconShieldCheck className="h-3.5 w-3.5"/>
                 {t.adminOverviewNav}
               </Link>
-              <Link href="/admin/verifications" className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${pathname.startsWith("/admin/verifications")
-                ? "bg-teal-700 text-white shadow-xs"
-                : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800"}`}>
+              <Link href="/admin/verifications" className={`inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-xs font-semibold transition-colors ${pathname.startsWith("/admin/verifications")
+                ? "bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]"
+                : "text-[#525954] dark:text-[#B8C2BA] hover:bg-[#DDD8CC]/60 dark:hover:bg-[#1D221F]"}`}>
                 <IconUserCheck className="h-3.5 w-3.5"/>
                 {t.adminVerificationsNav}
-                {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${pathname.startsWith("/admin/verifications")
-                    ? "bg-white text-teal-800"
-                    : "bg-amber-600 text-white"}`}>
+                {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold leading-none ${pathname.startsWith("/admin/verifications")
+                    ? "bg-[#F7F5EF] text-[#244C40]"
+                    : "bg-[#244C40] text-[#F7F5EF]"}`}>
                     {data?.pendingVerificationsCount}
                   </span>)}
               </Link>
@@ -328,11 +328,11 @@ export function AppShell({ children }) {
       </header>
 
       {toast && (<div className="mx-auto mt-3 w-full max-w-7xl px-4">
-          <div className={`rounded-xl border px-4 py-2.5 text-xs font-semibold shadow-sm ${toast.type === "error"
-                ? "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/80 dark:text-rose-200"
+          <div className={`rounded-sm border-l-4 px-4 py-2.5 text-xs font-semibold ${toast.type === "error"
+                ? "border-[#9E4747] bg-[#F3EAE7] text-[#7A2E2E] dark:bg-[#2E1E1D] dark:text-[#F0C8C4]"
                 : toast.type === "success"
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-200"
-                    : "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/80 dark:text-amber-200"}`}>
+                    ? "border-[#244C40] bg-[#EFECE3] text-[#244C40] dark:border-[#A7BBAA] dark:bg-[#1D221F] dark:text-[#A7BBAA]"
+                    : "border-[#9A6B42] bg-[#FFFFFF] text-[#292E2B] dark:bg-[#242A27] dark:text-[#F3F0E8]"}`}>
             {toast.text}
           </div>
         </div>)}

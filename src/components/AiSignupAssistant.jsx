@@ -241,24 +241,24 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
         value: draft.password.length >= 6 ? t.passwordSet : "",
         filled: draft.password.length >= 6,
     });
-    return (<div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    return (<div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
       {/* Conversational AI Chat Panel */}
-      <div className="lg:col-span-7 flex flex-col rounded-2xl border border-teal-200 dark:border-teal-800/80 bg-slate-50/70 dark:bg-slate-950/60 overflow-hidden">
-        <div className="flex items-center justify-between gap-2 border-b border-teal-200/70 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3">
+      <div className="lg:col-span-7 flex flex-col rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] overflow-hidden">
+        <div className="flex items-center justify-between gap-2 border-b border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-4 py-3.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]">
               <IconSparkles className="h-4 w-4"/>
             </div>
             <div className="min-w-0">
-              <h2 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+              <h2 className="font-heading text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] truncate">
                 {t.headerTitle}
               </h2>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] truncate">
                 {t.headerSub}
               </p>
             </div>
           </div>
-          <button type="button" onClick={handleRestart} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition shrink-0">
+          <button type="button" onClick={handleRestart} className="inline-flex min-h-[34px] items-center gap-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-1 text-[11px] font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors shrink-0">
             <IconRefresh className="h-3 w-3"/>
             {t.restartBtn}
           </button>
@@ -266,40 +266,40 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
 
         <div ref={scrollContainerRef} className="flex-1 max-h-[340px] min-h-[260px] overflow-y-auto p-4 space-y-3">
           {messages.map((msg) => (<div key={msg.id} className={`flex items-start gap-2.5 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-              {msg.sender === "ai" && (<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+              {msg.sender === "ai" && (<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
                   <IconRobot className="h-4 w-4"/>
                 </div>)}
-              <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${msg.sender === "user"
-                ? "bg-teal-700 text-white rounded-br-sm"
-                : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-bl-sm shadow-2xs"}`}>
+              <div className={`max-w-[85%] rounded-sm px-3.5 py-2.5 text-xs leading-relaxed ${msg.sender === "user"
+                ? "bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]"
+                : "bg-[#FFFFFF] dark:bg-[#1D221F] text-[#292E2B] dark:text-[#F3F0E8] border border-[#DDD8CC] dark:border-[#2F3733]"}`}>
                 {msg.text}
               </div>
             </div>))}
 
           {stepPrompt.chips.length > 0 && !isComplete && (<div className="flex flex-wrap gap-1.5 pl-9 pt-1">
-              {stepPrompt.chips.map((chip) => (<button key={chip.value} type="button" onClick={() => submitAnswer(chip.value, chip.label)} className="min-h-[38px] rounded-full border border-teal-300 dark:border-teal-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/70 transition">
+              {stepPrompt.chips.map((chip) => (<button key={chip.value} type="button" onClick={() => submitAnswer(chip.value, chip.label)} className="min-h-[38px] rounded-sm border border-[#A7BBAA] dark:border-[#6E8572] bg-[#FFFFFF] dark:bg-[#1D221F] px-3 py-1.5 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors">
                   {chip.label}
                 </button>))}
             </div>)}
         </div>
 
-        {error && (<div className="mx-3 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/70 px-3 py-2 text-xs text-rose-800 dark:text-rose-200">
+        {error && (<div className="mx-3 mb-2 flex flex-wrap items-center justify-between gap-2 border-l-4 border-[#9E4747] bg-[#F3EAE7] dark:bg-[#2E1E1D] px-3.5 py-2.5 text-xs text-[#7A2E2E] dark:text-[#F0C8C4]">
             <span className="inline-flex items-center gap-1.5 font-semibold">
               <IconAlertTriangle className="h-4 w-4 shrink-0"/>
               {error}
             </span>
-            <button type="button" onClick={handleChangeEmail} className="rounded-lg bg-white dark:bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-700 hover:bg-rose-100 transition">
+            <button type="button" onClick={handleChangeEmail} className="rounded-sm bg-[#FFFFFF] dark:bg-[#1D221F] px-2.5 py-1.5 text-[11px] font-semibold text-[#7A2E2E] dark:text-[#F0C8C4] border border-[#D9B8AE] dark:border-[#7A2E2E] hover:bg-[#F7F5EF] transition-colors">
               {t.changeEmailBtn}
             </button>
           </div>)}
 
-        <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
+        <div className="border-t border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-3">
           {isComplete ? (<div className="flex flex-col sm:flex-row gap-2">
-              <button type="button" disabled={busy} onClick={() => onCreateAccount(draft)} className="flex-1 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50 transition">
+              <button type="button" disabled={busy} onClick={() => onCreateAccount(draft)} className="flex-1 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-4 py-2.5 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-50 transition-colors">
                 <IconUserPlus className="h-4 w-4"/>
                 {busy ? t.creatingBtn : t.createBtn}
               </button>
-              <button type="button" onClick={() => onSwitchToForm(draft)} className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+              <button type="button" onClick={() => onSwitchToForm(draft)} className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3.5 py-2.5 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors">
                 <IconEdit className="h-3.5 w-3.5"/>
                 {t.editInFormBtn}
               </button>
@@ -313,42 +313,42 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
                     ? "email"
                     : stepPrompt.step === "phone"
                         ? "tel"
-                        : "off"} value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={stepPrompt.placeholder} className="min-h-[44px] flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
-              <button type="submit" disabled={!inputValue.trim()} aria-label={t.sendAria} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white hover:bg-teal-800 disabled:opacity-40 transition">
+                        : "off"} value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={stepPrompt.placeholder} className="min-h-[44px] flex-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF]/60 dark:bg-[#161A18] px-3.5 py-2 text-xs sm:text-sm text-[#292E2B] dark:text-[#F3F0E8] placeholder:text-[#767E78] focus:border-[#244C40] dark:focus:border-[#A7BBAA] focus:outline-none transition-colors"/>
+              <button type="submit" disabled={!inputValue.trim()} aria-label={t.sendAria} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] disabled:opacity-40 transition-colors">
                 <IconSend className="h-4 w-4"/>
               </button>
             </form>)}
         </div>
       </div>
 
-      {/* Live Auto-Filled Profile Preview Card */}
-      <div className="lg:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col justify-between space-y-4">
+      {/* Live Auto-Filled Profile Summary Panel */}
+      <div className="lg:col-span-5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/50 dark:bg-[#1D221F] p-5 flex flex-col justify-between space-y-4">
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+            <h3 className="font-heading text-xs font-semibold uppercase tracking-[0.08em] text-[#292E2B] dark:text-[#F3F0E8]">
               {t.previewTitle}
             </h3>
-            <span className="rounded-full bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 text-[11px] font-bold text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+            <span className="border border-[#A7BBAA] dark:border-[#6E8572] bg-[#FFFFFF] dark:bg-[#161A18] px-2 py-0.5 font-mono text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA]">
               {t.progressLabel}: {progress}%
             </span>
           </div>
 
-          <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-            <div className="h-full rounded-full bg-teal-600 transition-all duration-300" style={{ width: `${progress}%` }}/>
+          <div className="h-1.5 w-full bg-[#DDD8CC] dark:bg-[#2F3733] overflow-hidden">
+            <div className="h-full bg-[#244C40] dark:bg-[#A7BBAA] transition-all duration-300" style={{ width: `${progress}%` }}/>
           </div>
 
-          <dl className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+          <dl className="divide-y divide-[#DDD8CC] dark:divide-[#2F3733] text-xs">
             {summaryRows.map((row) => (<div key={row.label} className="flex items-center justify-between gap-2 py-2">
-                <dt className="text-slate-500 dark:text-slate-400 shrink-0">
+                <dt className="text-[#525954] dark:text-[#B8C2BA] shrink-0">
                   {row.label}
                 </dt>
                 <dd className="flex items-center gap-1.5 font-semibold text-right truncate">
                   {row.filled ? (<>
-                      <span className="text-slate-900 dark:text-slate-100 truncate max-w-[170px]">
+                      <span className="text-[#292E2B] dark:text-[#F3F0E8] truncate max-w-[170px]">
                         {row.value}
                       </span>
-                      <IconCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"/>
-                    </>) : (<span className="text-slate-400 dark:text-slate-600 font-normal italic">
+                      <IconCheck className="h-3.5 w-3.5 shrink-0 text-[#244C40] dark:text-[#A7BBAA]"/>
+                    </>) : (<span className="text-[#767E78] dark:text-[#8E9890] font-normal italic">
                       {t.pendingAnswer}
                     </span>)}
                 </dd>
@@ -356,10 +356,10 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
           </dl>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
           <GpsConsentButton
             label={t.shareGpsBtn}
-            className="w-full inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 px-3 py-2 text-xs font-semibold text-sky-800 dark:text-sky-200 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition"
+            className="w-full inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#244C40] dark:border-[#A7BBAA] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors"
             onLocationCaptured={({ latitude, longitude }) => {
               const updated = { ...draft, latitude, longitude };
               setDraft(updated);
@@ -368,11 +368,11 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
             }}
             onError={() => setGpsNotice(t.gpsError)}
           />
-          {gpsNotice && (<p className="inline-flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
-              <IconMapPin className="h-3 w-3 shrink-0 text-sky-600"/>
+          {gpsNotice && (<p className="inline-flex items-center gap-1 text-[11px] text-[#525954] dark:text-[#B8C2BA]">
+              <IconMapPin className="h-3 w-3 shrink-0 text-[#244C40] dark:text-[#A7BBAA]"/>
               {gpsNotice}
             </p>)}
-          <button type="button" onClick={() => onSwitchToForm(draft)} className="w-full inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/60 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <button type="button" onClick={() => onSwitchToForm(draft)} className="w-full inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors">
             <IconEdit className="h-3.5 w-3.5"/>
             {t.editInFormBtn}
           </button>

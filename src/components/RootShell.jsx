@@ -1,4 +1,4 @@
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Lora, Manrope } from "next/font/google";
 import { PlatformProvider } from "@/context/PlatformContext";
 import { RouteLanguageProvider } from "@/context/LanguageContext";
 import { AppShell } from "@/components/AppShell";
@@ -7,9 +7,22 @@ import {
   TelemetryAndErrorMonitor,
 } from "@/components/TelemetryAndErrorMonitor";
 
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin", "cyrillic"],
+  display: "swap",
+});
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin", "cyrillic"],
+  display: "swap",
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin", "cyrillic"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -26,13 +39,13 @@ export function RootShell({ lang = "uz", children }) {
     <html
       lang={lang}
       suppressHydrationWarning
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${manrope.variable} ${inter.variable} ${lora.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       {/* eslint-disable-next-line @next/next/no-head-element */}
       <head>
         <script dangerouslySetInnerHTML={{ __html: CLIENT_PREFS_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-200">
+      <body className="min-h-full bg-[#F7F5EF] text-[#292E2B] dark:bg-[#161A18] dark:text-[#F3F0E8] font-sans transition-colors duration-200">
         <SafeErrorBoundary>
           <RouteLanguageProvider initialLang={lang}>
             <PlatformProvider>

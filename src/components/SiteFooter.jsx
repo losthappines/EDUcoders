@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { IconBrandTelegram, IconHeartHandshake, IconLock, IconMail, IconPhoneCall } from "@tabler/icons-react";
+import { IconBrandTelegram, IconLock, IconMail, IconPhoneCall } from "@tabler/icons-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 const FOOTER_COPY = {
@@ -66,47 +66,46 @@ export function SiteFooter() {
   const t = FOOTER_COPY[lang] || FOOTER_COPY.uz;
 
   return (
-    <footer className="border-t border-slate-800 bg-slate-950 text-slate-300">
-      <div className="mx-auto max-w-7xl px-4 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-xs">
+    <footer className="border-t border-[#DDD8CC] dark:border-[#2F3632] bg-[#EFECE3] dark:bg-[#1D221F] text-[#292E2B] dark:text-[#F3F0E8]">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 text-xs">
         {/* Brand & Emergency summary */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-white font-bold text-sm">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white shrink-0">
-              <IconHeartHandshake className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <span>{t.brand}</span>
+        <div className="lg:col-span-4 space-y-4">
+          <div className="font-heading text-base font-bold tracking-tight text-[#244C40] dark:text-[#F3F0E8]">
+            {t.brand}
           </div>
-          <p className="text-slate-400 leading-relaxed">{t.tagline}</p>
+          <p className="text-[#525954] dark:text-[#B6BCB6] leading-relaxed max-w-xs">
+            {t.tagline}
+          </p>
           <a
             href="tel:103"
-            className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg bg-rose-900/60 border border-rose-700/70 px-3 py-1.5 font-bold text-rose-200 hover:bg-rose-900 transition"
+            className="inline-flex min-h-[40px] items-center gap-2 rounded-sm border border-[#7A2E2E]/40 dark:border-[#C89E92]/40 bg-[#F3EAE7] dark:bg-[#2A201E] px-3.5 py-2 font-semibold text-[#7A2E2E] dark:text-[#F4C9C2] hover:bg-[#EBDBD6] dark:hover:bg-[#352825] transition-colors"
           >
-            <IconPhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
+            <IconPhoneCall className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             103 — Emergency
           </a>
         </div>
 
         {/* Contact & Support */}
-        <div className="space-y-2.5">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+        <div className="lg:col-span-3 space-y-3">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#525954] dark:text-[#B6BCB6]">
             {t.contactHeading}
           </h3>
-          <ul className="space-y-2 text-slate-300">
+          <ul className="space-y-2.5 text-[#292E2B] dark:text-[#F3F0E8]">
             <li>
-              <a href="tel:+998712001030" className="inline-flex items-center gap-1.5 hover:text-teal-300 transition py-0.5">
-                <IconPhoneCall className="h-3.5 w-3.5 text-teal-400 shrink-0" aria-hidden="true" />
+              <a href="tel:+998712001030" className="inline-flex items-center gap-2 hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
+                <IconPhoneCall className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
                 {t.helplineLabel}
               </a>
             </li>
             <li>
-              <a href="mailto:support@onacare.uz" className="inline-flex items-center gap-1.5 hover:text-teal-300 transition py-0.5">
-                <IconMail className="h-3.5 w-3.5 text-teal-400 shrink-0" aria-hidden="true" />
+              <a href="mailto:support@onacare.uz" className="inline-flex items-center gap-2 hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
+                <IconMail className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
                 support@onacare.uz
               </a>
             </li>
             <li>
-              <Link href="/telegram" className="inline-flex items-center gap-1.5 hover:text-sky-300 transition py-0.5">
-                <IconBrandTelegram className="h-3.5 w-3.5 text-sky-400 shrink-0" aria-hidden="true" />
+              <Link href="/telegram" className="inline-flex items-center gap-2 hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
+                <IconBrandTelegram className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
                 {t.supportTgLabel}
               </Link>
             </li>
@@ -114,23 +113,23 @@ export function SiteFooter() {
         </div>
 
         {/* Legal & Data Trust */}
-        <div className="space-y-2.5">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+        <div className="lg:col-span-2 space-y-3">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#525954] dark:text-[#B6BCB6]">
             {t.legalHeading}
           </h3>
-          <ul className="space-y-2 text-slate-300">
+          <ul className="space-y-2.5 text-[#292E2B] dark:text-[#F3F0E8]">
             <li>
-              <Link href="/privacy" className="inline-block hover:text-teal-300 transition py-0.5">
+              <Link href="/privacy" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
                 {t.privacy}
               </Link>
             </li>
             <li>
-              <Link href="/privacy#data-handling" className="inline-block hover:text-teal-300 transition py-0.5">
+              <Link href="/privacy#data-handling" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
                 {t.dataHandling}
               </Link>
             </li>
             <li>
-              <Link href="/terms" className="inline-block hover:text-teal-300 transition py-0.5">
+              <Link href="/terms" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
                 {t.terms}
               </Link>
             </li>
@@ -138,45 +137,45 @@ export function SiteFooter() {
         </div>
 
         {/* For Professionals & Languages */}
-        <div className="space-y-2.5">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+        <div className="lg:col-span-3 space-y-3">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#525954] dark:text-[#B6BCB6]">
             {t.professionalsHeading}
           </h3>
-          <ul className="space-y-2 text-slate-300">
+          <ul className="space-y-2.5 text-[#292E2B] dark:text-[#F3F0E8]">
             <li>
-              <Link href="/login" className="inline-block hover:text-teal-300 transition py-0.5">
+              <Link href="/login" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
                 {t.doctorLogin}
               </Link>
             </li>
             <li>
-              <Link href="/login" className="inline-block hover:text-teal-300 transition py-0.5">
+              <Link href="/login" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
                 {t.coordinatorLogin}
               </Link>
             </li>
             <li>
-              <Link href="/technology" className="inline-block hover:text-teal-300 transition py-0.5">
+              <Link href="/technology" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
                 {t.techArch}
               </Link>
             </li>
             <li>
-              <Link href="/telegram" className="inline-block hover:text-sky-300 transition py-0.5">
+              <Link href="/telegram" className="inline-block hover:text-[#244C40] dark:hover:text-[#A7BBAA] transition-colors py-0.5">
                 {t.botConsole}
               </Link>
             </li>
           </ul>
-          <div className="pt-2 flex flex-wrap items-center gap-2 text-[11px]">
-            <span className="text-slate-400">{t.languagesHeading}:</span>
-            <Link href="/" className="hover:text-white underline">O&apos;zbekcha</Link>
-            <Link href="/ru" className="hover:text-white underline">Русский</Link>
-            <Link href="/en" className="hover:text-white underline">English</Link>
+          <div className="pt-2 flex flex-wrap items-center gap-3 text-[11px] text-[#525954] dark:text-[#B6BCB6]">
+            <span>{t.languagesHeading}:</span>
+            <Link href="/" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] underline underline-offset-4">O&apos;zbekcha</Link>
+            <Link href="/ru" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] underline underline-offset-4">Русский</Link>
+            <Link href="/en" className="hover:text-[#244C40] dark:hover:text-[#F3F0E8] underline underline-offset-4">English</Link>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-slate-900 bg-slate-950/80 py-4 px-4">
-        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400">
+      <div className="border-t border-[#DDD8CC] dark:border-[#2F3632] py-5 px-5 sm:px-8">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#525954] dark:text-[#B6BCB6]">
           <span className="inline-flex items-center gap-1.5">
-            <IconLock className="h-3.5 w-3.5 text-teal-400 shrink-0" aria-hidden="true" />
+            <IconLock className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA] shrink-0" aria-hidden="true" />
             {t.copyright}
           </span>
           <span>© 2026 OnaCare</span>

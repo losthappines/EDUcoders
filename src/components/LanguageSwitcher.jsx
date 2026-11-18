@@ -29,9 +29,9 @@ export function LanguageSwitcher({ className = "" }) {
     <div
       role="group"
       aria-label="Language switcher"
-      className={`inline-flex items-center gap-0.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-0.5 ${className}`}
+      className={`inline-flex items-center border border-[#DDD8CC] dark:border-[#2F3632] bg-[#EFECE3] dark:bg-[#242A27] p-0.5 rounded-sm ${className}`}
     >
-      <IconWorld className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300 ml-1.5 mr-0.5 shrink-0" aria-hidden="true" />
+      <IconWorld className="h-3.5 w-3.5 text-[#525954] dark:text-[#B6BCB6] mx-1.5 shrink-0" aria-hidden="true" />
       {LANG_OPTIONS.map((opt) => {
         const active = lang === opt.code;
         return (
@@ -41,10 +41,10 @@ export function LanguageSwitcher({ className = "" }) {
             title={opt.title}
             onClick={() => handleSelect(opt.code)}
             aria-pressed={active}
-            className={`min-h-[36px] min-w-[36px] sm:min-h-[30px] sm:min-w-[30px] rounded-lg px-2 py-1 text-[11px] font-bold uppercase transition ${
+            className={`min-h-[36px] min-w-[36px] sm:min-h-[30px] sm:min-w-[30px] rounded-xs px-2 py-1 text-[11px] font-semibold tracking-wider uppercase transition-colors ${
               active
-                ? "bg-teal-700 text-white shadow-2xs"
-                : "text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white"
+                ? "bg-[#244C40] text-[#F7F5EF] dark:bg-[#2C5B4D]"
+                : "text-[#525954] dark:text-[#B6BCB6] hover:text-[#292E2B] dark:hover:text-[#F3F0E8]"
             }`}
           >
             {opt.label}

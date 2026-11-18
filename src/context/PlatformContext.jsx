@@ -217,7 +217,13 @@ export function PlatformProvider({ children }) {
                     : l === "en"
                         ? "Account submitted! Awaiting administrator verification."
                         : "Arizangiz yuborildi! Administrator tasdig'ini kuting.");
-                return { ok: true, pendingVerification: true };
+                return {
+                    ok: true,
+                    pendingVerification: true,
+                    telegramLinkToken: out.telegramLinkToken || null,
+                    telegramBotUsername: out.telegramBotUsername || null,
+                    telegramDeepLink: out.telegramDeepLink || null,
+                };
             }
             setAuthUser({
                 userId: out.user.id,
@@ -236,7 +242,13 @@ export function PlatformProvider({ children }) {
                     ? `Account created: ${out.user.fullName}`
                     : `Hisob yaratildi: ${out.user.fullName}`);
             router.push(out.redirectTo || "/");
-            return { ok: true, pendingVerification: false };
+            return {
+                ok: true,
+                pendingVerification: false,
+                telegramLinkToken: out.telegramLinkToken || null,
+                telegramBotUsername: out.telegramBotUsername || null,
+                telegramDeepLink: out.telegramDeepLink || null,
+            };
         }
         catch {
             return {

@@ -339,7 +339,7 @@ export default function ClinicalDashboardPage() {
     const { role, authUser, data, loading, fetchWithAuth, refreshData, showToast, dataLoadedAtMs, } = usePlatform();
     const { lang } = useLanguage();
     const t = CLINICAL_COPY[lang];
-    const [selectedPatientId, setSelectedPatientId] = useState("pat-malika");
+    const [selectedPatientId, setSelectedPatientId] = useState("");
     const [selectedCallId, setSelectedCallId] = useState("");
     const [selectedComplaintId, setSelectedComplaintId] = useState("");
     const [profileOpen, setProfileOpen] = useState(false);

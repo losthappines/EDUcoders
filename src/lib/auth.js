@@ -279,6 +279,55 @@ export function clearSessionCookie(res) {
     res.cookies.delete("patronaj_role");
     res.cookies.delete("patronaj_user_id");
 }
+export function createTelegramLinkToken(userId) {
+    if (!userId || typeof userId !== "string")
+        return "";
+    const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
+    const exp36 = exp.toString(36);
+    const sig = crypto
+        .createHmac("sha256", SESSION_SECRET)
+        .update(`tglink:${userId}:${exp36}`)
+        .digest("hex")
+        .slice(0, 16);
+    return `link_${userId}_${exp36}_${sig}`;
+}
+export function verifyTelegramLinkToken(rawToken) {
+    if (typeof rawToken !== "string" || !rawToken)
+        return null;
+    const trimmed = rawToken.trim();
+    const body = trimmed.startsWith("link_") ? trimmed.slice(5) : trimmed;
+    const lastIdx = body.lastIndexOf("_");
+    if (lastIdx <= 0)
+        return null;
+    const prevIdx = body.lastIndexOf("_", lastIdx - 1);
+    if (prevIdx <= 0)
+        return null;
+    const userId = body.slice(0, prevIdx);
+    const exp36 = body.slice(prevIdx + 1, lastIdx);
+    const sig = body.slice(lastIdx + 1);
+    if (!userId || !exp36 || !sig || sig.length !== 16)
+        return null;
+    const expectedSig = crypto
+        .createHmac("sha256", SESSION_SECRET)
+        .update(`tglink:${userId}:${exp36}`)
+        .digest("hex")
+        .slice(0, 16);
+    try {
+        const sigBuf = Buffer.from(sig, "utf8");
+        const expectedBuf = Buffer.from(expectedSig, "utf8");
+        if (sigBuf.length !== expectedBuf.length)
+            return null;
+        if (!crypto.timingSafeEqual(sigBuf, expectedBuf))
+            return null;
+        const exp = parseInt(exp36, 36);
+        if (!Number.isFinite(exp) || exp < Math.floor(Date.now() / 1000))
+            return null;
+        return { userId, exp };
+    }
+    catch {
+        return null;
+    }
+}
 export function getPortalPathForRole(role) {
     switch (role) {
         case "PATIENT":

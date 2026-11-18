@@ -1,9 +1,76 @@
 import { prisma } from "@/lib/db";
 import { decryptField, encryptField } from "@/lib/crypto";
-import { verifyPassword, hashPassword } from "@/lib/auth";
+import { verifyPassword, hashPassword, verifyTelegramLinkToken } from "@/lib/auth";
 import { haversineDistanceKm, matchNearestDoctor, resolveCoordinatesForLocation, VISIT_DESTINATION_OPTIONS } from "@/lib/geo";
 import { getPlanByCode, formatUzs } from "@/lib/subscriptions";
 import { resolvePolyclinicForLocation } from "@/lib/uz-locations";
+
+export async function getTelegramBotUsername() {
+  try {
+    const state = await prisma.systemSimState.findUnique({ where: { id: "singleton" } });
+    if (state?.telegramBotUsername) {
+      return state.telegramBotUsername.replace(/^@/, "");
+    }
+  } catch {
+    // ignore if table not ready yet
+  }
+  return (process.env.TELEGRAM_BOT_USERNAME || "OnaCarePatronajBot").replace(/^@/, "");
+}
+
+export async function linkTelegramChatToUser({ chatId, userId, tgUsername = null }) {
+  const strChatId = String(chatId);
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { patientProfile: true },
+  });
+  if (!existingUser) return null;
+
+  await prisma.$transaction(async (tx) => {
+    // Clear chatId from any other user holding it to respect @unique constraint
+    await tx.user.updateMany({
+      where: { telegramChatId: strChatId, id: { not: userId } },
+      data: { telegramChatId: null },
+    });
+    await tx.patient.updateMany({
+      where: { telegramChatId: strChatId, userId: { not: userId } },
+      data: { telegramChatId: null },
+    });
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        telegramChatId: strChatId,
+        ...(tgUsername ? { telegramHandle: `@${String(tgUsername).replace(/^@/, "")}` } : {}),
+      },
+    });
+    if (existingUser.patientProfile) {
+      await tx.patient.update({
+        where: { id: existingUser.patientProfile.id },
+        data: { telegramChatId: strChatId },
+      });
+    }
+    await tx.telegramSession.upsert({
+      where: { chatId: strChatId },
+      update: { userId, flowState: "IDLE", draftJson: "{}" },
+      create: {
+        chatId: strChatId,
+        userId,
+        telegramUsername: tgUsername || null,
+        flowState: "IDLE",
+        draftJson: "{}",
+        historyJson: "[]",
+      },
+    });
+  });
+
+  return prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      patientProfile: {
+        include: { assignedFamilyDoctor: true },
+      },
+    },
+  });
+}
 
 export async function getTelegramBotToken() {
   const envToken = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
@@ -239,6 +306,207 @@ export async function sendDoctorVisitReminders() {
   };
 }
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function formatRoleLabel(role) {
+  switch (role) {
+    case "PATIENT":
+      return "Bemor / Ona";
+    case "FAMILY_MD":
+      return "Oilaviy shifokor / Hamshira";
+    case "OVABMU_MD":
+      return "Tug'ruqxona shifokori (OvaBMU)";
+    case "ADMIN_RECEPTION":
+      return "Poliklinika koordinatori (Admin)";
+    default:
+      return role || "Foydalanuvchi";
+  }
+}
+
+function formatVerificationLabel(status) {
+  if (status === "VERIFIED") return "✅ Tasdiqlangan (Faol)";
+  if (status === "REJECTED") return "❌ Rad etilgan";
+  return "⏳ Administrator tasdig'ini kutmoqda";
+}
+
+async function buildUserProfileMessage(user) {
+  if (!user) {
+    return buildMainMenuForUser(null);
+  }
+
+  const freshUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    include: {
+      patientProfile: {
+        include: {
+          assignedFamilyDoctor: {
+            select: { fullName: true, specialty: true, phone: true },
+          },
+        },
+      },
+    },
+  });
+  const u = freshUser || user;
+  const subExpiry = u.subscriptionExpiresAt
+    ? new Date(u.subscriptionExpiresAt).toISOString().slice(0, 10)
+    : null;
+  const gpsText =
+    typeof u.latitude === "number" && typeof u.longitude === "number"
+      ? `${u.latitude.toFixed(4)}, ${u.longitude.toFixed(4)}`
+      : "Ulashilmagan";
+
+  const lines = [
+    `👤 <b>Mening Profilim va Asosiy Ma'lumotlarim</b>`,
+    ``,
+    `• <b>F.I.O.:</b> ${escapeHtml(u.fullName)}`,
+    `• <b>Rol:</b> ${formatRoleLabel(u.role)}`,
+    `• <b>Holat:</b> ${formatVerificationLabel(u.verificationStatus)}`,
+    `• <b>Email:</b> <code>${escapeHtml(u.email)}</code>`,
+    `• <b>Telefon:</b> ${escapeHtml(u.phone || "Kiritilmagan")}`,
+    `• <b>Hudud / Tuman:</b> ${escapeHtml(u.district || "Belgilanmagan")}`,
+    `• <b>Muassasa:</b> ${escapeHtml(u.polyclinicName || "Belgilanmagan")}`,
+    `• <b>GPS koordinata:</b> <code>${gpsText}</code>`,
+  ];
+
+  if (u.role === "PATIENT") {
+    const p = u.patientProfile;
+    let allergies = [];
+    try {
+      allergies = p?.allergiesJson ? JSON.parse(p.allergiesJson) : [];
+    } catch {
+      allergies = [];
+    }
+    const [openComplaintsCount, activeCallsCount, rxCount] = p
+      ? await Promise.all([
+          prisma.complaint.count({
+            where: { patientId: p.id, status: { not: "VERIFIED_COMPLETED" } },
+          }),
+          prisma.activeCall.count({
+            where: { patientId: p.id, status: { not: "COMPLETED" } },
+          }),
+          prisma.prescription.count({ where: { patientId: p.id, active: true } }),
+        ])
+      : [0, 0, 0];
+
+    lines.push(
+      ``,
+      `🤰 <b>Tibbiy va Manzil Ma'lumotlari:</b>`,
+      `• <b>Tug'ilgan sana:</b> ${escapeHtml(p?.dateOfBirth || "Kiritilmagan")}`,
+      `• <b>Qon guruhi:</b> ${escapeHtml(p?.bloodType || "Noma'lum")}`,
+      `• <b>JSHSHIR:</b> <code>${escapeHtml(p?.jshshirMasked || "Kiritilmagan")}</code>`,
+      `• <b>Mahalla / Manzil:</b> ${escapeHtml(p?.mahalla || "—")} • ${escapeHtml(p?.address || u.district || "—")}`,
+      `• <b>Allergiyalar:</b> ${escapeHtml(allergies.length > 0 ? allergies.join(", ") : "Yo'q")}`,
+      `• <b>Biriktirilgan shifokor:</b> ${
+        p?.assignedFamilyDoctor
+          ? `${escapeHtml(p.assignedFamilyDoctor.fullName)}${
+              p.assignedFamilyDoctor.phone ? ` (${escapeHtml(p.assignedFamilyDoctor.phone)})` : ""
+            }`
+          : "Tasdiqlangandan so'ng biriktiriladi"
+      }`,
+      `• <b>Obuna:</b> <b>${escapeHtml(u.subscriptionTier)}</b> (${escapeHtml(u.subscriptionStatus)})${subExpiry ? ` • ${subExpiry} gacha` : ""}`,
+      `• <b>Faol murojaatlar:</b> ${openComplaintsCount} shikoyat • ${activeCallsCount} patronaj tashrif • ${rxCount} retsept`
+    );
+
+    const buttons =
+      u.verificationStatus === "VERIFIED"
+        ? [
+            [{ text: "🚨 Shikoyat yuborish (GPS)", callbackData: "PATIENT:NEW_COMPLAINT" }],
+            [
+              { text: "🩺 Tashrif holati", callbackData: "PATIENT:STATUS" },
+              { text: "💬 Shifokorga yozish", callbackData: "PATIENT:DM_START" },
+            ],
+            [
+              { text: "💎 Obunalar", callbackData: "MENU:SUBSCRIPTIONS" },
+              { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
+            ],
+          ]
+        : [
+            [
+              { text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" },
+              { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
+            ],
+          ];
+    return { text: lines.join("\n"), buttons };
+  }
+
+  if (u.role === "FAMILY_MD" || u.role === "OVABMU_MD") {
+    const [assignedComplaints, assignedCalls] = await Promise.all([
+      prisma.complaint.count({
+        where: {
+          assignedDoctorId: u.id,
+          status: { in: ["SUBMITTED", "DOCTOR_RESPONDED", "EN_ROUTE", "ARRIVED"] },
+        },
+      }),
+      prisma.activeCall.count({
+        where: {
+          assignedDoctorId: u.id,
+          status: { in: ["SCHEDULED", "ESCALATED_12H", "CRITICAL_18H"] },
+        },
+      }),
+    ]);
+
+    lines.push(
+      ``,
+      `🩺 <b>Shifokor Mutaxassisligi va Faoliyati:</b>`,
+      `• <b>Mutaxassislik:</b> ${escapeHtml(u.specialty || "Kiritilmagan")}`,
+      `• <b>Ekspertiza:</b> ${escapeHtml(u.expertiseArea || "Kiritilmagan")}`,
+      `• <b>Ish tajribasi:</b> ${u.experienceYears != null ? `${u.experienceYears} yil` : "Kiritilmagan"}`,
+      `• <b>Obuna:</b> <b>${escapeHtml(u.subscriptionTier)}</b> (${escapeHtml(u.subscriptionStatus)})${subExpiry ? ` • ${subExpiry} gacha` : ""}`,
+      `• <b>Biriktirilgan ishlar:</b> ${assignedComplaints} faol shikoyat • ${assignedCalls} 24s tashrif`
+    );
+
+    const buttons =
+      u.verificationStatus === "VERIFIED"
+        ? [
+            [{ text: "📍 Eng yaqin bemorlar", callbackData: "DOCTOR:NEARBY" }],
+            [
+              { text: "🧭 GPS yangilash", callbackData: "DOCTOR:UPDATE_GPS" },
+              { text: "⏰ Eslatmalar", callbackData: "DOCTOR:REMINDERS" },
+            ],
+            [
+              { text: "💎 Obuna", callbackData: "MENU:SUBSCRIPTIONS" },
+              { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
+            ],
+          ]
+        : [
+            [
+              { text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" },
+              { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
+            ],
+          ];
+    return { text: lines.join("\n"), buttons };
+  }
+
+  const [pendingAccs, openComplaints, activeSubs] = await Promise.all([
+    prisma.user.count({ where: { verificationStatus: "PENDING" } }),
+    prisma.complaint.count({ where: { status: { not: "VERIFIED_COMPLETED" } } }),
+    prisma.user.count({ where: { subscriptionStatus: "ACTIVE" } }),
+  ]);
+
+  lines.push(
+    ``,
+    `🛡️ <b>Koordinator Qabulxonasi Holati:</b>`,
+    `• <b>Tasdiqlash kutilayotganlar:</b> ${pendingAccs}`,
+    `• <b>Ochiq shikoyatlar:</b> ${openComplaints}`,
+    `• <b>Faol obunalar:</b> ${activeSubs}`
+  );
+
+  return {
+    text: lines.join("\n"),
+    buttons: [
+      [
+        { text: "📊 Jonli statistika", callbackData: "ADMIN:STATS" },
+        { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
+      ],
+    ],
+  };
+}
+
 function buildMainMenuForUser(user) {
   if (!user) {
     return {
@@ -246,8 +514,9 @@ function buildMainMenuForUser(user) {
         "👋 <b>OnaCare Patronaj & Shoshilinch Yordam Botiga xush kelibsiz!</b>\n\n" +
         "Bu bot orqali:\n" +
         "• 🤰 Bemor yoki 🩺 Shifokor sifatida GPS lokatsiyangiz bilan ro'yxatdan o'tishingiz\n" +
-        "• 🚨 Shikoyat yuborib, paramedik/shifokor qayerga borishini tanlashingiz\n" +
-        "• 💬 Sizni kuzatayotgan eng yaqin shifokor bilan bevosita maslahatlashishingiz mumkin.\n\n" +
+        "• 🔗 Saytda (SI yordamchisi yoki shakl orqali) yaratilgan hisobingizni Telegramga ulashingiz\n" +
+        "• 👤 Profil va asosiy tibbiy ma'lumotlaringizni Telegramda ko'rishingiz\n" +
+        "• 🚨 Shikoyat yuborib, shifokor bilan bevosita maslahatlashishingiz mumkin.\n\n" +
         "Quyidagi amallardan birini tanlang:",
       buttons: [
         [
@@ -255,7 +524,7 @@ function buildMainMenuForUser(user) {
           { text: "🩺 Shifokor bo'lib ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:DOCTOR" },
         ],
         [
-          { text: "🔗 Mavjud hisobni bog'lash (/link)", callbackData: "MENU:LINK_HELP" },
+          { text: "🔗 Saytdagi hisobni bog'lash (/link)", callbackData: "MENU:LINK_HELP" },
         ],
       ],
     };
@@ -264,27 +533,33 @@ function buildMainMenuForUser(user) {
   if (user.verificationStatus === "PENDING") {
     return {
       text:
-        `⏳ <b>Salom, ${user.fullName}!</b>\n\n` +
-        `Sizning <b>${user.role}</b> hisobingiz ro'yxatga olingan va hozirda Administrator tasdig'ini kutmoqda.\n` +
+        `⏳ <b>Salom, ${escapeHtml(user.fullName)}!</b>\n\n` +
+        `Sizning <b>${formatRoleLabel(user.role)}</b> hisobingiz ro'yxatga olingan va hozirda Administrator tasdig'ini kutmoqda.\n` +
         `Tasdiqlangandan so'ng darhol barcha imkoniyatlar (shikoyat yuborish, GPS qidiruv, maslahat) faollashadi.`,
-      buttons: [[{ text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" }]],
+      buttons: [
+        [{ text: "👤 Profilim va ma'lumotlarim (/profile)", callbackData: "MENU:PROFILE" }],
+        [{ text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" }],
+      ],
     };
   }
 
   if (user.verificationStatus === "REJECTED") {
     return {
       text:
-        `❌ <b>Hisob rad etilgan</b>\nSabab: ${user.verificationNote || "Admin bilan bog'laning."}`,
-      buttons: [[{ text: "🔄 Qayta ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:PATIENT" }]],
+        `❌ <b>Hisob rad etilgan</b>\nSabab: ${escapeHtml(user.verificationNote || "Admin bilan bog'laning.")}`,
+      buttons: [
+        [{ text: "👤 Profilim va ma'lumotlarim", callbackData: "MENU:PROFILE" }],
+        [{ text: "🔄 Qayta ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:PATIENT" }],
+      ],
     };
   }
 
   if (user.role === "PATIENT") {
     return {
       text:
-        `🤰 <b>OnaCare Bemor Kabineti — ${user.fullName}</b>\n` +
-        `📍 Hudud: ${user.district || "Belgilanmagan"}${user.latitude ? ` (${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)})` : ""}\n` +
-        `💎 Obuna: <b>${user.subscriptionTier}</b>\n\n` +
+        `🤰 <b>OnaCare Bemor Kabineti — ${escapeHtml(user.fullName)}</b>\n` +
+        `📍 Hudud: ${escapeHtml(user.district || "Belgilanmagan")}${user.latitude ? ` (${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)})` : ""}\n` +
+        `💎 Obuna: <b>${escapeHtml(user.subscriptionTier)}</b>\n\n` +
         `Nima qilishni xohlaysiz?`,
       buttons: [
         [{ text: "🚨 Shikoyat yuborish (GPS & Manzil)", callbackData: "PATIENT:NEW_COMPLAINT" }],
@@ -292,7 +567,10 @@ function buildMainMenuForUser(user) {
           { text: "🩺 Shifokorim & Tashrif holati", callbackData: "PATIENT:STATUS" },
           { text: "💬 Shifokordan maslahat olish", callbackData: "PATIENT:DM_START" },
         ],
-        [{ text: "💎 Obuna sotib olish (CARE+)", callbackData: "MENU:SUBSCRIPTIONS" }],
+        [
+          { text: "👤 Profilim va ma'lumotlarim", callbackData: "MENU:PROFILE" },
+          { text: "💎 Obuna sotib olish", callbackData: "MENU:SUBSCRIPTIONS" },
+        ],
       ],
     };
   }
@@ -300,11 +578,11 @@ function buildMainMenuForUser(user) {
   if (user.role === "FAMILY_MD" || user.role === "OVABMU_MD") {
     return {
       text:
-        `🩺 <b>OnaCare Shifokor Kabineti — ${user.fullName}</b>\n` +
-        `🏥 Soha: ${user.expertiseArea || user.specialty || "Belgilanmagan"}\n` +
-        `⏳ Tajriba: ${user.experienceYears ? `${user.experienceYears} yil` : "Kiritilmagan"}\n` +
+        `🩺 <b>OnaCare Shifokor Kabineti — ${escapeHtml(user.fullName)}</b>\n` +
+        `🏥 Soha: ${escapeHtml(user.expertiseArea || user.specialty || "Belgilanmagan")}\n` +
+        `⏳ Tajriba: ${user.experienceYears != null ? `${user.experienceYears} yil` : "Kiritilmagan"}\n` +
         `📍 GPS: ${user.latitude ? `${user.latitude.toFixed(4)}, ${user.longitude.toFixed(4)}` : "Ulashilmagan"}\n` +
-        `💎 Obuna: <b>${user.subscriptionTier}</b>\n\n` +
+        `💎 Obuna: <b>${escapeHtml(user.subscriptionTier)}</b>\n\n` +
         `Quyidagi bo'limlardan birini tanlang:`,
       buttons: [
         [{ text: "📍 Eng yaqin bemorlar & Shikoyatlar", callbackData: "DOCTOR:NEARBY" }],
@@ -314,17 +592,19 @@ function buildMainMenuForUser(user) {
         ],
         [
           { text: "💬 Bemorlarga maslahat yozish", callbackData: "DOCTOR:DM_LIST" },
-          { text: "💎 Shifokor PRO obunasi", callbackData: "MENU:SUBSCRIPTIONS" },
+          { text: "👤 Profilim va ma'lumotlarim", callbackData: "MENU:PROFILE" },
         ],
+        [{ text: "💎 Shifokor PRO obunasi", callbackData: "MENU:SUBSCRIPTIONS" }],
       ],
     };
   }
 
   return {
     text:
-      `🛡️ <b>OnaCare Admin — ${user.fullName}</b>\n` +
+      `🛡️ <b>OnaCare Admin — ${escapeHtml(user.fullName)}</b>\n` +
       `Tizimdagi barcha bemor, shifokor va shikoyatlarni nazorat qilishingiz mumkin.`,
     buttons: [
+      [{ text: "👤 Profilim va ma'lumotlarim", callbackData: "MENU:PROFILE" }],
       [{ text: "⏰ Barcha shifokorlarga eslatma yuborish", callbackData: "ADMIN:REMIND_ALL" }],
       [{ text: "📊 Jonli statistika", callbackData: "ADMIN:STATS" }],
     ],
@@ -392,11 +672,11 @@ export async function processTelegramUpdate(update, options = {}) {
   let linkedUser = session.userId
     ? await prisma.user.findUnique({
         where: { id: session.userId },
-        include: { patientProfile: true },
+        include: { patientProfile: { include: { assignedFamilyDoctor: true } } },
       })
     : await prisma.user.findFirst({
         where: { telegramChatId: chatId },
-        include: { patientProfile: true },
+        include: { patientProfile: { include: { assignedFamilyDoctor: true } } },
       });
 
   if (linkedUser && session.userId !== linkedUser.id) {
@@ -411,6 +691,22 @@ export async function processTelegramUpdate(update, options = {}) {
   const incomingLocation = message?.location || null;
   const incomingContact = message?.contact || null;
 
+  // Mask passwords before writing user messages into persistent transcript history
+  let sanitizedTextForHistory = rawText;
+  if (rawText.startsWith("/link ") && !rawText.replace(/^\/link\s+/i, "").trim().startsWith("link_")) {
+    const parts = rawText.replace(/^\/link\s+/i, "").trim().split(/\s+/);
+    if (parts.length >= 2) {
+      sanitizedTextForHistory = `/link ${parts[0]} ••••••`;
+    }
+  } else if (session.flowState === "LINK_CREDENTIALS" && rawText && !rawText.startsWith("link_") && !rawText.startsWith("/")) {
+    const parts = rawText.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      sanitizedTextForHistory = `${parts[0]} ••••••`;
+    }
+  } else if (session.flowState === "SIGNUP_PASSWORD" && rawText && !rawText.startsWith("/")) {
+    sanitizedTextForHistory = "••••••";
+  }
+
   // Record user action in transcript history
   const incomingLabel = callbackData
     ? `[Tugma] ${callbackData}`
@@ -418,7 +714,7 @@ export async function processTelegramUpdate(update, options = {}) {
       ? `📍 GPS: ${incomingLocation.latitude.toFixed(5)}, ${incomingLocation.longitude.toFixed(5)}`
       : incomingContact
         ? `📱 Kontakt: ${incomingContact.phone_number}`
-        : rawText || "/start";
+        : sanitizedTextForHistory || "/start";
 
   history.push({
     id: `u-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -437,8 +733,40 @@ export async function processTelegramUpdate(update, options = {}) {
     reply = makeBotReply(m.text, m.buttons);
   };
 
+  // Handle /start <linkToken> deep link from website signup / portal
+  if (rawText.startsWith("/start ")) {
+    const startArg = rawText.slice(7).trim();
+    const tokenPayload = verifyTelegramLinkToken(startArg);
+    if (tokenPayload) {
+      const boundUser = await linkTelegramChatToUser({
+        chatId,
+        userId: tokenPayload.userId,
+        tgUsername,
+      });
+      if (boundUser) {
+        linkedUser = boundUser;
+        nextFlowState = "IDLE";
+        draft = {};
+        const profileMsg = await buildUserProfileMessage(linkedUser);
+        reply = makeBotReply(
+          `✅ <b>Saytdagi hisobingiz Telegram botga muvaffaqiyatli bog'landi!</b>\n\n${profileMsg.text}`,
+          profileMsg.buttons
+        );
+      } else {
+        setIdleWithMenu();
+      }
+    } else {
+      const m = buildMainMenuForUser(linkedUser);
+      nextFlowState = "IDLE";
+      draft = {};
+      reply = makeBotReply(
+        `⚠️ Bog'lash havolasi muddati tugagan yoki noto'g'ri. Hisobingizni <code>/link</code> buyrug'i orqali bog'lashingiz mumkin.\n\n${m.text}`,
+        m.buttons
+      );
+    }
+  }
   // Global reset commands
-  if (
+  else if (
     rawText === "/start" ||
     rawText === "/menu" ||
     rawText === "/cancel" ||
@@ -448,15 +776,111 @@ export async function processTelegramUpdate(update, options = {}) {
   ) {
     setIdleWithMenu();
   }
-  // /link email password
-  else if (rawText.startsWith("/link ") || callbackData === "MENU:LINK_HELP") {
-    if (callbackData === "MENU:LINK_HELP") {
-      nextFlowState = "LINK_CREDENTIALS";
+  // Profile & Essentials view (/profile, /me, /essentials, MENU:PROFILE)
+  else if (
+    rawText === "/profile" ||
+    rawText === "/me" ||
+    rawText === "/essentials" ||
+    callbackData === "MENU:PROFILE"
+  ) {
+    nextFlowState = "IDLE";
+    draft = {};
+    if (!linkedUser) {
       reply = makeBotReply(
-        "🔗 Mavjud hisobingizni bog'lash uchun elektron pochta va parolingizni bo'shliq bilan yozing:\n\nMasalan:\n<code>zulfiya.rustamova@patient.uz Demo1234!</code>"
+        "🔗 Profilingizni ko'rish uchun avval saytdagi hisobingizni bog'lang yoki bot orqali ro'yxatdan o'ting.",
+        [
+          [{ text: "🔗 Saytdagi hisobni bog'lash (/link)", callbackData: "MENU:LINK_HELP" }],
+          [
+            { text: "🤰 Bemor bo'lib ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:PATIENT" },
+            { text: "🩺 Shifokor ro'yxatdan o'tishi", callbackData: "SIGNUP_ROLE:DOCTOR" },
+          ],
+        ]
       );
     } else {
-      const parts = rawText.replace(/^\/link\s+/i, "").trim().split(/\s+/);
+      const profileMsg = await buildUserProfileMessage(linkedUser);
+      reply = makeBotReply(profileMsg.text, profileMsg.buttons);
+    }
+  }
+  // /link <token> OR /link <email> <password>
+  else if (rawText === "/link" || rawText.startsWith("/link ") || callbackData === "MENU:LINK_HELP") {
+    if (callbackData === "MENU:LINK_HELP" || rawText === "/link") {
+      nextFlowState = "LINK_CREDENTIALS";
+      reply = makeBotReply(
+        "🔗 <b>Saytdagi hisobingizni Telegramga bog'lash</b>\n\n" +
+          "Quyidagilardan birini yuboring:\n" +
+          "1️⃣ Saytda berilgan bog'lash kodi: <code>link_...</code>\n" +
+          "2️⃣ Yoki elektron pochta va parolingiz (bo'shliq bilan): <code>siz@example.uz parolingiz</code>"
+      );
+    } else {
+      const argStr = rawText.replace(/^\/link\s+/i, "").trim();
+      const parts = argStr.split(/\s+/);
+      if (parts.length === 1 && parts[0].startsWith("link_")) {
+        const tokenPayload = verifyTelegramLinkToken(parts[0]);
+        const boundUser = tokenPayload
+          ? await linkTelegramChatToUser({
+              chatId,
+              userId: tokenPayload.userId,
+              tgUsername,
+            })
+          : null;
+        if (!boundUser) {
+          reply = makeBotReply("❌ Bog'lash kodi noto'g'ri yoki muddati tugagan. Saytdan yangi havola oling yoki <code>/link email parol</code> kiriting.");
+        } else {
+          linkedUser = boundUser;
+          nextFlowState = "IDLE";
+          const profileMsg = await buildUserProfileMessage(linkedUser);
+          reply = makeBotReply(
+            `✅ Telegram hisobingiz <b>${escapeHtml(boundUser.fullName)}</b> ga muvaffaqiyatli bog'landi!\n\n${profileMsg.text}`,
+            profileMsg.buttons
+          );
+        }
+      } else {
+        const email = (parts[0] || "").toLowerCase();
+        const password = parts[1] || "";
+        const targetUser = await prisma.user.findUnique({
+          where: { email },
+          include: { patientProfile: true },
+        });
+        if (!targetUser || !verifyPassword(password, targetUser.passwordHash)) {
+          reply = makeBotReply("❌ Email yoki parol noto'g'ri. Qayta urining: <code>/link email parol</code>");
+        } else {
+          linkedUser = await linkTelegramChatToUser({
+            chatId,
+            userId: targetUser.id,
+            tgUsername,
+          });
+          const profileMsg = await buildUserProfileMessage(linkedUser);
+          nextFlowState = "IDLE";
+          reply = makeBotReply(
+            `✅ Telegram hisobingiz <b>${escapeHtml(targetUser.fullName)}</b> ga muvaffaqiyatli bog'landi!\n\n${profileMsg.text}`,
+            profileMsg.buttons
+          );
+        }
+      }
+    }
+  } else if (nextFlowState === "LINK_CREDENTIALS" && rawText) {
+    const parts = rawText.trim().split(/\s+/);
+    if (parts.length === 1 && parts[0].startsWith("link_")) {
+      const tokenPayload = verifyTelegramLinkToken(parts[0]);
+      const boundUser = tokenPayload
+        ? await linkTelegramChatToUser({
+            chatId,
+            userId: tokenPayload.userId,
+            tgUsername,
+          })
+        : null;
+      if (!boundUser) {
+        reply = makeBotReply("❌ Bog'lash kodi noto'g'ri yoki muddati tugagan. Iltimos <code>email parol</code> ko'rinishida yuboring.");
+      } else {
+        linkedUser = boundUser;
+        nextFlowState = "IDLE";
+        const profileMsg = await buildUserProfileMessage(linkedUser);
+        reply = makeBotReply(
+          `✅ Hisob bog'landi: <b>${escapeHtml(boundUser.fullName)}</b>!\n\n${profileMsg.text}`,
+          profileMsg.buttons
+        );
+      }
+    } else {
       const email = (parts[0] || "").toLowerCase();
       const password = parts[1] || "";
       const targetUser = await prisma.user.findUnique({
@@ -464,69 +888,20 @@ export async function processTelegramUpdate(update, options = {}) {
         include: { patientProfile: true },
       });
       if (!targetUser || !verifyPassword(password, targetUser.passwordHash)) {
-        reply = makeBotReply("❌ Email yoki parol noto'g'ri. Qayta urining: <code>/link email parol</code>");
+        reply = makeBotReply("❌ Email yoki parol noto'g'ri. Iltimos: <code>email parol</code> ko'rinishida yuboring.");
       } else {
-        await prisma.user.update({
-          where: { id: targetUser.id },
-          data: {
-            telegramChatId: chatId,
-            telegramHandle: tgUsername ? `@${tgUsername}` : targetUser.telegramHandle,
-          },
+        linkedUser = await linkTelegramChatToUser({
+          chatId,
+          userId: targetUser.id,
+          tgUsername,
         });
-        if (targetUser.patientProfile) {
-          await prisma.patient.update({
-            where: { id: targetUser.patientProfile.id },
-            data: { telegramChatId: chatId },
-          });
-        }
-        linkedUser = await prisma.user.findUnique({
-          where: { id: targetUser.id },
-          include: { patientProfile: true },
-        });
-        await prisma.telegramSession.update({
-          where: { chatId },
-          data: { userId: targetUser.id },
-        });
-        const menu = buildMainMenuForUser(linkedUser);
+        const profileMsg = await buildUserProfileMessage(linkedUser);
         nextFlowState = "IDLE";
-        reply = makeBotReply(`✅ Telegram hisobingiz <b>${targetUser.fullName}</b> ga muvaffaqiyatli bog'landi!\n\n${menu.text}`, menu.buttons);
+        reply = makeBotReply(
+          `✅ Hisob bog'landi: <b>${escapeHtml(targetUser.fullName)}</b>!\n\n${profileMsg.text}`,
+          profileMsg.buttons
+        );
       }
-    }
-  } else if (nextFlowState === "LINK_CREDENTIALS" && rawText) {
-    const parts = rawText.trim().split(/\s+/);
-    const email = (parts[0] || "").toLowerCase();
-    const password = parts[1] || "";
-    const targetUser = await prisma.user.findUnique({
-      where: { email },
-      include: { patientProfile: true },
-    });
-    if (!targetUser || !verifyPassword(password, targetUser.passwordHash)) {
-      reply = makeBotReply("❌ Email yoki parol noto'g'ri. Iltimos: <code>email parol</code> ko'rinishida yuboring.");
-    } else {
-      await prisma.user.update({
-        where: { id: targetUser.id },
-        data: {
-          telegramChatId: chatId,
-          telegramHandle: tgUsername ? `@${tgUsername}` : targetUser.telegramHandle,
-        },
-      });
-      if (targetUser.patientProfile) {
-        await prisma.patient.update({
-          where: { id: targetUser.patientProfile.id },
-          data: { telegramChatId: chatId },
-        });
-      }
-      linkedUser = await prisma.user.findUnique({
-        where: { id: targetUser.id },
-        include: { patientProfile: true },
-      });
-      await prisma.telegramSession.update({
-        where: { chatId },
-        data: { userId: targetUser.id },
-      });
-      const menu = buildMainMenuForUser(linkedUser);
-      nextFlowState = "IDLE";
-      reply = makeBotReply(`✅ Hisob bog'landi: <b>${targetUser.fullName}</b>!\n\n${menu.text}`, menu.buttons);
     }
   } else if (rawText === "/unlink") {
     if (linkedUser) {
@@ -642,6 +1017,14 @@ export async function processTelegramUpdate(update, options = {}) {
           : locInfo.polyclinicName;
 
       const createdUser = await prisma.$transaction(async (tx) => {
+        await tx.user.updateMany({
+          where: { telegramChatId: chatId },
+          data: { telegramChatId: null },
+        });
+        await tx.patient.updateMany({
+          where: { telegramChatId: chatId },
+          data: { telegramChatId: null },
+        });
         const u = await tx.user.create({
           data: {
             email,
@@ -699,7 +1082,7 @@ export async function processTelegramUpdate(update, options = {}) {
 
       linkedUser = await prisma.user.findUnique({
         where: { id: createdUser.id },
-        include: { patientProfile: true },
+        include: { patientProfile: { include: { assignedFamilyDoctor: true } } },
       });
       await prisma.telegramSession.update({
         where: { chatId },
@@ -713,11 +1096,14 @@ export async function processTelegramUpdate(update, options = {}) {
       draft = {};
       reply = makeBotReply(
         `✅ <b>Ro'yxatdan o'tish muvaffaqiyatli yakunlandi!</b>\n\n` +
-          `👤 ${createdUser.fullName} (${createdUser.role})\n` +
+          `👤 ${escapeHtml(createdUser.fullName)} (${formatRoleLabel(createdUser.role)})\n` +
           `📍 GPS: ${createdUser.latitude?.toFixed(4)}, ${createdUser.longitude?.toFixed(4)}\n` +
           `⏳ <b>Holat: Administrator tasdig'ini kutmoqda.</b>\n` +
           `Admin tasdiqlagach sizga shu botga xabar keladi!`,
-        [[{ text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" }]]
+        [
+          [{ text: "👤 Profilim va ma'lumotlarim (/profile)", callbackData: "MENU:PROFILE" }],
+          [{ text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" }],
+        ]
       );
     }
   }

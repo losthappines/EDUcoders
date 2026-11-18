@@ -1,69 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { IconAlertTriangle, IconArrowRight, IconBuildingHospital, IconEye, IconEyeOff, IconLock, IconLogin, IconShieldCheck, IconStethoscope, IconUser, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconArrowRight, IconBrandTelegram, IconEye, IconEyeOff, IconLock, IconLogin, IconShieldCheck, IconSparkles, IconStethoscope, IconUser, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { PublicHeader } from "@/components/PublicHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-const DEMO_ACCOUNTS = [
-    {
-        email: "zulfiya.rustamova@patient.uz",
-        label: {
-            uz: "Uyga chiqqan ona (Bemor)",
-            ru: "Выписанная мама (Пациент)",
-            en: "New Mother (Patient)",
-        },
-        sub: {
-            uz: "Zulfiya Rustamova • Shaxsiy kabinet",
-            ru: "Зульфия Рустамова • Личный кабинет",
-            en: "Zulfiya Rustamova • Personal portal",
-        },
-        icon: <IconUser className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
-    },
-    {
-        email: "a.rahimova@ovabmu.uz",
-        label: {
-            uz: "Tug'ruqxona shifokori",
-            ru: "Врач роддома",
-            en: "Hospital Doctor",
-        },
-        sub: {
-            uz: "Dr. Aziza Rahimova • Shifokor kabineti",
-            ru: "Д-р Азиза Рахимова • Кабинет врача",
-            en: "Dr. Aziza Rahimova • Doctor workspace",
-        },
-        icon: <IconBuildingHospital className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
-    },
-    {
-        email: "d.toshmatova@op14.uz",
-        label: {
-            uz: "Hududiy oilaviy shifokor",
-            ru: "Участковый семейный врач",
-            en: "Local Family Doctor",
-        },
-        sub: {
-            uz: "Dr. Dilnoza Toshmatova • Uy tashriflari",
-            ru: "Д-р Дильноза Тошматова • Визиты на дом",
-            en: "Dr. Dilnoza Toshmatova • Home visits",
-        },
-        icon: <IconStethoscope className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
-    },
-    {
-        email: "sh.alimov@ssv.uz",
-        label: {
-            uz: "Poliklinika koordinatori",
-            ru: "Координатор клиники",
-            en: "Clinic Coordinator",
-        },
-        sub: {
-            uz: "Sherzod Alimov • Tashriflar nazorati",
-            ru: "Шерзод Алимов • Контроль визитов",
-            en: "Sherzod Alimov • Visit oversight",
-        },
-        icon: <IconShieldCheck className="h-4 w-4 text-[#292E2B] dark:text-[#F3F0E8]"/>,
-    },
-];
+
 const COPY = {
     uz: {
         badge: "Shaxsiy va himoyalangan kirish",
@@ -79,8 +22,16 @@ const COPY = {
         submitting: "Kirilmoqda...",
         newHere: "Hisobingiz yo'qmi?",
         createAccount: "Ro'yxatdan o'tish",
-        demoTitle: "Tezkor sinov hisoblari",
-        demoSub: "Sinab ko'rish uchun quyidagi tayyor hisoblardan birini bosing (parol: Demo1234!).",
+        guideTitle: "OnaCare hisobini ochish va Telegram ulash",
+        guideSub: "SI yordamchisi yoki an'anaviy shakl orqali ro'yxatdan o'ting va hisobingizni Telegram botga bog'lang.",
+        patientCta: "Bemor / Ona sifatida ro'yxatdan o'tish",
+        patientCtaSub: "SI yordamchisi yoki shakl orqali tez hisob ochish",
+        doctorCta: "Shifokor / Hamshira ro'yxatdan o'tishi",
+        doctorCtaSub: "Mutaxassislik, tajriba va GPS lokatsiya bilan",
+        adminCta: "Poliklinika koordinatori (Admin) yaratish",
+        adminCtaSub: "Yangi bemor va shifokorlarni tasdiqlash uchun",
+        telegramCta: "Telegram botga ulash va profilni ko'rish",
+        telegramCtaSub: "Web yoki mobil Telegram botda ma'lumotlaringizni boshqaring",
         defaultError: "Elektron pochta yoki parol noto'g'ri.",
     },
     ru: {
@@ -97,8 +48,16 @@ const COPY = {
         submitting: "Вход...",
         newHere: "У вас еще нет аккаунта?",
         createAccount: "Зарегистрироваться",
-        demoTitle: "Демо-аккаунты для проверки",
-        demoSub: "Нажмите на любой аккаунт ниже для быстрого входа (пароль: Demo1234!).",
+        guideTitle: "Создайте аккаунт и подключите Telegram",
+        guideSub: "Пройдите регистрацию через ИИ-помощник или обычную форму и привяжите профиль к Telegram-боту.",
+        patientCta: "Регистрация для Мамы / Пациента",
+        patientCtaSub: "Быстрое заполнение через ИИ-помощник или форму",
+        doctorCta: "Регистрация для Врача / Медсестры",
+        doctorCtaSub: "С указанием специализации, стажа и GPS",
+        adminCta: "Создать аккаунт Координатора (Админ)",
+        adminCtaSub: "Для проверки и активации пациентов и врачей",
+        telegramCta: "Открыть Telegram-бот",
+        telegramCtaSub: "Привязка аккаунта, профиль и быстрая связь",
         defaultError: "Неверный email или пароль.",
     },
     en: {
@@ -115,11 +74,20 @@ const COPY = {
         submitting: "Signing in...",
         newHere: "Don't have an account?",
         createAccount: "Create an account",
-        demoTitle: "Demo Accounts",
-        demoSub: "Click any sample account below to sign in and try that view (password: Demo1234!).",
+        guideTitle: "Create an Account & Link Telegram",
+        guideSub: "Register using our AI Sign-Up Helper or standard form, then link your profile directly to the Telegram bot.",
+        patientCta: "Register as Patient / Mother",
+        patientCtaSub: "Easy AI assistant or traditional signup form",
+        doctorCta: "Register as Doctor / Nurse",
+        doctorCtaSub: "Include specialty, experience & live GPS",
+        adminCta: "Create Clinic Coordinator (Admin)",
+        adminCtaSub: "Verify and activate incoming registrations",
+        telegramCta: "Open Telegram Bot Console",
+        telegramCtaSub: "Link your account and view your profile in Telegram",
         defaultError: "Incorrect email or password.",
     },
 };
+
 export default function LoginPage() {
     const { login } = usePlatform();
     const { lang } = useLanguage();
@@ -129,6 +97,7 @@ export default function LoginPage() {
     const [showPw, setShowPw] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState(null);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
@@ -143,21 +112,34 @@ export default function LoginPage() {
             setBusy(false);
         }
     };
-    const handleDemoLogin = async (demoEmail) => {
-        setEmail(demoEmail);
-        setPassword("Demo1234!");
-        setError(null);
-        setBusy(true);
-        try {
-            const res = await login(demoEmail, "Demo1234!");
-            if (!res.ok) {
-                setError(res.error || t.defaultError);
-            }
-        }
-        finally {
-            setBusy(false);
-        }
-    };
+
+    const quickLinks = [
+        {
+            href: "/signup?role=PATIENT",
+            label: t.patientCta,
+            sub: t.patientCtaSub,
+            icon: <IconUser className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+        },
+        {
+            href: "/signup?role=DOCTOR",
+            label: t.doctorCta,
+            sub: t.doctorCtaSub,
+            icon: <IconStethoscope className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+        },
+        {
+            href: "/signup?role=ADMIN_RECEPTION",
+            label: t.adminCta,
+            sub: t.adminCtaSub,
+            icon: <IconShieldCheck className="h-4 w-4 text-[#292E2B] dark:text-[#F3F0E8]"/>,
+        },
+        {
+            href: "/telegram",
+            label: t.telegramCta,
+            sub: t.telegramCtaSub,
+            icon: <IconBrandTelegram className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
+        },
+    ];
+
     return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] transition-colors duration-200">
       <PublicHeader />
 
@@ -222,37 +204,35 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Demo Accounts Quick-Sign-In Panel */}
+          {/* Account Creation & Telegram Guide Panel */}
           <div className="lg:col-span-5 border border-[#DDD8CC] dark:border-[#2F3733] bg-[#EFECE3]/60 dark:bg-[#1D221F] p-6 rounded-sm space-y-4">
             <div className="border-b border-[#DDD8CC] dark:border-[#2F3733] pb-3">
-              <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
-                {t.demoTitle}
+              <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-1.5">
+                <IconSparkles className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+                {t.guideTitle}
               </h2>
               <p className="text-xs text-[#525954] dark:text-[#B8C2BA] mt-1 leading-relaxed">
-                {t.demoSub}
+                {t.guideSub}
               </p>
             </div>
 
             <div className="divide-y divide-[#DDD8CC] dark:divide-[#2F3733] border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] rounded-sm">
-              {DEMO_ACCOUNTS.map((acc) => (<button key={acc.email} type="button" disabled={busy} onClick={() => handleDemoLogin(acc.email)} className="w-full min-h-[52px] flex items-center justify-between px-3.5 py-3 text-left hover:bg-[#F7F5EF] dark:hover:bg-[#242A27] transition-colors disabled:opacity-50">
+              {quickLinks.map((item) => (<Link key={item.href} href={item.href} className="w-full min-h-[54px] flex items-center justify-between px-3.5 py-3 text-left hover:bg-[#F7F5EF] dark:hover:bg-[#242A27] transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] border border-[#DDD8CC] dark:border-[#2F3733]">
-                      {acc.icon}
+                      {item.icon}
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] truncate">
-                        {acc.label[lang]}
+                        {item.label}
                       </p>
                       <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA] truncate">
-                        {acc.sub[lang]}
-                      </p>
-                      <p className="font-mono text-[10px] text-[#767E78] dark:text-[#8E9890] truncate">
-                        {acc.email}
+                        {item.sub}
                       </p>
                     </div>
                   </div>
                   <IconArrowRight className="h-4 w-4 shrink-0 text-[#525954] dark:text-[#B8C2BA]"/>
-                </button>))}
+                </Link>))}
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { IconBrandTelegram, IconBuildingHospital, IconHeartHandshake, IconLock, IconLogout, IconMenu2, IconShieldCheck, IconStethoscope, IconUserCheck, IconX, } from "@tabler/icons-react";
+import { IconBrandTelegram, IconBuildingHospital, IconCheck, IconCopy, IconExternalLink, IconHeartHandshake, IconLinkOff, IconLock, IconLogout, IconMenu2, IconShieldCheck, IconStethoscope, IconUserCheck, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -50,6 +50,16 @@ const SHELL_COPY = {
         adminSub: "24 soatlik tashriflar nazorati va hisobotlar",
         adminOverviewNav: "Umumiy nazorat",
         adminVerificationsNav: "Hisoblarni tasdiqlash",
+        tgConnectedBtn: "Telegram ✓",
+        tgConnectBtn: "Telegram ulash",
+        tgModalTitle: "Hisobingizni Telegram botga ulash",
+        tgModalDesc: "Telegram orqali shaxsiy profilingiz, asosiy ma'lumotlaringiz, tashrif eslatmalari va shifokor chatidan foydalaning.",
+        tgOpenWebBot: "Telegram botda ochish va profilni ko'rish",
+        tgOpenApp: "Telegram ilovasida ochish",
+        tgCopyCmd: "Buyruqni nusxalash",
+        tgCopied: "Nusxalandi ✓",
+        tgUnlink: "Telegramni uzish",
+        tgLoading: "Yuklanmoqda...",
     },
     ru: {
         privateBadge: "Приватно и зашифровано",
@@ -66,6 +76,16 @@ const SHELL_COPY = {
         adminSub: "Контроль 24-часовых визитов и отчетность",
         adminOverviewNav: "Обзор клиники",
         adminVerificationsNav: "Проверка аккаунтов",
+        tgConnectedBtn: "Telegram ✓",
+        tgConnectBtn: "Привязать Telegram",
+        tgModalTitle: "Привязка аккаунта к Telegram-боту",
+        tgModalDesc: "Смотрите профиль и основные медицинские данные, получайте уведомления о визитах и общайтесь с врачом в Telegram.",
+        tgOpenWebBot: "Открыть в Telegram-боте и показать профиль",
+        tgOpenApp: "Открыть в приложении Telegram",
+        tgCopyCmd: "Копировать команду",
+        tgCopied: "Скопировано ✓",
+        tgUnlink: "Отвязать Telegram",
+        tgLoading: "Загрузка...",
     },
     en: {
         privateBadge: "Encrypted & private",
@@ -82,6 +102,16 @@ const SHELL_COPY = {
         adminSub: "24-hour visit tracking, reception & summaries",
         adminOverviewNav: "Clinic Overview",
         adminVerificationsNav: "Account Verifications",
+        tgConnectedBtn: "Telegram ✓",
+        tgConnectBtn: "Link Telegram",
+        tgModalTitle: "Link Your Account to Telegram Bot",
+        tgModalDesc: "View your profile & essentials, receive home-visit alerts, and message doctors directly via Telegram.",
+        tgOpenWebBot: "Open in Telegram Bot & View Profile",
+        tgOpenApp: "Open in Telegram App",
+        tgCopyCmd: "Copy /link Command",
+        tgCopied: "Copied ✓",
+        tgUnlink: "Unlink Telegram",
+        tgLoading: "Loading...",
     },
 };
 export function AppShell({ children }) {
@@ -89,9 +119,49 @@ export function AppShell({ children }) {
     const router = useRouter();
     const { lang } = useLanguage();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { authUser, authChecked, data, toast, logout } = usePlatform();
+    const [tgModalOpen, setTgModalOpen] = useState(false);
+    const [tgLinkData, setTgLinkData] = useState(null);
+    const [tgBusy, setTgBusy] = useState(false);
+    const [copiedTg, setCopiedTg] = useState(false);
+    const { authUser, authChecked, data, toast, logout, refreshData } = usePlatform();
     const isProtected = isProtectedPortalPath(pathname);
     const t = SHELL_COPY[lang];
+    const openTelegramModal = async () => {
+        setMobileMenuOpen(false);
+        setTgModalOpen(true);
+        setTgBusy(true);
+        try {
+            const res = await fetch("/api/telegram/link", {
+                cache: "no-store",
+                credentials: "include",
+            });
+            if (res.ok) {
+                setTgLinkData(await res.json());
+            }
+        }
+        catch {
+            // ignore link fetch failure
+        }
+        finally {
+            setTgBusy(false);
+        }
+    };
+    const handleUnlinkTg = async () => {
+        setTgBusy(true);
+        try {
+            const res = await fetch("/api/telegram/link", {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (res.ok) {
+                setTgLinkData((prev) => (prev ? { ...prev, linked: false } : prev));
+                refreshData();
+            }
+        }
+        finally {
+            setTgBusy(false);
+        }
+    };
     useEffect(() => {
         if (!isProtected || !authChecked)
             return;
@@ -228,10 +298,12 @@ export function AppShell({ children }) {
 
           {/* Desktop actions */}
           <div className="hidden md:flex items-center gap-2 text-xs shrink-0">
-            <Link href="/telegram" className="inline-flex items-center gap-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-2.5 py-1.5 font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors">
+            <button type="button" onClick={openTelegramModal} className={`inline-flex items-center gap-1 rounded-sm border px-2.5 py-1.5 font-semibold transition-colors ${data?.actor?.telegramLinked
+            ? "border-[#A7BBAA] dark:border-[#6E8572] bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
+            : "border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] text-[#244C40] dark:text-[#A7BBAA] hover:border-[#244C40] dark:hover:border-[#A7BBAA]"}`}>
               <IconBrandTelegram className="h-3.5 w-3.5"/>
-              <span className="hidden xl:inline">Telegram Bot</span>
-            </Link>
+              <span className="hidden xl:inline">{data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}</span>
+            </button>
             <LanguageSwitcher />
             <ThemeToggle />
             <span className="hidden lg:inline-flex items-center gap-1 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-1 font-medium text-[#292E2B] dark:text-[#F3F0E8] border border-[#DDD8CC] dark:border-[#2F3733]">
@@ -269,10 +341,10 @@ export function AppShell({ children }) {
                 {t.privateBadge}
               </span>
             </div>
-            <Link href="/telegram" onClick={() => setMobileMenuOpen(false)} className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+            <button type="button" onClick={openTelegramModal} className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA]">
               <IconBrandTelegram className="h-4 w-4"/>
-              Telegram Bot
-            </Link>
+              {data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}
+            </button>
             <div className="flex items-center justify-between gap-2">
               <span className="font-semibold text-[#525954] dark:text-[#B8C2BA]">
                 {t.languageLabel}
@@ -340,5 +412,65 @@ export function AppShell({ children }) {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">
         {children}
       </main>
+
+      {tgModalOpen && (<div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4">
+          <div className="w-full max-w-md rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 sm:p-6 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] text-[#F7F5EF]">
+                  <IconBrandTelegram className="h-4 w-4"/>
+                </div>
+                <div>
+                  <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                    {t.tgModalTitle}
+                  </h2>
+                  <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA]">
+                    {tgLinkData?.linked || data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setTgModalOpen(false)} aria-label="Close" className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] text-[#525954] hover:text-[#292E2B] dark:text-[#B8C2BA]">
+                <IconX className="h-4 w-4"/>
+              </button>
+            </div>
+
+            <p className="text-xs text-[#525954] dark:text-[#B8C2BA] leading-relaxed">
+              {t.tgModalDesc}
+            </p>
+
+            {tgBusy && !tgLinkData ? (<p className="text-xs font-semibold text-[#525954] dark:text-[#B8C2BA]">{t.tgLoading}</p>) : (<div className="space-y-2.5">
+                <Link href={tgLinkData?.webBotLinkUrl || "/telegram"} onClick={() => setTgModalOpen(false)} className="w-full inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-sm bg-[#244C40] dark:bg-[#2C5B4D] px-4 py-2 text-xs font-semibold text-[#F7F5EF] hover:bg-[#1B3A31] dark:hover:bg-[#356C5C] transition-colors">
+                  <IconBrandTelegram className="h-4 w-4"/>
+                  <span>{t.tgOpenWebBot}</span>
+                </Link>
+                {tgLinkData?.telegramDeepLink && (<a href={tgLinkData.telegramDeepLink} target="_blank" rel="noreferrer" className="w-full inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-4 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40] transition-colors">
+                    <span>{t.tgOpenApp}</span>
+                    <IconExternalLink className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
+                  </a>)}
+                {tgLinkData?.linkToken && (<div className="flex items-center justify-between gap-2 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2">
+                    <code className="text-[11px] font-mono text-[#292E2B] dark:text-[#F3F0E8] truncate">
+                      {`/link ${tgLinkData.linkToken}`}
+                    </code>
+                    <button type="button" onClick={async () => {
+                        try {
+                            await navigator.clipboard.writeText(`/link ${tgLinkData.linkToken}`);
+                            setCopiedTg(true);
+                            setTimeout(() => setCopiedTg(false), 2000);
+                        }
+                        catch {
+                            // ignore
+                        }
+                    }} className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-2.5 py-1 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA]">
+                      {copiedTg ? <IconCheck className="h-3.5 w-3.5"/> : <IconCopy className="h-3.5 w-3.5"/>}
+                      <span>{copiedTg ? t.tgCopied : t.tgCopyCmd}</span>
+                    </button>
+                  </div>)}
+                {(tgLinkData?.linked || data?.actor?.telegramLinked) && (<button type="button" disabled={tgBusy} onClick={handleUnlinkTg} className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#7A2E2E] dark:text-[#F0C8C4] hover:underline underline-offset-4">
+                    <IconLinkOff className="h-3.5 w-3.5"/>
+                    <span>{t.tgUnlink}</span>
+                  </button>)}
+              </div>)}
+          </div>
+        </div>)}
     </div>);
 }

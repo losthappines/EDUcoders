@@ -304,6 +304,7 @@ model AuditLog {
 model SystemSimState {
   id                  String   @id @default("singleton")
   timeOffsetHours     Int      @default(0)
+  cleanSlateVersion   Int      @default(0)
   telegramBotTokenEnc String?
   telegramBotUsername String?
   updatedAt           DateTime @updatedAt

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { getDatabaseConfigInfo, prisma } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed-data";
-import { clearSessionCookie, getPortalPathForRole, hashPassword, setSessionCookie, VALID_ROLES, verifyPhoneVerifiedToken, } from "@/lib/auth";
+import { clearSessionCookie, createTelegramLinkToken, getPortalPathForRole, hashPassword, setSessionCookie, VALID_ROLES, verifyPhoneVerifiedToken, } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { encryptField, maskJshshir } from "@/lib/crypto";
 import { resolvePolyclinicForLocation } from "@/lib/uz-locations";
 import { resolveCoordinatesForLocation } from "@/lib/geo";
-import { notifyAdminsViaTelegram } from "@/lib/telegram-bot";
+import { getTelegramBotUsername, notifyAdminsViaTelegram } from "@/lib/telegram-bot";
 function isDbError(error) {
     const msg = error instanceof Error ? error.message : String(error);
     return (msg.includes("Environment variable not found: DATABASE_URL") ||
@@ -181,12 +181,20 @@ export async function POST(req) {
             }
             return user;
         });
+        const [telegramLinkToken, telegramBotUsername] = await Promise.all([
+            Promise.resolve(createTelegramLinkToken(createdUser.id)),
+            getTelegramBotUsername(),
+        ]);
+        const telegramDeepLink = `https://t.me/${telegramBotUsername}?start=${telegramLinkToken}`;
         if (requiresAdminVerification) {
             await notifyAdminsViaTelegram(`🆕 <b>Yangi ro'yxatdan o'tish:</b> ${createdUser.fullName} (${createdUser.role}) — 📍 ${createdUser.district}`);
             const res = NextResponse.json({
                 success: true,
                 pendingVerification: true,
                 verificationStatus: "PENDING",
+                telegramLinkToken,
+                telegramBotUsername,
+                telegramDeepLink,
                 user: {
                     id: createdUser.id,
                     email: createdUser.email,
@@ -206,6 +214,9 @@ export async function POST(req) {
             success: true,
             pendingVerification: false,
             redirectTo,
+            telegramLinkToken,
+            telegramBotUsername,
+            telegramDeepLink,
             user: {
                 id: createdUser.id,
                 email: createdUser.email,

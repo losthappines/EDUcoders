@@ -1,19 +1,31 @@
 import { NextResponse, connection } from "next/server";
 import { prisma } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed-data";
+import { createTelegramLinkToken, verifyTelegramLinkToken } from "@/lib/auth";
 import { resolveActorContext } from "@/lib/rbac";
-import { processTelegramUpdate } from "@/lib/telegram-bot";
+import { linkTelegramChatToUser, processTelegramUpdate } from "@/lib/telegram-bot";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
+function hasValidLinkAccess(reqToken, sessionUserId) {
+  if (!reqToken || !sessionUserId) return false;
+  const parsed = verifyTelegramLinkToken(reqToken);
+  return Boolean(parsed && parsed.userId === sessionUserId);
+}
 
 export async function GET(req) {
   await connection();
   try {
     await ensureSeeded();
     const chatId = (req.nextUrl.searchParams.get("chatId") || "web-sim-1").trim();
+    const linkToken = (req.nextUrl.searchParams.get("link") || "").trim();
     const session = await prisma.telegramSession.findUnique({ where: { chatId } });
     if (session?.userId) {
       const actor = await resolveActorContext(req);
-      if (!actor || (actor.userId !== session.userId && actor.role !== "ADMIN_RECEPTION")) {
+      const tokenAuthorized = hasValidLinkAccess(linkToken, session.userId);
+      if (
+        !tokenAuthorized &&
+        (!actor || (actor.userId !== session.userId && actor.role !== "ADMIN_RECEPTION"))
+      ) {
         return NextResponse.json(
           { error: "Sign in as the linked account owner to view this Telegram session." },
           { status: 403 }
@@ -75,16 +87,46 @@ export async function POST(req) {
     await ensureSeeded();
     const body = await req.json();
     const chatId = String(body.chatId || "web-sim-1");
+    const linkToken = typeof body.linkToken === "string" ? body.linkToken.trim() : "";
     const existingSession = await prisma.telegramSession.findUnique({ where: { chatId } });
 
-    if (body.action !== "LINK_CURRENT_USER" && existingSession?.userId) {
+    if (
+      body.action !== "LINK_CURRENT_USER" &&
+      body.action !== "LINK_WITH_TOKEN" &&
+      existingSession?.userId
+    ) {
       const actor = await resolveActorContext(req);
-      if (!actor || (actor.userId !== existingSession.userId && actor.role !== "ADMIN_RECEPTION")) {
+      const tokenAuthorized = hasValidLinkAccess(linkToken, existingSession.userId);
+      if (
+        !tokenAuthorized &&
+        (!actor || (actor.userId !== existingSession.userId && actor.role !== "ADMIN_RECEPTION"))
+      ) {
         return NextResponse.json(
           { error: "Forbidden — this Telegram chat is linked to another user." },
           { status: 403 }
         );
       }
+    }
+
+    // Link using a signed deep-link token (works even for PENDING accounts right after signup)
+    if (body.action === "LINK_WITH_TOKEN") {
+      const tokenStr = String(body.token || linkToken || "").trim();
+      const parsed = verifyTelegramLinkToken(tokenStr);
+      if (!parsed) {
+        return NextResponse.json(
+          { error: "Invalid or expired Telegram link token." },
+          { status: 400 }
+        );
+      }
+      const boundUser = await linkTelegramChatToUser({ chatId, userId: parsed.userId });
+      if (!boundUser) {
+        return NextResponse.json({ error: "Account not found." }, { status: 404 });
+      }
+      const res = await processTelegramUpdate(
+        { message: { chat: { id: chatId }, text: `/start ${tokenStr}` } },
+        { dryRun: true }
+      );
+      return NextResponse.json(res);
     }
 
     // Allow an authenticated web user to link their own current session to this simulator chat
@@ -93,21 +135,10 @@ export async function POST(req) {
       if (!actor) {
         return NextResponse.json({ error: "Please sign in first to link your account." }, { status: 401 });
       }
-      await prisma.user.update({
-        where: { id: actor.userId },
-        data: { telegramChatId: chatId },
-      });
-      await prisma.patient.updateMany({
-        where: { userId: actor.userId },
-        data: { telegramChatId: chatId },
-      });
-      await prisma.telegramSession.upsert({
-        where: { chatId },
-        update: { userId: actor.userId, flowState: "IDLE", draftJson: "{}" },
-        create: { chatId, userId: actor.userId, flowState: "IDLE", draftJson: "{}", historyJson: "[]" },
-      });
+      await linkTelegramChatToUser({ chatId, userId: actor.userId });
+      const token = createTelegramLinkToken(actor.userId);
       const res = await processTelegramUpdate(
-        { message: { chat: { id: chatId }, text: "/start" } },
+        { message: { chat: { id: chatId }, text: `/start ${token}` } },
         { dryRun: true }
       );
       return NextResponse.json(res);

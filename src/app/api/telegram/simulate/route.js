@@ -6,6 +6,8 @@ import { resolveActorContext } from "@/lib/rbac";
 import { linkTelegramChatToUser, processTelegramUpdate } from "@/lib/telegram-bot";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
+export const maxDuration = 60;
+
 function hasValidLinkAccess(reqToken, sessionUserId) {
   if (!reqToken || !sessionUserId) return false;
   const parsed = verifyTelegramLinkToken(reqToken);

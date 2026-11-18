@@ -3,6 +3,8 @@ import { ensureSeeded } from "@/lib/seed-data";
 import { processTelegramUpdate } from "@/lib/telegram-bot";
 import { maybeRunThrottledReminders } from "@/lib/med-reminders";
 
+export const maxDuration = 60;
+
 export async function POST(req) {
   try {
     const expectedSecret = (process.env.TELEGRAM_WEBHOOK_SECRET || "").trim();

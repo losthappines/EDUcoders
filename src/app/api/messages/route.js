@@ -1,14 +1,12 @@
 import { NextResponse, connection } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { canVerifyVisitAsDoctor, resolveActorContext } from "@/lib/rbac";
+import { canVerifyVisitAsDoctor, resolveActorAfterSeed } from "@/lib/rbac";
 import { notifyUserViaTelegram } from "@/lib/telegram-bot";
 
 export async function GET(req) {
   await connection();
   try {
-    await ensureSeeded();
-    const actor = await resolveActorContext(req);
+    const actor = await resolveActorAfterSeed(req);
     if (!actor) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
@@ -24,13 +22,24 @@ export async function GET(req) {
         patientId: patient.id,
         ...(complaintIdParam ? { complaintId: complaintIdParam } : {}),
       };
-    } else if (canVerifyVisitAsDoctor(actor.role) || actor.role === "ADMIN_RECEPTION") {
+    } else if (canVerifyVisitAsDoctor(actor.role)) {
+      if (actor.role === "FAMILY_MD" && patientIdParam) {
+        const patient = await prisma.patient.findUnique({ where: { id: patientIdParam } });
+        if (
+          patient &&
+          actor.polyclinicId &&
+          patient.polyclinicId !== actor.polyclinicId &&
+          patient.assignedFamilyDoctorId !== actor.userId
+        ) {
+          return NextResponse.json({ error: "RBAC Denied: Patient outside your clinic scope" }, { status: 403 });
+        }
+      }
       where = {
         ...(patientIdParam ? { patientId: patientIdParam } : {}),
         ...(complaintIdParam ? { complaintId: complaintIdParam } : {}),
       };
     } else {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden — private clinical chat access only" }, { status: 403 });
     }
 
     const messages = await prisma.directMessage.findMany({
@@ -48,8 +57,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    await ensureSeeded();
-    const actor = await resolveActorContext(req);
+    const actor = await resolveActorAfterSeed(req);
     if (!actor) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }

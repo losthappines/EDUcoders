@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { canVerifyVisitAsDoctor, recordAuditLog, resolveActorContext } from "@/lib/rbac";
+import { canVerifyVisitAsDoctor, recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { resolveCoordinatesForLocation } from "@/lib/geo";
 
 export async function PATCH(req) {
   try {
-    await ensureSeeded();
-    const actor = await resolveActorContext(req);
+    const actor = await resolveActorAfterSeed(req);
     if (!actor) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }

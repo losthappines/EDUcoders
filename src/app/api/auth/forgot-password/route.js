@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getDatabaseConfigInfo, prisma } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed-data";
 import { createPasswordResetChallenge, hashPassword, verifyPasswordResetChallenge, } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { notifyUserViaTelegram } from "@/lib/telegram-bot";
 export async function POST(req) {
     let body;
     try {
@@ -14,6 +16,15 @@ export async function POST(req) {
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     if (!email || !email.includes("@")) {
         return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+    }
+    const ip = getClientIp(req);
+    const rl = checkRateLimit({
+        key: `forgot:${action}:${ip}:${email}`,
+        limit: 5,
+        windowMs: 10 * 60_000,
+    });
+    if (!rl.allowed) {
+        return NextResponse.json({ error: "Too many password reset requests. Please try again later." }, { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } });
     }
     const dbInfo = getDatabaseConfigInfo();
     if (!dbInfo.url || !dbInfo.isPostgres) {
@@ -30,17 +41,25 @@ export async function POST(req) {
                 return NextResponse.json({
                     success: true,
                     accountFound: false,
-                    message: "If an account exists for this email, a 6-digit verification code has been prepared.",
+                    message: "If an account exists for this email, a 6-digit verification code has been sent to your linked Telegram or support channel.",
                 });
             }
             const { code, resetToken } = createPasswordResetChallenge(user.email, user.passwordHash);
+            let telegramDelivered = false;
+            if (user.telegramChatId) {
+                const res = await notifyUserViaTelegram(user.id, `🔐 <b>Parolni tiklash kodi:</b> <code>${code}</code>\n15 daqiqa amal qiladi.`);
+                telegramDelivered = Boolean(res?.delivered);
+            }
+            const allowDemoCode = process.env.NODE_ENV !== "production" && !telegramDelivered;
             return NextResponse.json({
                 success: true,
                 accountFound: true,
                 resetToken,
-                // Hackathon/demo mode surfaces the OTP directly because no external SMTP relay is attached
-                demoVerificationCode: code,
-                message: "Verification code generated. Enter the 6-digit code and your new password below.",
+                telegramDelivered,
+                ...(allowDemoCode ? { demoVerificationCode: code } : {}),
+                message: telegramDelivered
+                    ? "Verification code sent to your linked Telegram bot chat."
+                    : "Verification code prepared. Check your linked Telegram or contact clinic support.",
             });
         }
         if (action === "RESET") {

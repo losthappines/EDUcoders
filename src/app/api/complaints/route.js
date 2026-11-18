@@ -1,7 +1,6 @@
 import { NextResponse, connection } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { recordAuditLog, resolveActorContext } from "@/lib/rbac";
+import { recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { haversineDistanceKm, matchNearestDoctor, resolveCoordinatesForLocation } from "@/lib/geo";
 import { notifyUserViaTelegram } from "@/lib/telegram-bot";
 
@@ -12,8 +11,7 @@ const VALID_DESTINATIONS = new Set(["HOME", "CURRENT_GPS", "RELATIVE_HOME", "CLI
 export async function GET(req) {
   await connection();
   try {
-    await ensureSeeded();
-    const actor = await resolveActorContext(req);
+    const actor = await resolveActorAfterSeed(req);
     if (!actor) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
@@ -140,8 +138,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    await ensureSeeded();
-    const actor = await resolveActorContext(req);
+    const actor = await resolveActorAfterSeed(req);
     if (!actor) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }

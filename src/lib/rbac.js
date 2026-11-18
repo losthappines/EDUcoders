@@ -1,5 +1,13 @@
 import { getSessionFromRequest, VALID_ROLES } from "./auth";
 import { prisma } from "./db";
+import { ensureSeeded } from "./seed-data";
+export async function resolveActorAfterSeed(req) {
+    const session = getSessionFromRequest(req);
+    if (!session)
+        return null;
+    await ensureSeeded();
+    return resolveActorContext(req);
+}
 export async function resolveActorContext(req) {
     const session = getSessionFromRequest(req);
     if (!session)

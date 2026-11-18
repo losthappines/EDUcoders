@@ -1,14 +1,12 @@
 import { NextResponse, connection } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
 import { buildFhirR4Bundle } from "@/lib/fhir";
-import { recordAuditLog, resolveActorContext } from "@/lib/rbac";
+import { recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 export async function GET(req, { params }) {
     await connection();
     try {
-        await ensureSeeded();
         const { activeCallId } = await params;
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
@@ -30,6 +28,12 @@ export async function GET(req, { params }) {
         });
         if (!call) {
             return NextResponse.json({ error: "ActiveCall not found" }, { status: 404 });
+        }
+        if (actor.role === "FAMILY_MD" &&
+            call.assignedDoctorId !== actor.userId &&
+            actor.polyclinicId &&
+            call.patient.polyclinicId !== actor.polyclinicId) {
+            return NextResponse.json({ error: "RBAC Denied: Outside your clinic scope" }, { status: 403 });
         }
         const bundle = buildFhirR4Bundle({
             patient: call.patient,

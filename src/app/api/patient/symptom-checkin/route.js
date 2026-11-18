@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { recordAuditLog, resolveActorContext } from "@/lib/rbac";
+import { recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { evaluateSymptomCheckinTriage } from "@/lib/agentic-coordinator";
 import { getSimulatedNow } from "@/lib/sla-queue";
 import { CONDITION_SEVERITY_OPTIONS, getSymptomLabel, VALID_SYMPTOM_IDS, } from "@/lib/symptoms-catalog";
 const VALID_SEVERITIES = new Set(CONDITION_SEVERITY_OPTIONS.map((o) => o.value));
 export async function POST(req) {
     try {
-        await ensureSeeded();
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }

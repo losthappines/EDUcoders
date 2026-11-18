@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
-import { ensureSeeded } from "@/lib/seed-data";
-import { canTriggerDischarge, recordAuditLog, resolveActorContext, } from "@/lib/rbac";
+import { canTriggerDischarge, recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { runDischargeHandoffAgent } from "@/lib/agentic-coordinator";
 import { prisma } from "@/lib/db";
 export async function POST(req) {
     try {
-        await ensureSeeded();
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }

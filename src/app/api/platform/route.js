@@ -1,8 +1,7 @@
 import { NextResponse, connection } from "next/server";
 import { prisma } from "@/lib/db";
 import { decryptField } from "@/lib/crypto";
-import { ensureSeeded } from "@/lib/seed-data";
-import { canViewClinicalNotes, recordAuditLog, resolveActorContext, } from "@/lib/rbac";
+import { canViewClinicalNotes, recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { computeSlaMetrics, evaluateAllSlaTimers, getSimulatedNow, getSimulatedOffsetHours, } from "@/lib/sla-queue";
 import { haversineDistanceKm, resolveCoordinatesForLocation } from "@/lib/geo";
 function sanitizeUser(u) {
@@ -32,8 +31,7 @@ function sanitizeUser(u) {
 export async function GET(req) {
     await connection();
     try {
-        await ensureSeeded();
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
@@ -241,7 +239,15 @@ export async function GET(req) {
 
         const scopedMessages = actor.role === "PATIENT"
             ? rawMessages.filter((m) => scopedPatientIds.has(m.patientId))
-            : rawMessages;
+            : actor.role === "ADMIN_RECEPTION"
+                ? rawMessages.map((m) => ({
+                    ...m,
+                    body: "[RBAC REDACTED — PRIVATE DOCTOR-PATIENT CONSULTATION]",
+                }))
+                : actor.role === "FAMILY_MD"
+                    ? rawMessages.filter((m) => scopedPatientIds.has(m.patientId) ||
+                        scopedComplaints.some((c) => c.patientId === m.patientId && c.assignedDoctorId === actor.userId))
+                    : rawMessages;
 
         const scopedSubscriptions = actor.role === "ADMIN_RECEPTION"
             ? rawSubscriptions

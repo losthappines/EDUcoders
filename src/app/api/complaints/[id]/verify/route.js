@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { canVerifyVisitAsDoctor, recordAuditLog, resolveActorContext } from "@/lib/rbac";
+import { canVerifyVisitAsDoctor, recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { notifyUserViaTelegram } from "@/lib/telegram-bot";
 
 export async function POST(req, { params }) {
   try {
-    await ensureSeeded();
-    const { id } = await params;
-    const actor = await resolveActorContext(req);
+    const actor = await resolveActorAfterSeed(req);
     if (!actor) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
+    const { id } = await params;
     if (!canVerifyVisitAsDoctor(actor.role)) {
       return NextResponse.json({ error: "Forbidden — only doctors can verify visits" }, { status: 403 });
     }

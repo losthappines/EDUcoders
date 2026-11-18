@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed-data";
 import { resolveActorContext } from "@/lib/rbac";
 import { processTelegramUpdate } from "@/lib/telegram-bot";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function GET(req) {
   await connection();
@@ -10,6 +11,15 @@ export async function GET(req) {
     await ensureSeeded();
     const chatId = (req.nextUrl.searchParams.get("chatId") || "web-sim-1").trim();
     const session = await prisma.telegramSession.findUnique({ where: { chatId } });
+    if (session?.userId) {
+      const actor = await resolveActorContext(req);
+      if (!actor || (actor.userId !== session.userId && actor.role !== "ADMIN_RECEPTION")) {
+        return NextResponse.json(
+          { error: "Sign in as the linked account owner to view this Telegram session." },
+          { status: 403 }
+        );
+      }
+    }
     let history = [];
     if (session?.historyJson) {
       try {
@@ -49,9 +59,33 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
+    const ip = getClientIp(req);
+    const rl = checkRateLimit({
+      key: `tg-sim:${ip}`,
+      limit: 40,
+      windowMs: 60_000,
+    });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many Telegram bot requests. Please slow down." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
+
     await ensureSeeded();
     const body = await req.json();
     const chatId = String(body.chatId || "web-sim-1");
+    const existingSession = await prisma.telegramSession.findUnique({ where: { chatId } });
+
+    if (body.action !== "LINK_CURRENT_USER" && existingSession?.userId) {
+      const actor = await resolveActorContext(req);
+      if (!actor || (actor.userId !== existingSession.userId && actor.role !== "ADMIN_RECEPTION")) {
+        return NextResponse.json(
+          { error: "Forbidden — this Telegram chat is linked to another user." },
+          { status: 403 }
+        );
+      }
+    }
 
     // Allow an authenticated web user to link their own current session to this simulator chat
     if (body.action === "LINK_CURRENT_USER") {

@@ -4,23 +4,23 @@ import { IconAlertTriangle, IconCircleCheck, IconCpu, IconRobot, IconX, } from "
 export function AgentTraceModal({ open, patientName, trace, onClose, }) {
     if (!open)
         return null;
-    return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
+    return (<div role="dialog" aria-modal="true" aria-label="AI Continuity Trace" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
       <div className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600 text-white">
-              <IconRobot className="h-5 w-5"/>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-700 text-white">
+              <IconRobot className="h-5 w-5" aria-hidden="true"/>
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                Agentic AI Continuity Coordinator — Autonomous Execution Trace
+                SI / AI Continuity Coordinator — Execution Trace
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {patientName ? `Bemor: ${patientName} • ` : ""}4-Step Tool-Calling Pipeline
+                {patientName ? `${patientName} • ` : ""}4-Step Tool-Calling Pipeline
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800">
+          <button type="button" onClick={onClose} aria-label="Close trace modal" className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800">
             <IconX className="h-5 w-5"/>
           </button>
         </div>

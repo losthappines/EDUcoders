@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { canVerifyVisitAsDoctor, recordAuditLog, resolveActorContext, } from "@/lib/rbac";
+import { canVerifyVisitAsDoctor, recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { getSimulatedNow, slaMemoryQueue } from "@/lib/sla-queue";
 import { encryptField } from "@/lib/crypto";
 export async function PATCH(req, { params }) {
     try {
-        await ensureSeeded();
         const { id } = await params;
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
@@ -16,9 +14,18 @@ export async function PATCH(req, { params }) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
         const body = (await req.json());
-        const call = await prisma.activeCall.findUnique({ where: { id } });
+        const call = await prisma.activeCall.findUnique({
+            where: { id },
+            include: { patient: true },
+        });
         if (!call) {
             return NextResponse.json({ error: "ActiveCall not found" }, { status: 404 });
+        }
+        if (actor.role === "FAMILY_MD" &&
+            call.assignedDoctorId !== actor.userId &&
+            actor.polyclinicId &&
+            call.patient.polyclinicId !== actor.polyclinicId) {
+            return NextResponse.json({ error: "RBAC Denied: Patient outside your clinic scope" }, { status: 403 });
         }
         const checklist = JSON.parse(call.checklistJson || "[]");
         const updated = checklist.map((item) => item.id === body.checklistItemId ? { ...item, checked: body.checked } : item);
@@ -35,9 +42,8 @@ export async function PATCH(req, { params }) {
 }
 export async function POST(req, { params }) {
     try {
-        await ensureSeeded();
         const { id } = await params;
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
@@ -57,6 +63,12 @@ export async function POST(req, { params }) {
         });
         if (!call) {
             return NextResponse.json({ error: "ActiveCall not found" }, { status: 404 });
+        }
+        if (actor.role === "FAMILY_MD" &&
+            call.assignedDoctorId !== actor.userId &&
+            actor.polyclinicId &&
+            call.patient.polyclinicId !== actor.polyclinicId) {
+            return NextResponse.json({ error: "RBAC Denied: Patient outside your clinic scope" }, { status: 403 });
         }
         const body = (await req.json());
         const simulatedNow = await getSimulatedNow();

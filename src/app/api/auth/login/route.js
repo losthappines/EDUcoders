@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDatabaseConfigInfo, prisma } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed-data";
 import { clearSessionCookie, getPortalPathForRole, setSessionCookie, verifyPassword, } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 export async function POST(req) {
     let body;
     try {
@@ -14,6 +15,15 @@ export async function POST(req) {
     const password = typeof body.password === "string" ? body.password : "";
     if (!email || !password) {
         return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
+    }
+    const clientIp = getClientIp(req);
+    const rl = checkRateLimit({
+        key: `login:${clientIp}:${email}`,
+        limit: 12,
+        windowMs: 5 * 60_000,
+    });
+    if (!rl.allowed) {
+        return NextResponse.json({ error: "Too many sign-in attempts. Please wait a few minutes before retrying." }, { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } });
     }
     const dbInfo = getDatabaseConfigInfo();
     if (!dbInfo.url || !dbInfo.isPostgres) {

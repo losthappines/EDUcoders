@@ -102,6 +102,97 @@ export function verifyPasswordResetChallenge(params) {
         return false;
     }
 }
+export function normalizePhoneDigits(phone) {
+    return String(phone || "").replace(/\D/g, "");
+}
+export function createPhoneOtpChallenge(phone) {
+    const normalized = normalizePhoneDigits(phone);
+    const code = String(crypto.randomInt(100000, 1000000));
+    const codeHash = crypto
+        .createHmac("sha256", SESSION_SECRET)
+        .update(`phone:${normalized}:${code}`)
+        .digest("hex");
+    const payload = {
+        phone: normalized,
+        codeHash,
+        exp: Math.floor(Date.now() / 1000) + 60 * 10,
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+    const sig = signData(encoded);
+    return { code, otpToken: `${encoded}.${sig}` };
+}
+export function verifyPhoneOtpChallenge({ phone, code, otpToken }) {
+    const normalized = normalizePhoneDigits(phone);
+    if (!otpToken || !otpToken.includes(".") || !normalized || !code) {
+        return null;
+    }
+    const [encoded, sig] = otpToken.split(".");
+    if (!encoded || !sig)
+        return null;
+    const expectedSig = signData(encoded);
+    try {
+        const sigBuf = Buffer.from(sig, "utf8");
+        const expectedBuf = Buffer.from(expectedSig, "utf8");
+        if (sigBuf.length !== expectedBuf.length)
+            return null;
+        if (!crypto.timingSafeEqual(sigBuf, expectedBuf))
+            return null;
+        const parsed = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+        if (!parsed?.phone ||
+            !parsed?.codeHash ||
+            typeof parsed.exp !== "number" ||
+            parsed.exp < Math.floor(Date.now() / 1000)) {
+            return null;
+        }
+        if (parsed.phone !== normalized)
+            return null;
+        const expectedCodeHash = crypto
+            .createHmac("sha256", SESSION_SECRET)
+            .update(`phone:${normalized}:${String(code).trim()}`)
+            .digest("hex");
+        const codeBuf = Buffer.from(parsed.codeHash, "utf8");
+        const expectedCodeBuf = Buffer.from(expectedCodeHash, "utf8");
+        if (codeBuf.length !== expectedCodeBuf.length)
+            return null;
+        if (!crypto.timingSafeEqual(codeBuf, expectedCodeBuf))
+            return null;
+        const proofPayload = {
+            phone: normalized,
+            verified: true,
+            exp: Math.floor(Date.now() / 1000) + 60 * 30,
+        };
+        const proofEncoded = Buffer.from(JSON.stringify(proofPayload), "utf8").toString("base64url");
+        return `${proofEncoded}.${signData(proofEncoded)}`;
+    }
+    catch {
+        return null;
+    }
+}
+export function verifyPhoneVerifiedToken(phone, token) {
+    const normalized = normalizePhoneDigits(phone);
+    if (!token || !token.includes(".") || !normalized)
+        return false;
+    const [encoded, sig] = token.split(".");
+    if (!encoded || !sig)
+        return false;
+    const expectedSig = signData(encoded);
+    try {
+        const sigBuf = Buffer.from(sig, "utf8");
+        const expectedBuf = Buffer.from(expectedSig, "utf8");
+        if (sigBuf.length !== expectedBuf.length)
+            return false;
+        if (!crypto.timingSafeEqual(sigBuf, expectedBuf))
+            return false;
+        const parsed = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+        return Boolean(parsed?.verified &&
+            parsed?.phone === normalized &&
+            typeof parsed.exp === "number" &&
+            parsed.exp >= Math.floor(Date.now() / 1000));
+    }
+    catch {
+        return false;
+    }
+}
 function signData(encodedPayload) {
     return crypto
         .createHmac("sha256", SESSION_SECRET)

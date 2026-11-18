@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { resolveActorContext } from "@/lib/rbac";
-import { ensureSeeded } from "@/lib/seed-data";
+import { resolveActorAfterSeed } from "@/lib/rbac";
 import { getSimulatedNow } from "@/lib/sla-queue";
 export async function POST(req) {
     try {
-        await ensureSeeded();
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }

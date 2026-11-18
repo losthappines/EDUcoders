@@ -706,7 +706,7 @@ export async function processTelegramUpdate(update, options = {}) {
         data: { userId: createdUser.id },
       });
       await notifyAdminsViaTelegram(
-        `🆕 <b>Yangi Telegram Ro'yxatdan o'tish!</b>\nFoydalanuvchi: <b>${createdUser.fullName}</b> (${createdUser.role})\n📍 ${createdUser.district}\nTasdiqlash uchun Admin Dashboard -> Verifications bo'limini oching.`
+        `🆕 <b>Yangi Telegram Ro'yxatdan o'tish!</b>\nFoydalanuvchi: <b>${createdUser.fullName}</b> (${createdUser.role})\n📍 ${createdUser.district}\nTasdiqlash uchun Qabulxona -> Hisoblarni tasdiqlash bo'limini oching.`
       );
 
       nextFlowState = "IDLE";

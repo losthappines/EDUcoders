@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDatabaseConfigInfo, prisma } from "@/lib/db";
 import { ensureSeeded } from "@/lib/seed-data";
-import { clearSessionCookie, getPortalPathForRole, hashPassword, setSessionCookie, VALID_ROLES, } from "@/lib/auth";
+import { clearSessionCookie, getPortalPathForRole, hashPassword, setSessionCookie, VALID_ROLES, verifyPhoneVerifiedToken, } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { encryptField, maskJshshir } from "@/lib/crypto";
 import { resolvePolyclinicForLocation } from "@/lib/uz-locations";
 import { resolveCoordinatesForLocation } from "@/lib/geo";
@@ -15,6 +16,15 @@ function isDbError(error) {
         msg.includes("P1012"));
 }
 export async function POST(req) {
+    const clientIp = getClientIp(req);
+    const rl = checkRateLimit({
+        key: `signup:${clientIp}`,
+        limit: 8,
+        windowMs: 10 * 60_000,
+    });
+    if (!rl.allowed) {
+        return NextResponse.json({ error: "Too many registration attempts. Please try again later." }, { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } });
+    }
     let body;
     try {
         body = (await req.json());
@@ -37,6 +47,11 @@ export async function POST(req) {
     }
     if (!role || !VALID_ROLES.includes(role)) {
         return NextResponse.json({ error: "Invalid account role selected." }, { status: 400 });
+    }
+    if (typeof body.verifiedPhoneToken === "string" && body.verifiedPhoneToken) {
+        if (!verifyPhoneVerifiedToken(body.phone || "", body.verifiedPhoneToken)) {
+            return NextResponse.json({ error: "Invalid phone verification token. Please re-verify your phone number." }, { status: 400 });
+        }
     }
     const dbInfo = getDatabaseConfigInfo();
     if (!dbInfo.url || !dbInfo.isPostgres) {

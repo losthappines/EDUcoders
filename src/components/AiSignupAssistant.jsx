@@ -1,16 +1,17 @@
 "use client";
 import React, { useRef, useState } from "react";
-import { IconAlertTriangle, IconCheck, IconCurrentLocation, IconEdit, IconMapPin, IconRefresh, IconRobot, IconSend, IconSparkles, IconUserPlus, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconCheck, IconEdit, IconMapPin, IconRefresh, IconRobot, IconSend, IconSparkles, IconUserPlus, } from "@tabler/icons-react";
 import { createInitialDraft, getNextStep, getProgressPercent, getStepPrompt, processAiAnswer, } from "@/lib/ai-signup-helper";
+import { GpsConsentButton } from "@/components/GpsConsentButton";
 const UI_COPY = {
     uz: {
-        headerTitle: "OnaCare AI Ro'yxatdan O'tish Yordamchisi",
-        headerSub: "Savollarga javob bering — AI hisobingizni o'zi to'ldirib beradi",
+        headerTitle: "OnaCare SI Ro'yxatdan O'tish Yordamchisi",
+        headerSub: "Savollarga javob bering — SI hisobingizni o'zi to'ldirib beradi",
         restartBtn: "Qayta boshlash",
         editInFormBtn: "Shaklga o'tkazib tahrirlash",
         createBtn: "Hisobni yaratish",
         creatingBtn: "Yaratilmoqda...",
-        previewTitle: "AI to'ldirgan ma'lumotlar",
+        previewTitle: "SI to'ldirgan ma'lumotlar",
         progressLabel: "Tayyorlik",
         roleField: "Rol",
         nameField: "F.I.O.",
@@ -30,7 +31,7 @@ const UI_COPY = {
         passwordField: "Parol",
         pendingAnswer: "Kutilmoqda...",
         passwordSet: "O'rnatildi (himoyalangan)",
-        changeEmailBtn: "Boshqa email kiritish",
+        changeEmailBtn: "Boshqa elektron pochta kiritish",
         sendAria: "Javobni yuborish",
         personaLabels: {
             PATIENT: "Bemor / Ona",
@@ -40,8 +41,8 @@ const UI_COPY = {
         },
     },
     ru: {
-        headerTitle: "AI-помощник регистрации OnaCare",
-        headerSub: "Отвечайте на вопросы — AI сам заполнит вашу анкету",
+        headerTitle: "ИИ-помощник регистрации OnaCare",
+        headerSub: "Отвечайте на вопросы — ИИ сам заполнит вашу анкету",
         restartBtn: "Начать заново",
         editInFormBtn: "Открыть в форме",
         createBtn: "Создать аккаунт",
@@ -62,7 +63,7 @@ const UI_COPY = {
         specialtyField: "Сфера / Специальность",
         expertiseField: "Экспертиза",
         experienceField: "Стаж (лет)",
-        emailField: "Email",
+        emailField: "Электронная почта",
         passwordField: "Пароль",
         pendingAnswer: "Ожидается...",
         passwordSet: "Задан (защищен)",
@@ -194,23 +195,6 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
         scrollToBottom();
     };
     const [gpsNotice, setGpsNotice] = useState(null);
-    const handleShareGps = () => {
-        setGpsNotice(null);
-        if (typeof navigator === "undefined" || !navigator.geolocation) {
-            setGpsNotice(t.gpsError);
-            return;
-        }
-        navigator.geolocation.getCurrentPosition((pos) => {
-            const lat = Number(pos.coords.latitude.toFixed(5));
-            const lng = Number(pos.coords.longitude.toFixed(5));
-            const updated = { ...draft, latitude: lat, longitude: lng };
-            setDraft(updated);
-            onDraftChange(updated);
-            setGpsNotice(`${t.gpsShared}: ${lat}, ${lng}`);
-        }, () => {
-            setGpsNotice(t.gpsError);
-        }, { enableHighAccuracy: true, timeout: 7000 });
-    };
     const hasGps = typeof draft.latitude === "number" && typeof draft.longitude === "number";
     const summaryRows = [
         {
@@ -286,14 +270,14 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
                   <IconRobot className="h-4 w-4"/>
                 </div>)}
               <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${msg.sender === "user"
-                ? "bg-teal-600 text-white rounded-br-sm"
+                ? "bg-teal-700 text-white rounded-br-sm"
                 : "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-bl-sm shadow-2xs"}`}>
                 {msg.text}
               </div>
             </div>))}
 
           {stepPrompt.chips.length > 0 && !isComplete && (<div className="flex flex-wrap gap-1.5 pl-9 pt-1">
-              {stepPrompt.chips.map((chip) => (<button key={chip.value} type="button" onClick={() => submitAnswer(chip.value, chip.label)} className="rounded-full border border-teal-300 dark:border-teal-700 bg-white dark:bg-slate-900 px-3 py-1 text-[11px] font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/70 transition">
+              {stepPrompt.chips.map((chip) => (<button key={chip.value} type="button" onClick={() => submitAnswer(chip.value, chip.label)} className="min-h-[38px] rounded-full border border-teal-300 dark:border-teal-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/70 transition">
                   {chip.label}
                 </button>))}
             </div>)}
@@ -304,18 +288,18 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
               <IconAlertTriangle className="h-4 w-4 shrink-0"/>
               {error}
             </span>
-            <button type="button" onClick={handleChangeEmail} className="rounded-lg bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-700 hover:bg-rose-100 transition">
+            <button type="button" onClick={handleChangeEmail} className="rounded-lg bg-white dark:bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-700 hover:bg-rose-100 transition">
               {t.changeEmailBtn}
             </button>
           </div>)}
 
         <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
           {isComplete ? (<div className="flex flex-col sm:flex-row gap-2">
-              <button type="button" disabled={busy} onClick={() => onCreateAccount(draft)} className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-teal-700 disabled:opacity-50 transition">
+              <button type="button" disabled={busy} onClick={() => onCreateAccount(draft)} className="flex-1 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-bold text-white hover:bg-teal-800 disabled:opacity-50 transition">
                 <IconUserPlus className="h-4 w-4"/>
                 {busy ? t.creatingBtn : t.createBtn}
               </button>
-              <button type="button" onClick={() => onSwitchToForm(draft)} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+              <button type="button" onClick={() => onSwitchToForm(draft)} className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
                 <IconEdit className="h-3.5 w-3.5"/>
                 {t.editInFormBtn}
               </button>
@@ -329,8 +313,8 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
                     ? "email"
                     : stepPrompt.step === "phone"
                         ? "tel"
-                        : "off"} value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={stepPrompt.placeholder} className="flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
-              <button type="submit" disabled={!inputValue.trim()} aria-label={t.sendAria} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-40 transition">
+                        : "off"} value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={stepPrompt.placeholder} className="min-h-[44px] flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"/>
+              <button type="submit" disabled={!inputValue.trim()} aria-label={t.sendAria} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white hover:bg-teal-800 disabled:opacity-40 transition">
                 <IconSend className="h-4 w-4"/>
               </button>
             </form>)}
@@ -373,15 +357,22 @@ export function AiSignupAssistant({ persona, initialDraft, lang, busy, error, on
         </div>
 
         <div className="space-y-2">
-          <button type="button" onClick={handleShareGps} className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 px-3 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition">
-            <IconCurrentLocation className="h-3.5 w-3.5"/>
-            {t.shareGpsBtn}
-          </button>
+          <GpsConsentButton
+            label={t.shareGpsBtn}
+            className="w-full inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 px-3 py-2 text-xs font-semibold text-sky-800 dark:text-sky-200 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition"
+            onLocationCaptured={({ latitude, longitude }) => {
+              const updated = { ...draft, latitude, longitude };
+              setDraft(updated);
+              onDraftChange(updated);
+              setGpsNotice(`${t.gpsShared}: ${latitude}, ${longitude}`);
+            }}
+            onError={() => setGpsNotice(t.gpsError)}
+          />
           {gpsNotice && (<p className="inline-flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
               <IconMapPin className="h-3 w-3 shrink-0 text-sky-600"/>
               {gpsNotice}
             </p>)}
-          <button type="button" onClick={() => onSwitchToForm(draft)} className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/60 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <button type="button" onClick={() => onSwitchToForm(draft)} className="w-full inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/60 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
             <IconEdit className="h-3.5 w-3.5"/>
             {t.editInFormBtn}
           </button>

@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { recordAuditLog, resolveActorContext } from "@/lib/rbac";
+import { recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { notifyUserViaTelegram, sendDoctorVisitReminders } from "@/lib/telegram-bot";
 
 export async function POST(req) {
   try {
-    await ensureSeeded();
-    const actor = await resolveActorContext(req);
-    if (!actor || actor.role !== "ADMIN_RECEPTION") {
+    const actor = await resolveActorAfterSeed(req);
+    if (!actor) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    if (actor.role !== "ADMIN_RECEPTION") {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 

@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { canVerifyVisitAsDoctor, recordAuditLog, resolveActorContext, } from "@/lib/rbac";
+import { canVerifyVisitAsDoctor, recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { getSimulatedNow } from "@/lib/sla-queue";
 export async function POST(req) {
     try {
-        await ensureSeeded();
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
@@ -22,6 +20,26 @@ export async function POST(req) {
         }
         const simulatedNow = await getSimulatedNow();
         const body = (await req.json());
+        if (!body.patientId) {
+            return NextResponse.json({ error: "patientId is required" }, { status: 400 });
+        }
+        const patient = await prisma.patient.findUnique({ where: { id: body.patientId } });
+        if (!patient) {
+            return NextResponse.json({ error: "Patient not found" }, { status: 404 });
+        }
+        if (actor.role === "FAMILY_MD" &&
+            patient.assignedFamilyDoctorId !== actor.userId &&
+            actor.polyclinicId &&
+            patient.polyclinicId !== actor.polyclinicId) {
+            await recordAuditLog({
+                actor,
+                action: "RBAC_DENIED",
+                resourceType: "ClinicalOrder",
+                resourceId: patient.id,
+                details: { reason: "Patient outside doctor's assigned polyclinic scope" },
+            });
+            return NextResponse.json({ error: "RBAC Denied: Patient outside your clinic scope" }, { status: 403 });
+        }
         if (body.type === "FOLLOWUP_LAB") {
             const panelName = body.panelName || "Uy sharoitida Qayta Qon & Siydik Nazorati";
             const placeholderResults = [

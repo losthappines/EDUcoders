@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSeeded } from "@/lib/seed-data";
-import { resolveActorContext } from "@/lib/rbac";
+import { resolveActorAfterSeed } from "@/lib/rbac";
 
 export async function PATCH(req) {
   try {
-    await ensureSeeded();
-    const actor = await resolveActorContext(req);
+    const actor = await resolveActorAfterSeed(req);
     if (!actor) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }

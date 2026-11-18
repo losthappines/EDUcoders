@@ -1,12 +1,10 @@
 import { NextResponse, connection } from "next/server";
-import { ensureSeeded } from "@/lib/seed-data";
-import { resolveActorContext } from "@/lib/rbac";
+import { resolveActorAfterSeed } from "@/lib/rbac";
 import { getPortalPathForRole } from "@/lib/auth";
 export async function GET(req) {
     await connection();
     try {
-        await ensureSeeded();
-        const actor = await resolveActorContext(req);
+        const actor = await resolveActorAfterSeed(req);
         if (!actor) {
             return NextResponse.json({ authenticated: false, user: null });
         }

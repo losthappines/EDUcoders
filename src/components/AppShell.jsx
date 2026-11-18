@@ -80,7 +80,7 @@ const SHELL_COPY = {
         familySub: "Local clinic & 24-hour home check-ups",
         adminBadge: "Clinic Coordinator",
         adminSub: "24-hour visit tracking, reception & summaries",
-        adminOverviewNav: "Dashboard Overview",
+        adminOverviewNav: "Clinic Overview",
         adminVerificationsNav: "Account Verifications",
     },
 };
@@ -162,7 +162,7 @@ export function AppShell({ children }) {
                             : "Siz faqat o'zingizning rolingizga tegishli kabinetni ko'rishingiz mumkin."}
           </p>
           {authChecked && (<div className="pt-1">
-              <Link href={!authUser ? "/login" : getPortalForRole(authUser.role)} className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition">
+              <Link href={!authUser ? "/login" : getPortalForRole(authUser.role)} className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-teal-700 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-800 transition">
                 {!authUser
                     ? lang === "ru"
                         ? "Перейти ко входу"
@@ -207,7 +207,7 @@ export function AppShell({ children }) {
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors duration-200">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <Link href="/" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-xs hover:bg-teal-700 transition" title="OnaCare">
+            <Link href="/" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white shadow-xs hover:bg-teal-800 transition" title="OnaCare">
               <IconHeartHandshake className="h-5 w-5"/>
             </Link>
             <div className="min-w-0">
@@ -251,7 +251,7 @@ export function AppShell({ children }) {
           {/* Mobile actions */}
           <div className="flex md:hidden items-center gap-1.5 shrink-0">
             <ThemeToggle />
-            <button type="button" onClick={() => setMobileMenuOpen((v) => !v)} aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close portal menu" : "Open portal menu"} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            <button type="button" onClick={() => setMobileMenuOpen((v) => !v)} aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close portal menu" : "Open portal menu"} className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
               {mobileMenuOpen ? <IconX className="h-5 w-5"/> : <IconMenu2 className="h-5 w-5"/>}
             </button>
           </div>
@@ -269,7 +269,7 @@ export function AppShell({ children }) {
                 {t.privateBadge}
               </span>
             </div>
-            <Link href="/telegram" onClick={() => setMobileMenuOpen(false)} className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 px-3 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300">
+            <Link href="/telegram" onClick={() => setMobileMenuOpen(false)} className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 px-3 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300">
               <IconBrandTelegram className="h-4 w-4"/>
               Telegram Bot
             </Link>
@@ -282,21 +282,21 @@ export function AppShell({ children }) {
             <button type="button" onClick={() => {
                 setMobileMenuOpen(false);
                 logout();
-            }} className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            }} className="w-full min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
               <IconLogout className="h-3.5 w-3.5"/>
               {t.signOut}
             </button>
             {authUser.role === "ADMIN_RECEPTION" && (<div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className={`inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold border transition ${pathname === "/admin"
-                    ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
+                <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className={`min-h-[44px] inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold border transition ${pathname === "/admin"
+                    ? "border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
                     : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"}`}>
                   {t.adminOverviewNav}
                 </Link>
-                <Link href="/admin/verifications" onClick={() => setMobileMenuOpen(false)} className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold border transition ${pathname.startsWith("/admin/verifications")
-                    ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
+                <Link href="/admin/verifications" onClick={() => setMobileMenuOpen(false)} className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold border transition ${pathname.startsWith("/admin/verifications")
+                    ? "border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300"
                     : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"}`}>
                   {t.adminVerificationsNav}
-                  {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+                  {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className="rounded-full bg-amber-600 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                       {data?.pendingVerificationsCount}
                     </span>)}
                 </Link>
@@ -307,19 +307,19 @@ export function AppShell({ children }) {
         {authUser.role === "ADMIN_RECEPTION" && (<nav aria-label="Admin dashboard navigation" className="hidden md:block border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70">
             <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-2">
               <Link href="/admin" className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${pathname === "/admin"
-                ? "bg-teal-600 text-white shadow-xs"
+                ? "bg-teal-700 text-white shadow-xs"
                 : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800"}`}>
                 <IconShieldCheck className="h-3.5 w-3.5"/>
                 {t.adminOverviewNav}
               </Link>
               <Link href="/admin/verifications" className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${pathname.startsWith("/admin/verifications")
-                ? "bg-teal-600 text-white shadow-xs"
+                ? "bg-teal-700 text-white shadow-xs"
                 : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800"}`}>
                 <IconUserCheck className="h-3.5 w-3.5"/>
                 {t.adminVerificationsNav}
                 {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${pathname.startsWith("/admin/verifications")
                     ? "bg-white text-teal-800"
-                    : "bg-amber-500 text-white"}`}>
+                    : "bg-amber-600 text-white"}`}>
                     {data?.pendingVerificationsCount}
                   </span>)}
               </Link>

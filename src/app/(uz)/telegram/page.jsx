@@ -447,7 +447,14 @@ function TelegramConsoleContent() {
   async function toggleVoiceRecording() {
     if (busy) return;
     if (recording && mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
+      try {
+        if (mediaRecorderRef.current.state !== "inactive") {
+          mediaRecorderRef.current.requestData?.();
+          mediaRecorderRef.current.stop();
+        }
+      } catch {
+        // ignore stop error
+      }
       setRecording(false);
       return;
     }
@@ -457,13 +464,26 @@ function TelegramConsoleContent() {
       return;
     }
 
+    // Pause any playing AI voice audio before opening microphone
+    if (typeof document !== "undefined") {
+      document.querySelectorAll("audio").forEach((el) => {
+        try {
+          el.pause();
+        } catch {
+          // ignore
+        }
+      });
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const preferredMime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
-        : MediaRecorder.isTypeSupported("audio/mp4")
-          ? "audio/mp4"
-          : "";
+        : MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")
+          ? "audio/ogg;codecs=opus"
+          : MediaRecorder.isTypeSupported("audio/mp4")
+            ? "audio/mp4"
+            : "";
       const recorder = preferredMime
         ? new MediaRecorder(stream, { mimeType: preferredMime })
         : new MediaRecorder(stream);
@@ -476,11 +496,32 @@ function TelegramConsoleContent() {
         }
       };
 
+      recorder.onerror = () => {
+        stream.getTracks().forEach((tr) => tr.stop());
+        mediaRecorderRef.current = null;
+        setRecording(false);
+        setBusy(false);
+        showToast("error", t.voiceUnsupported);
+      };
+
       recorder.onstop = () => {
         stream.getTracks().forEach((tr) => tr.stop());
-        const mimeType = recorder.mimeType || "audio/webm";
+        mediaRecorderRef.current = null;
+        const mimeType = recorder.mimeType || preferredMime || "audio/webm";
         const blob = new Blob(mediaChunksRef.current, { type: mimeType });
-        if (blob.size < 200) return;
+        mediaChunksRef.current = [];
+        if (blob.size < 150) {
+          showToast(
+            "error",
+            lang === "ru"
+              ? "Запись слишком короткая. Удерживайте кнопку немного дольше."
+              : lang === "en"
+                ? "Recording was too short. Please speak for at least 1 second."
+                : "Ovoz yozuvi juda qisqa. Kamida 1 soniya gapirib qayta yuboring."
+          );
+          return;
+        }
+        setBusy(true);
         const reader = new FileReader();
         reader.onloadend = () => {
           const dataUrl = typeof reader.result === "string" ? reader.result : "";
@@ -490,12 +531,18 @@ function TelegramConsoleContent() {
               voiceMimeType: mimeType,
               lang,
             });
+          } else {
+            setBusy(false);
           }
+        };
+        reader.onerror = () => {
+          setBusy(false);
+          showToast("error", "Failed to read recorded audio.");
         };
         reader.readAsDataURL(blob);
       };
 
-      recorder.start();
+      recorder.start(250);
       setRecording(true);
     } catch {
       showToast("error", t.voiceUnsupported);

@@ -53,18 +53,155 @@ export function clampSpeechText(text, maxChars = 940) {
   return `${slice.trim()}...`;
 }
 
-function inferExtensionFromMime(mimeType, fallbackFilename = "voice.ogg") {
-  const lower = String(mimeType || "").toLowerCase();
-  if (lower.includes("m4a") || lower.includes("mp4") || lower.includes("aac")) return "voice.m4a";
-  if (lower.includes("mpeg") || lower.includes("mp3")) return "voice.mp3";
-  if (lower.includes("wav")) return "voice.wav";
-  if (lower.includes("webm")) return "voice.webm";
-  if (lower.includes("ogg") || lower.includes("opus")) return "voice.ogg";
-  return fallbackFilename;
+function normalizeAudioFormat(mimeType, filename = "") {
+  const rawMime = String(mimeType || "").split(";")[0].trim().toLowerCase();
+  const rawName = String(filename || "").trim().toLowerCase();
+
+  if (
+    rawMime.includes("mp4") ||
+    rawMime.includes("m4a") ||
+    rawMime.includes("aac") ||
+    rawName.endsWith(".m4a") ||
+    rawName.endsWith(".mp4") ||
+    rawName.endsWith(".aac")
+  ) {
+    return { mimeType: "audio/mp4", filename: "voice.m4a" };
+  }
+  if (rawMime.includes("mpeg") || rawMime.includes("mp3") || rawName.endsWith(".mp3")) {
+    return { mimeType: "audio/mpeg", filename: "voice.mp3" };
+  }
+  if (rawMime.includes("wav") || rawName.endsWith(".wav")) {
+    return { mimeType: "audio/wav", filename: "voice.wav" };
+  }
+  if (rawMime.includes("webm") || rawName.endsWith(".webm")) {
+    return { mimeType: "audio/webm", filename: "voice.webm" };
+  }
+  if (
+    rawMime.includes("ogg") ||
+    rawMime.includes("opus") ||
+    rawMime.includes("oga") ||
+    rawName.endsWith(".ogg") ||
+    rawName.endsWith(".oga") ||
+    rawName.endsWith(".opus")
+  ) {
+    // VoiceLab and Gemini recognize .ogg reliably (some parsers reject .oga)
+    return { mimeType: "audio/ogg", filename: "voice.ogg" };
+  }
+  return { mimeType: "audio/ogg", filename: "voice.ogg" };
+}
+
+function parseJsonSafe(text) {
+  if (!text) return null;
+  const trimmed = String(text).trim();
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fenced && fenced[1]) {
+      try {
+        return JSON.parse(fenced[1].trim());
+      } catch {
+        // continue
+      }
+    }
+    const start = trimmed.indexOf("{");
+    const end = trimmed.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      try {
+        return JSON.parse(trimmed.slice(start, end + 1));
+      } catch {
+        // continue
+      }
+    }
+    return null;
+  }
+}
+
+function extractVoiceLabTranscript(json) {
+  if (!json) return "";
+  if (typeof json === "string") return json.trim();
+  const candidates = [
+    json?.transcript,
+    json?.text,
+    typeof json?.result === "string" ? json.result : null,
+    json?.result?.transcript,
+    json?.result?.text,
+    json?.data?.transcript,
+    json?.data?.text,
+    Array.isArray(json?.results) ? json.results[0]?.transcript || json.results[0]?.text : null,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim()) {
+      return c.trim();
+    }
+  }
+  return "";
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function pollVoiceLabSttResult(taskId, apiKey) {
+  if (!taskId || !apiKey) return "";
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await sleep(900);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch(`${VOICELAB_BASE_URL}/api/v1/stt/status/${encodeURIComponent(String(taskId))}/`, {
+        headers: { "X-Api-Key": apiKey },
+        signal: controller.signal,
+      });
+      if (res.ok) {
+        const json = await res.json().catch(() => null);
+        const text = extractVoiceLabTranscript(json);
+        if (text) return text;
+        const status = String(json?.status || "").toUpperCase();
+        if (status === "FAILED" || status === "ERROR") break;
+      } else if (res.status === 404) {
+        break;
+      }
+    } catch {
+      // retry next poll
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  return "";
+}
+
+async function pollVoiceLabTtsAudioPath(taskId, apiKey) {
+  if (!taskId || !apiKey) return "";
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await sleep(900);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch(`${VOICELAB_BASE_URL}/api/v1/tts/status/${encodeURIComponent(String(taskId))}/`, {
+        headers: { "X-Api-Key": apiKey },
+        signal: controller.signal,
+      });
+      if (res.ok) {
+        const json = await res.json().catch(() => null);
+        const rawPath = json?.audio_path || json?.audioUrl || json?.url || json?.data?.audio_path || "";
+        if (rawPath) return rawPath;
+        const status = String(json?.status || "").toUpperCase();
+        if (status === "FAILED" || status === "ERROR") break;
+      } else if (res.status === 404) {
+        break;
+      }
+    } catch {
+      // retry next poll
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  return "";
 }
 
 /**
- * Fallback multimodal STT via Gemini when VoiceLab API key is missing or rejects an audio codec.
+ * Fallback multimodal STT via Gemini when VoiceLab API key is missing, rate-limited, or rejects an audio codec.
  */
 async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg") {
   const apiKey = getGeminiApiKey();
@@ -72,9 +209,11 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
     return { ok: false, error: "NO_STT_KEY" };
   }
 
-  const normalizedMime = String(mimeType || "audio/ogg").split(";")[0].trim() || "audio/ogg";
-  const configured = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
-  const models = [...new Set([configured, "gemini-3.5-flash", "gemini-2.5-flash", "gemini-3.5-flash-lite"].filter(Boolean))];
+  const normalized = normalizeAudioFormat(mimeType);
+  const envModel = (process.env.GEMINI_MODEL || "").trim();
+  const models = [
+    ...new Set([envModel, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash"].filter(Boolean)),
+  ];
   const base64Audio = Buffer.from(audioBuffer).toString("base64");
 
   const payload = {
@@ -84,13 +223,13 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
         parts: [
           {
             inlineData: {
-              mimeType: normalizedMime,
+              mimeType: normalized.mimeType,
               data: base64Audio,
             },
           },
           {
             text:
-              "Transcribe this voice message verbatim. The speaker may speak Uzbek (Latin script), Russian, or English. " +
+              "Transcribe this spoken voice message verbatim. The speaker may speak Uzbek (Latin script), Russian, or English. " +
               'Return strict JSON: {"transcript":"...","language":"uz"|"ru"|"en"}.',
           },
         ],
@@ -103,6 +242,7 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
     },
   };
 
+  let lastError = "GEMINI_STT_FAILED";
   for (const model of models) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 14_000);
@@ -120,14 +260,14 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
         }
       );
       if (!res.ok) {
-        if (res.status === 404 || res.status === 400 || res.status === 503) continue;
-        return { ok: false, error: `GEMINI_STT_HTTP_${res.status}` };
+        lastError = `GEMINI_HTTP_${res.status}`;
+        continue;
       }
       const json = await res.json();
       const parts = json?.candidates?.[0]?.content?.parts || [];
       const textPart = parts.find((p) => typeof p?.text === "string" && !p?.thought) || parts[0];
       const raw = (textPart?.text || "").trim();
-      const parsed = JSON.parse(raw);
+      const parsed = parseJsonSafe(raw);
       if (parsed?.transcript) {
         return {
           ok: true,
@@ -136,18 +276,88 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
           language: normalizeVoiceLang(parsed.language),
         };
       }
-    } catch {
-      // try next model
+      // If Gemini responded with plain text transcript instead of JSON
+      if (raw && !raw.startsWith("{")) {
+        return {
+          ok: true,
+          provider: `gemini-fallback:${model}`,
+          transcript: raw.replace(/^["']|["']$/g, "").trim(),
+          language: "uz",
+        };
+      }
+      lastError = "GEMINI_EMPTY_TRANSCRIPT";
+    } catch (err) {
+      lastError = err instanceof Error && err.name === "AbortError" ? "GEMINI_TIMEOUT" : "GEMINI_NETWORK_ERR";
     } finally {
       clearTimeout(timer);
     }
   }
-  return { ok: false, error: "GEMINI_STT_FAILED" };
+  return { ok: false, error: lastError };
+}
+
+async function callVoiceLabSttOnce({ audioBuffer, mimeType, filename, language, apiKey }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 16_000);
+  try {
+    const form = new FormData();
+    const blob = new Blob([audioBuffer], { type: mimeType });
+    form.append("audio", blob, filename);
+    form.append("has_diarization", "false");
+    if (language) {
+      form.append("language", normalizeVoiceLang(language));
+    }
+
+    const headers = {
+      "X-Api-Key": apiKey,
+    };
+    if (language) {
+      headers["Accept-Language"] = normalizeVoiceLang(language);
+    }
+
+    const res = await fetch(`${VOICELAB_BASE_URL}/api/v1/stt/post/`, {
+      method: "POST",
+      headers,
+      body: form,
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.warn(`VoiceLab STT HTTP ${res.status}: ${errBody.slice(0, 180)}`);
+      return { ok: false, status: res.status, error: `VOICELAB_HTTP_${res.status}` };
+    }
+
+    const json = await res.json().catch(() => ({}));
+    let transcript = extractVoiceLabTranscript(json);
+    if (!transcript && (json?.id || json?.task_id)) {
+      transcript = await pollVoiceLabSttResult(json.id || json.task_id, apiKey);
+    }
+    if (transcript) {
+      return {
+        ok: true,
+        provider: "voicelab",
+        transcript,
+        language: normalizeVoiceLang(json?.language || language || "uz"),
+      };
+    }
+    return { ok: false, status: 200, error: "VOICELAB_EMPTY_TRANSCRIPT" };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("VoiceLab STT request error:", msg);
+    return {
+      ok: false,
+      status: 0,
+      error: err instanceof Error && err.name === "AbortError" ? "VOICELAB_TIMEOUT" : "VOICELAB_NETWORK_ERR",
+    };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**
  * Speech-to-Text via VoiceLab.uz (Aisha REST API: POST /api/v1/stt/post/).
- * Automatically falls back to Gemini audio transcription if VOICELAB_API_KEY is missing or fails.
+ * Automatically retries without explicit language on HTTP 400/422, polls async task IDs,
+ * and falls back to Gemini multimodal audio transcription if VoiceLab fails.
  */
 export async function transcribeVoiceAudio({
   audioBuffer,
@@ -160,66 +370,42 @@ export async function transcribeVoiceAudio({
   }
 
   const apiKey = getVoiceLabApiKey();
-  const safeFilename = filename || inferExtensionFromMime(mimeType);
-  const cleanMime = String(mimeType || "audio/ogg").split(";")[0].trim() || "audio/ogg";
+  const normalized = normalizeAudioFormat(mimeType, filename);
+  let voiceLabErr = apiKey ? "" : "NO_VOICELAB_KEY";
 
   if (apiKey) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 16_000);
-    try {
-      const form = new FormData();
-      const blob = new Blob([audioBuffer], { type: cleanMime });
-      form.append("audio", blob, safeFilename);
-      if (preferredLang) {
-        form.append("language", normalizeVoiceLang(preferredLang));
-      }
+    const firstTry = await callVoiceLabSttOnce({
+      audioBuffer,
+      mimeType: normalized.mimeType,
+      filename: normalized.filename,
+      language: preferredLang,
+      apiKey,
+    });
+    if (firstTry.ok) return firstTry;
+    voiceLabErr = firstTry.error || "VOICELAB_STT_FAILED";
 
-      const headers = {
-        "X-Api-Key": apiKey,
-      };
-      if (preferredLang) {
-        headers["Accept-Language"] = normalizeVoiceLang(preferredLang);
-      }
-
-      const res = await fetch(`${VOICELAB_BASE_URL}/api/v1/stt/post/`, {
-        method: "POST",
-        headers,
-        body: form,
-        signal: controller.signal,
+    // Retry once without language hint in case strict language validation rejected the audio/language pair
+    if (preferredLang && (firstTry.status === 400 || firstTry.status === 422 || firstTry.error === "VOICELAB_EMPTY_TRANSCRIPT")) {
+      const retry = await callVoiceLabSttOnce({
+        audioBuffer,
+        mimeType: normalized.mimeType,
+        filename: normalized.filename,
+        language: "",
+        apiKey,
       });
-
-      if (res.ok) {
-        const json = await res.json().catch(() => ({}));
-        const transcript = String(
-          json?.transcript ||
-            json?.text ||
-            json?.result?.transcript ||
-            json?.result?.text ||
-            json?.data?.transcript ||
-            json?.data?.text ||
-            ""
-        ).trim();
-        if (transcript) {
-          return {
-            ok: true,
-            provider: "voicelab",
-            transcript,
-            language: normalizeVoiceLang(json?.language || preferredLang || "uz"),
-          };
-        }
-      } else {
-        const errBody = await res.text().catch(() => "");
-        console.warn(`VoiceLab STT HTTP ${res.status}: ${errBody.slice(0, 180)}`);
-      }
-    } catch (err) {
-      console.warn("VoiceLab STT request error:", err instanceof Error ? err.message : String(err));
-    } finally {
-      clearTimeout(timer);
+      if (retry.ok) return retry;
+      voiceLabErr = retry.error || voiceLabErr;
     }
   }
 
   // Fallback to Gemini native audio STT so voice flows keep working seamlessly
-  return transcribeWithGeminiFallback(audioBuffer, cleanMime);
+  const fallback = await transcribeWithGeminiFallback(audioBuffer, normalized.mimeType);
+  if (fallback.ok) return fallback;
+
+  return {
+    ok: false,
+    error: `${voiceLabErr}|${fallback.error || "STT_FAILED"}`,
+  };
 }
 
 /**
@@ -276,7 +462,6 @@ export async function synthesizeVoiceSpeech({
     }
 
     const contentType = res.headers.get("content-type") || "";
-    // Handle direct binary audio stream if returned
     if (contentType.startsWith("audio/")) {
       const arr = await res.arrayBuffer();
       const ext = contentType.includes("mpeg") || contentType.includes("mp3") ? "mp3" : contentType.includes("ogg") ? "ogg" : "wav";
@@ -291,7 +476,10 @@ export async function synthesizeVoiceSpeech({
     }
 
     const json = await res.json().catch(() => ({}));
-    const rawPath = json?.audio_path || json?.audioUrl || json?.url || json?.data?.audio_path || "";
+    let rawPath = json?.audio_path || json?.audioUrl || json?.url || json?.data?.audio_path || "";
+    if (!rawPath && (json?.id || json?.task_id)) {
+      rawPath = await pollVoiceLabTtsAudioPath(json.id || json.task_id, apiKey);
+    }
     if (!rawPath) {
       return { ok: false, error: "VOICELAB_TTS_NO_AUDIO_PATH" };
     }
@@ -305,7 +493,9 @@ export async function synthesizeVoiceSpeech({
       return { ok: false, error: `VOICELAB_AUDIO_FETCH_HTTP_${audioRes.status}` };
     }
     const audioArr = await audioRes.arrayBuffer();
-    const audioMime = audioRes.headers.get("content-type") || (audioUrl.endsWith(".mp3") ? "audio/mpeg" : audioUrl.endsWith(".ogg") ? "audio/ogg" : "audio/wav");
+    const audioMime =
+      audioRes.headers.get("content-type") ||
+      (audioUrl.endsWith(".mp3") ? "audio/mpeg" : audioUrl.endsWith(".ogg") ? "audio/ogg" : "audio/wav");
     const ext = audioUrl.endsWith(".mp3") ? "mp3" : audioUrl.endsWith(".ogg") ? "ogg" : "wav";
 
     return {

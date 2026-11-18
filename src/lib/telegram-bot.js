@@ -199,15 +199,17 @@ async function downloadTelegramFileBuffer(fileId, explicitToken = "") {
     const res = await fetch(`https://api.telegram.org/file/bot${token}/${filePath}`);
     if (!res.ok) return { ok: false, error: `File download HTTP ${res.status}` };
     const arr = await res.arrayBuffer();
-    const filename = filePath.split("/").pop() || "voice.ogg";
-    const lower = filename.toLowerCase();
-    const inferredMime = lower.endsWith(".m4a")
-      ? "audio/mp4"
-      : lower.endsWith(".mp3")
-        ? "audio/mpeg"
-        : lower.endsWith(".wav")
-          ? "audio/wav"
-          : "audio/ogg";
+    const rawName = filePath.split("/").pop() || "voice.ogg";
+    const lower = rawName.toLowerCase();
+    const inferredMime =
+      lower.endsWith(".m4a") || lower.endsWith(".mp4")
+        ? "audio/mp4"
+        : lower.endsWith(".mp3")
+          ? "audio/mpeg"
+          : lower.endsWith(".wav")
+            ? "audio/wav"
+            : "audio/ogg";
+    const filename = lower.endsWith(".oga") ? rawName.replace(/\.oga$/i, ".ogg") : rawName;
     return {
       ok: true,
       buffer: Buffer.from(arr),
@@ -235,8 +237,14 @@ async function sendTelegramVoiceOrAudio(
   form.append("chat_id", String(chatId));
   form.append(fieldName, new Blob([audioBuffer], { type: contentType }), filename);
   if (caption) {
-    form.append("caption", String(caption).slice(0, 1000));
-    form.append("parse_mode", "HTML");
+    const rawCaption = String(caption);
+    if (rawCaption.length <= 1000) {
+      form.append("caption", rawCaption);
+      form.append("parse_mode", "HTML");
+    } else {
+      const plainCaption = rawCaption.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 990);
+      form.append("caption", plainCaption);
+    }
   }
   if (!useVoiceEndpoint) {
     form.append("title", "OnaCare AI");
@@ -950,6 +958,10 @@ export async function processTelegramUpdate(update, options = {}) {
         }
       }
 
+      if (!voiceSttError && (!audioBuffer || audioBuffer.length === 0)) {
+        voiceSttError = "EMPTY_AUDIO";
+      }
+
       if (audioBuffer && audioBuffer.length > 0 && !voiceSttError) {
         const stt = await transcribeVoiceAudio({
           audioBuffer,
@@ -965,6 +977,9 @@ export async function processTelegramUpdate(update, options = {}) {
           voiceSttError = stt.error || "STT_FAILED";
         }
       }
+    }
+    if (!voiceTranscript && voiceSttError) {
+      console.warn(`[telegram-voice] STT failed (${voiceSttError}) for chat=${chatId}`);
     }
   }
 
@@ -1070,10 +1085,12 @@ export async function processTelegramUpdate(update, options = {}) {
         [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
       );
     } else if (!voiceTranscript) {
+      const errNote = voiceSttError ? `\n<code>(${escapeHtml(voiceSttError.slice(0, 64))})</code>` : "";
       reply = makeBotReply(
-        "⚠️ Ovozli xabarni matnga aylantirib bo'lmadi. Iltimos, aniqroq qayta gapiring yoki matn ko'rinishida yuboring.",
+        `⚠️ Ovozli xabarni matnga aylantirib bo'lmadi. Iltimos, mikrofon yaqinida aniqroq qayta gapiring yoki matn yozing.${errNote}`,
         [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
       );
+      reply.voiceMeta = { sttError: voiceSttError || "STT_FAILED" };
     } else {
       const aiVoice = await runVoiceIntentAssistant({
         transcript: voiceTranscript,

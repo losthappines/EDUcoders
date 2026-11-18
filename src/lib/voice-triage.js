@@ -355,8 +355,10 @@ export async function runVoiceIntentAssistant({
     },
   };
 
-  const configured = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
-  const models = [...new Set([configured, "gemini-3.5-flash", "gemini-2.5-flash", "gemini-3.5-flash-lite"].filter(Boolean))];
+  const configured = (process.env.GEMINI_MODEL || "").trim();
+  const models = [
+    ...new Set([configured, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash"].filter(Boolean)),
+  ];
 
   for (const model of models) {
     const controller = new AbortController();
@@ -375,13 +377,22 @@ export async function runVoiceIntentAssistant({
         }
       );
       if (!res.ok) {
-        if (res.status === 404 || res.status === 400 || res.status === 503) continue;
-        break;
+        continue;
       }
       const json = await res.json();
       const parts = json?.candidates?.[0]?.content?.parts || [];
       const textPart = parts.find((p) => typeof p?.text === "string" && !p?.thought) || parts[0];
-      const parsed = JSON.parse((textPart?.text || "").trim());
+      const rawText = (textPart?.text || "").trim();
+      let parsed = null;
+      try {
+        parsed = JSON.parse(rawText);
+      } catch {
+        const fenced = rawText.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        const jsonCandidate = fenced?.[1] || (rawText.includes("{") ? rawText.slice(rawText.indexOf("{"), rawText.lastIndexOf("}") + 1) : "");
+        if (jsonCandidate) {
+          parsed = JSON.parse(jsonCandidate.trim());
+        }
+      }
       if (parsed && typeof parsed.replyText === "string") {
         const urgent = Boolean(parsed.urgentEmergency103) || detectVoiceRedFlags(cleanTranscript);
         return {

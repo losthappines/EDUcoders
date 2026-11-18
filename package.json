@@ -14,6 +14,7 @@
     "@prisma/client": "^6.19.3",
     "@tabler/icons-react": "^3.52.0",
     "@vercel/analytics": "^2.0.1",
+    "@voicelab/sdk": "^0.1.0",
     "next": "16.4.6",
     "prisma": "^6.19.3",
     "react": "19.3.0",

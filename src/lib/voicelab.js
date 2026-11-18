@@ -1,4 +1,23 @@
-const VOICELAB_BASE_URL = (process.env.VOICELAB_BASE_URL || "https://back.aisha.group").replace(/\/$/, "");
+import {
+  VoiceLab,
+  APIError,
+  AuthenticationError,
+  PaymentRequiredError,
+  PermissionDeniedError,
+  RateLimitError,
+  PayloadTooLargeError,
+  UnsupportedMediaTypeError,
+  ValidationError,
+  RequestTimeoutError,
+  NetworkError,
+} from "@voicelab/sdk";
+
+const DEFAULT_VOICELAB_BASE_URL = "https://api.voicelab.uz";
+const LEGACY_AISHA_BASE_URL = "https://back.aisha.group";
+const VOICE_CACHE_TTL_MS = 15 * 60 * 1000;
+
+const clientCache = new Map();
+const voiceIdCache = new Map();
 
 export function getVoiceLabApiKey() {
   return (
@@ -8,8 +27,38 @@ export function getVoiceLabApiKey() {
   ).trim();
 }
 
+export function isLegacyAishaMode(apiKey = getVoiceLabApiKey()) {
+  const envBase = (process.env.VOICELAB_BASE_URL || "").trim().toLowerCase();
+  if (envBase.includes("aisha.group")) return true;
+  if (!process.env.VOICELAB_API_KEY && process.env.AISHA_API_KEY && !String(apiKey).startsWith("vlk_")) {
+    return true;
+  }
+  return false;
+}
+
+export function getVoiceLabBaseUrl(apiKey = getVoiceLabApiKey()) {
+  const envBase = (process.env.VOICELAB_BASE_URL || "").trim().replace(/\/+$/, "");
+  if (envBase) return envBase;
+  return isLegacyAishaMode(apiKey) ? LEGACY_AISHA_BASE_URL : DEFAULT_VOICELAB_BASE_URL;
+}
+
 export function isVoiceLabConfigured() {
   return Boolean(getVoiceLabApiKey());
+}
+
+export function createVoiceLabClient(apiKey = getVoiceLabApiKey(), baseUrl = getVoiceLabBaseUrl(apiKey)) {
+  if (!apiKey) return null;
+  const cacheKey = `${apiKey}::${baseUrl}`;
+  if (clientCache.has(cacheKey)) {
+    return clientCache.get(cacheKey);
+  }
+  const client = new VoiceLab({
+    apiKey,
+    baseUrl,
+    timeoutMs: 25_000,
+  });
+  clientCache.set(cacheKey, client);
+  return client;
 }
 
 function getGeminiApiKey() {
@@ -53,7 +102,7 @@ export function clampSpeechText(text, maxChars = 940) {
   return `${slice.trim()}...`;
 }
 
-function normalizeAudioFormat(mimeType, filename = "") {
+export function normalizeAudioFormat(mimeType, filename = "") {
   const rawMime = String(mimeType || "").split(";")[0].trim().toLowerCase();
   const rawName = String(filename || "").trim().toLowerCase();
 
@@ -84,7 +133,7 @@ function normalizeAudioFormat(mimeType, filename = "") {
     rawName.endsWith(".oga") ||
     rawName.endsWith(".opus")
   ) {
-    // VoiceLab and Gemini recognize .ogg reliably (some parsers reject .oga)
+    // Normalize .oga to .ogg so VoiceLab and Gemini recognize it reliably
     return { mimeType: "audio/ogg", filename: "voice.ogg" };
   }
   return { mimeType: "audio/ogg", filename: "voice.ogg" };
@@ -117,7 +166,238 @@ function parseJsonSafe(text) {
   }
 }
 
-function extractVoiceLabTranscript(json) {
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function formatVoiceLabSdkError(err, scope = "stt") {
+  const prefix = scope === "tts" ? "VOICELAB_TTS" : "VOICELAB";
+  if (err instanceof AuthenticationError) {
+    console.warn(`[voicelab-${scope}] Auth failed (401):`, err.message, err.requestId || "");
+    return { status: 401, code: `${prefix}_AUTH_401` };
+  }
+  if (err instanceof PaymentRequiredError) {
+    console.warn(`[voicelab-${scope}] Credits exhausted (402):`, err.message, err.requestId || "");
+    return { status: 402, code: `${prefix}_CREDITS_402` };
+  }
+  if (err instanceof PermissionDeniedError) {
+    console.warn(`[voicelab-${scope}] Permission denied (403):`, err.message, err.requestId || "");
+    return { status: 403, code: `${prefix}_FORBIDDEN_403` };
+  }
+  if (err instanceof RateLimitError) {
+    console.warn(`[voicelab-${scope}] Rate limit (429):`, err.message, err.retryAfterSeconds ?? "");
+    return { status: 429, code: `${prefix}_RATE_LIMIT_429` };
+  }
+  if (err instanceof PayloadTooLargeError) {
+    console.warn(`[voicelab-${scope}] Payload too large (413):`, err.message);
+    return { status: 413, code: `${prefix}_TOO_LARGE_413` };
+  }
+  if (err instanceof UnsupportedMediaTypeError) {
+    console.warn(`[voicelab-${scope}] Unsupported media (415):`, err.message);
+    return { status: 415, code: `${prefix}_MEDIA_415` };
+  }
+  if (err instanceof ValidationError) {
+    console.warn(`[voicelab-${scope}] Validation (${err.status}):`, err.message, err.fields || "");
+    return { status: err.status || 422, code: `${prefix}_VALIDATION_${err.status || 422}` };
+  }
+  if (err instanceof RequestTimeoutError) {
+    console.warn(`[voicelab-${scope}] Timeout:`, err.message);
+    return { status: 0, code: `${prefix}_TIMEOUT` };
+  }
+  if (err instanceof NetworkError) {
+    console.warn(`[voicelab-${scope}] Network error:`, err.message);
+    return { status: 0, code: `${prefix}_NETWORK_ERR` };
+  }
+  if (err instanceof APIError) {
+    console.warn(`[voicelab-${scope}] API error (${err.status} ${err.code}):`, err.message, err.requestId || "");
+    return { status: err.status, code: `${prefix}_HTTP_${err.status}` };
+  }
+  const msg = err instanceof Error ? err.message : String(err);
+  console.warn(`[voicelab-${scope}] Unexpected error:`, msg);
+  return { status: 0, code: `${prefix}_SDK_ERR` };
+}
+
+async function pollSdkTranscription(client, transcriptionId, fallbackLang) {
+  if (!client || !transcriptionId) return { ok: false, error: "VOICELAB_MISSING_JOB_ID" };
+  const delaysMs = [700, 900, 1100, 1300, 1500, 1500, 1500, 1500, 1500, 1500];
+  for (const delay of delaysMs) {
+    await sleep(delay);
+    try {
+      const detail = await client.stt.getTranscription(transcriptionId, { timeoutMs: 8000 });
+      const text = typeof detail?.transcript === "string" ? detail.transcript.trim() : "";
+      if (text) {
+        return {
+          ok: true,
+          provider: "voicelab",
+          transcript: text,
+          language: normalizeVoiceLang(detail.language || fallbackLang),
+        };
+      }
+      const status = String(detail?.status || "").toLowerCase();
+      if (status === "failed" || status === "error" || status === "canceled" || status === "cancelled") {
+        return { ok: false, status: 500, error: "VOICELAB_JOB_FAILED" };
+      }
+    } catch (err) {
+      const info = formatVoiceLabSdkError(err, "stt");
+      if (info.status === 401 || info.status === 403 || info.status === 404) {
+        return { ok: false, status: info.status, error: info.code };
+      }
+    }
+  }
+  return { ok: false, status: 202, error: "VOICELAB_JOB_PENDING" };
+}
+
+async function callVoiceLabSdkSttOnce({ audioBuffer, mimeType, filename, language, apiKey, baseUrl }) {
+  const client = createVoiceLabClient(apiKey, baseUrl);
+  if (!client) return { ok: false, status: 0, error: "NO_VOICELAB_KEY" };
+
+  const sttLang = language ? normalizeVoiceLang(language) : "uz";
+  try {
+    const audioBytes = Buffer.isBuffer(audioBuffer) ? audioBuffer : Buffer.from(audioBuffer);
+    const result = await client.stt.transcribe(
+      {
+        audio: {
+          data: audioBytes,
+          filename,
+          contentType: mimeType,
+        },
+        language: sttLang,
+        includeSpeakers: false,
+      },
+      { timeoutMs: 25_000 }
+    );
+
+    if (result && "transcript" in result && typeof result.transcript === "string" && result.transcript.trim()) {
+      return {
+        ok: true,
+        provider: "voicelab",
+        transcript: result.transcript.trim(),
+        language: normalizeVoiceLang(result.language || sttLang),
+      };
+    }
+
+    if (result?.id) {
+      return await pollSdkTranscription(client, result.id, sttLang);
+    }
+
+    return { ok: false, status: 200, error: "VOICELAB_EMPTY_TRANSCRIPT" };
+  } catch (err) {
+    const info = formatVoiceLabSdkError(err, "stt");
+    return { ok: false, status: info.status, error: info.code };
+  }
+}
+
+function pickBestVoiceForLanguage(voices, lang) {
+  if (!Array.isArray(voices) || voices.length === 0) return null;
+  const preferredKeywords =
+    lang === "uz"
+      ? /gulnoza|sevara|madina|dilnoza|malika|female|ayol|warm|calm|natural/i
+      : /female|woman|warm|calm|gentle|natural|anna|elena|olga|sophia|emma|claire|maya/i;
+  const match = voices.find((v) =>
+    preferredKeywords.test(`${v.displayName || ""} ${v.shortDescription || ""} ${v.description || ""}`)
+  );
+  return match || voices[0];
+}
+
+function getEnvVoiceOverride(lang) {
+  if (lang === "uz" && process.env.VOICELAB_VOICE_ID_UZ) return process.env.VOICELAB_VOICE_ID_UZ.trim();
+  if (lang === "ru" && process.env.VOICELAB_VOICE_ID_RU) return process.env.VOICELAB_VOICE_ID_RU.trim();
+  if (lang === "en" && process.env.VOICELAB_VOICE_ID_EN) return process.env.VOICELAB_VOICE_ID_EN.trim();
+  if (process.env.VOICELAB_VOICE_ID) return process.env.VOICELAB_VOICE_ID.trim();
+  return "";
+}
+
+async function resolveVoiceLabVoiceId(client, apiKey, lang) {
+  const envVoice = getEnvVoiceOverride(lang);
+  if (envVoice) return { voiceId: envVoice, language: lang };
+
+  const cacheKey = `${apiKey.slice(0, 12)}::${lang}`;
+  const cached = voiceIdCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return { voiceId: cached.voiceId, language: cached.language };
+  }
+
+  try {
+    const list = await client.voices.list({ language: lang }, { timeoutMs: 8000 });
+    const picked = pickBestVoiceForLanguage(list?.data, lang);
+    if (picked?.id) {
+      const entry = {
+        voiceId: picked.id,
+        language: picked.language || lang,
+        expiresAt: Date.now() + VOICE_CACHE_TTL_MS,
+      };
+      voiceIdCache.set(cacheKey, entry);
+      return { voiceId: entry.voiceId, language: entry.language };
+    }
+  } catch (err) {
+    formatVoiceLabSdkError(err, "tts");
+  }
+
+  // Fallback to Uzbek voices if requested language has no dedicated voice listed
+  if (lang !== "uz") {
+    try {
+      const fallbackList = await client.voices.list({ language: "uz" }, { timeoutMs: 8000 });
+      const picked = pickBestVoiceForLanguage(fallbackList?.data, "uz");
+      if (picked?.id) {
+        return { voiceId: picked.id, language: picked.language || "uz" };
+      }
+    } catch (err) {
+      formatVoiceLabSdkError(err, "tts");
+    }
+  }
+
+  return null;
+}
+
+async function synthesizeWithVoiceLabSdk({ text, language, speed, apiKey, baseUrl }) {
+  const client = createVoiceLabClient(apiKey, baseUrl);
+  if (!client) return { ok: false, error: "VOICELAB_API_KEY_NOT_SET" };
+
+  const resolved = await resolveVoiceLabVoiceId(client, apiKey, language);
+  if (!resolved?.voiceId) {
+    return { ok: false, error: "VOICELAB_NO_VOICE_AVAILABLE" };
+  }
+
+  const parsedSpeed = Number(speed);
+  const numericSpeed = Number.isFinite(parsedSpeed) && parsedSpeed >= 0.5 && parsedSpeed <= 2.0 ? parsedSpeed : 1.0;
+
+  try {
+    const speech = await client.tts.synthesize(
+      {
+        text,
+        language: resolved.language,
+        voiceId: resolved.voiceId,
+        ...(numericSpeed !== 1.0 ? { speed: numericSpeed } : {}),
+      },
+      { timeoutMs: 22_000 }
+    );
+
+    const contentType = speech.contentType || "audio/wav";
+    const ext =
+      contentType.includes("mpeg") || contentType.includes("mp3")
+        ? "mp3"
+        : contentType.includes("ogg")
+          ? "ogg"
+          : "wav";
+
+    return {
+      ok: true,
+      provider: "voicelab",
+      language,
+      voiceId: resolved.voiceId,
+      audioBuffer: Buffer.from(speech.audio),
+      contentType,
+      filename: `onacare-reply-${language}.${ext}`,
+    };
+  } catch (err) {
+    const info = formatVoiceLabSdkError(err, "tts");
+    return { ok: false, error: info.code };
+  }
+}
+
+// ==================== LEGACY AISHA AI SUPPORT (ONLY WHEN AISHA_API_KEY / back.aisha.group USED) ====================
+
+function extractLegacyAishaTranscript(json) {
   if (!json) return "";
   if (typeof json === "string") return json.trim();
   const candidates = [
@@ -138,24 +418,20 @@ function extractVoiceLabTranscript(json) {
   return "";
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function pollVoiceLabSttResult(taskId, apiKey) {
+async function pollLegacyAishaSttResult(taskId, apiKey, baseUrl) {
   if (!taskId || !apiKey) return "";
   for (let attempt = 0; attempt < 5; attempt++) {
     await sleep(900);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
     try {
-      const res = await fetch(`${VOICELAB_BASE_URL}/api/v1/stt/status/${encodeURIComponent(String(taskId))}/`, {
+      const res = await fetch(`${baseUrl}/api/v1/stt/status/${encodeURIComponent(String(taskId))}/`, {
         headers: { "X-Api-Key": apiKey },
         signal: controller.signal,
       });
       if (res.ok) {
         const json = await res.json().catch(() => null);
-        const text = extractVoiceLabTranscript(json);
+        const text = extractLegacyAishaTranscript(json);
         if (text) return text;
         const status = String(json?.status || "").toUpperCase();
         if (status === "FAILED" || status === "ERROR") break;
@@ -171,14 +447,69 @@ async function pollVoiceLabSttResult(taskId, apiKey) {
   return "";
 }
 
-async function pollVoiceLabTtsAudioPath(taskId, apiKey) {
+async function callLegacyAishaSttOnce({ audioBuffer, mimeType, filename, language, apiKey, baseUrl }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 16_000);
+  try {
+    const form = new FormData();
+    const blob = new Blob([audioBuffer], { type: mimeType });
+    form.append("audio", blob, filename);
+    form.append("has_diarization", "false");
+    if (language) {
+      form.append("language", normalizeVoiceLang(language));
+    }
+
+    const headers = { "X-Api-Key": apiKey };
+    if (language) {
+      headers["Accept-Language"] = normalizeVoiceLang(language);
+    }
+
+    const res = await fetch(`${baseUrl}/api/v1/stt/post/`, {
+      method: "POST",
+      headers,
+      body: form,
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.warn(`Aisha STT HTTP ${res.status}: ${errBody.slice(0, 180)}`);
+      return { ok: false, status: res.status, error: `AISHA_HTTP_${res.status}` };
+    }
+
+    const json = await res.json().catch(() => ({}));
+    let transcript = extractLegacyAishaTranscript(json);
+    if (!transcript && (json?.id || json?.task_id)) {
+      transcript = await pollLegacyAishaSttResult(json.id || json.task_id, apiKey, baseUrl);
+    }
+    if (transcript) {
+      return {
+        ok: true,
+        provider: "aisha",
+        transcript,
+        language: normalizeVoiceLang(json?.language || language || "uz"),
+      };
+    }
+    return { ok: false, status: 200, error: "AISHA_EMPTY_TRANSCRIPT" };
+  } catch (err) {
+    return {
+      ok: false,
+      status: 0,
+      error: err instanceof Error && err.name === "AbortError" ? "AISHA_TIMEOUT" : "AISHA_NETWORK_ERR",
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function pollLegacyAishaTtsAudioPath(taskId, apiKey, baseUrl) {
   if (!taskId || !apiKey) return "";
   for (let attempt = 0; attempt < 5; attempt++) {
     await sleep(900);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
     try {
-      const res = await fetch(`${VOICELAB_BASE_URL}/api/v1/tts/status/${encodeURIComponent(String(taskId))}/`, {
+      const res = await fetch(`${baseUrl}/api/v1/tts/status/${encodeURIComponent(String(taskId))}/`, {
         headers: { "X-Api-Key": apiKey },
         signal: controller.signal,
       });
@@ -200,6 +531,94 @@ async function pollVoiceLabTtsAudioPath(taskId, apiKey) {
   return "";
 }
 
+async function synthesizeWithLegacyAisha({ text, language, mood, speed, apiKey, baseUrl }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 16_000);
+  try {
+    const form = new FormData();
+    form.append("transcript", text);
+    form.append("language", language);
+    form.append("speed", String(speed || "1.0"));
+
+    if (language === "uz") {
+      form.append("model", (process.env.VOICELAB_TTS_MODEL_UZ || "Gulnoza").trim());
+      form.append("mood", mood || "Neutral");
+    } else if (language === "ru" && process.env.VOICELAB_TTS_MODEL_RU) {
+      form.append("model", process.env.VOICELAB_TTS_MODEL_RU.trim());
+    } else if (language === "en" && process.env.VOICELAB_TTS_MODEL_EN) {
+      form.append("model", process.env.VOICELAB_TTS_MODEL_EN.trim());
+    }
+
+    const res = await fetch(`${baseUrl}/api/v1/tts/post/`, {
+      method: "POST",
+      headers: {
+        "X-Api-Key": apiKey,
+        "Accept-Language": language,
+      },
+      body: form,
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      return { ok: false, error: `AISHA_TTS_HTTP_${res.status}:${errBody.slice(0, 120)}` };
+    }
+
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.startsWith("audio/")) {
+      const arr = await res.arrayBuffer();
+      const ext = contentType.includes("mpeg") || contentType.includes("mp3") ? "mp3" : contentType.includes("ogg") ? "ogg" : "wav";
+      return {
+        ok: true,
+        provider: "aisha",
+        language,
+        audioBuffer: Buffer.from(arr),
+        contentType,
+        filename: `onacare-reply-${language}.${ext}`,
+      };
+    }
+
+    const json = await res.json().catch(() => ({}));
+    let rawPath = json?.audio_path || json?.audioUrl || json?.url || json?.data?.audio_path || "";
+    if (!rawPath && (json?.id || json?.task_id)) {
+      rawPath = await pollLegacyAishaTtsAudioPath(json.id || json.task_id, apiKey, baseUrl);
+    }
+    if (!rawPath) {
+      return { ok: false, error: "AISHA_TTS_NO_AUDIO_PATH" };
+    }
+
+    const audioUrl = rawPath.startsWith("http")
+      ? rawPath
+      : `${baseUrl}${rawPath.startsWith("/") ? "" : "/"}${rawPath}`;
+
+    const audioRes = await fetch(audioUrl, { signal: controller.signal });
+    if (!audioRes.ok) {
+      return { ok: false, error: `AISHA_AUDIO_FETCH_HTTP_${audioRes.status}` };
+    }
+    const audioArr = await audioRes.arrayBuffer();
+    const audioMime =
+      audioRes.headers.get("content-type") ||
+      (audioUrl.endsWith(".mp3") ? "audio/mpeg" : audioUrl.endsWith(".ogg") ? "audio/ogg" : "audio/wav");
+    const ext = audioUrl.endsWith(".mp3") ? "mp3" : audioUrl.endsWith(".ogg") ? "ogg" : "wav";
+
+    return {
+      ok: true,
+      provider: "aisha",
+      language,
+      audioUrl,
+      audioBuffer: Buffer.from(audioArr),
+      contentType: audioMime,
+      filename: `onacare-reply-${language}.${ext}`,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ==================== GEMINI MULTIMODAL STT FALLBACK ====================
+
 /**
  * Fallback multimodal STT via Gemini when VoiceLab API key is missing, rate-limited, or rejects an audio codec.
  */
@@ -212,7 +631,7 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
   const normalized = normalizeAudioFormat(mimeType);
   const envModel = (process.env.GEMINI_MODEL || "").trim();
   const models = [
-    ...new Set([envModel, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash"].filter(Boolean)),
+    ...new Set([envModel, "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"].filter(Boolean)),
   ];
   const base64Audio = Buffer.from(audioBuffer).toString("base64");
 
@@ -260,7 +679,9 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
         }
       );
       if (!res.ok) {
-        lastError = `GEMINI_HTTP_${res.status}`;
+        if (lastError === "GEMINI_STT_FAILED" || res.status === 429 || res.status >= 500) {
+          lastError = `GEMINI_HTTP_${res.status}`;
+        }
         continue;
       }
       const json = await res.json();
@@ -276,7 +697,6 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
           language: normalizeVoiceLang(parsed.language),
         };
       }
-      // If Gemini responded with plain text transcript instead of JSON
       if (raw && !raw.startsWith("{")) {
         return {
           ok: true,
@@ -295,69 +715,12 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
   return { ok: false, error: lastError };
 }
 
-async function callVoiceLabSttOnce({ audioBuffer, mimeType, filename, language, apiKey }) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 16_000);
-  try {
-    const form = new FormData();
-    const blob = new Blob([audioBuffer], { type: mimeType });
-    form.append("audio", blob, filename);
-    form.append("has_diarization", "false");
-    if (language) {
-      form.append("language", normalizeVoiceLang(language));
-    }
-
-    const headers = {
-      "X-Api-Key": apiKey,
-    };
-    if (language) {
-      headers["Accept-Language"] = normalizeVoiceLang(language);
-    }
-
-    const res = await fetch(`${VOICELAB_BASE_URL}/api/v1/stt/post/`, {
-      method: "POST",
-      headers,
-      body: form,
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      console.warn(`VoiceLab STT HTTP ${res.status}: ${errBody.slice(0, 180)}`);
-      return { ok: false, status: res.status, error: `VOICELAB_HTTP_${res.status}` };
-    }
-
-    const json = await res.json().catch(() => ({}));
-    let transcript = extractVoiceLabTranscript(json);
-    if (!transcript && (json?.id || json?.task_id)) {
-      transcript = await pollVoiceLabSttResult(json.id || json.task_id, apiKey);
-    }
-    if (transcript) {
-      return {
-        ok: true,
-        provider: "voicelab",
-        transcript,
-        language: normalizeVoiceLang(json?.language || language || "uz"),
-      };
-    }
-    return { ok: false, status: 200, error: "VOICELAB_EMPTY_TRANSCRIPT" };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.warn("VoiceLab STT request error:", msg);
-    return {
-      ok: false,
-      status: 0,
-      error: err instanceof Error && err.name === "AbortError" ? "VOICELAB_TIMEOUT" : "VOICELAB_NETWORK_ERR",
-    };
-  } finally {
-    clearTimeout(timer);
-  }
-}
+// ==================== PUBLIC API ====================
 
 /**
- * Speech-to-Text via VoiceLab.uz (Aisha REST API: POST /api/v1/stt/post/).
- * Automatically retries without explicit language on HTTP 400/422, polls async task IDs,
- * and falls back to Gemini multimodal audio transcription if VoiceLab fails.
+ * Speech-to-Text via official @voicelab/sdk (https://api.voicelab.uz).
+ * Polls queued transcription jobs when needed, retries validation failures on default Uzbek language,
+ * and falls back to Gemini native audio transcription only if VoiceLab fails.
  */
 export async function transcribeVoiceAudio({
   audioBuffer,
@@ -370,35 +733,69 @@ export async function transcribeVoiceAudio({
   }
 
   const apiKey = getVoiceLabApiKey();
+  const baseUrl = getVoiceLabBaseUrl(apiKey);
+  const useLegacy = isLegacyAishaMode(apiKey);
   const normalized = normalizeAudioFormat(mimeType, filename);
   let voiceLabErr = apiKey ? "" : "NO_VOICELAB_KEY";
 
   if (apiKey) {
-    const firstTry = await callVoiceLabSttOnce({
-      audioBuffer,
-      mimeType: normalized.mimeType,
-      filename: normalized.filename,
-      language: preferredLang,
-      apiKey,
-    });
-    if (firstTry.ok) return firstTry;
-    voiceLabErr = firstTry.error || "VOICELAB_STT_FAILED";
-
-    // Retry once without language hint in case strict language validation rejected the audio/language pair
-    if (preferredLang && (firstTry.status === 400 || firstTry.status === 422 || firstTry.error === "VOICELAB_EMPTY_TRANSCRIPT")) {
-      const retry = await callVoiceLabSttOnce({
+    if (useLegacy) {
+      const firstTry = await callLegacyAishaSttOnce({
         audioBuffer,
         mimeType: normalized.mimeType,
         filename: normalized.filename,
-        language: "",
+        language: preferredLang,
         apiKey,
+        baseUrl,
       });
-      if (retry.ok) return retry;
-      voiceLabErr = retry.error || voiceLabErr;
+      if (firstTry.ok) return firstTry;
+      voiceLabErr = firstTry.error || "AISHA_STT_FAILED";
+
+      if (preferredLang && (firstTry.status === 400 || firstTry.status === 422 || firstTry.error === "AISHA_EMPTY_TRANSCRIPT")) {
+        const retry = await callLegacyAishaSttOnce({
+          audioBuffer,
+          mimeType: normalized.mimeType,
+          filename: normalized.filename,
+          language: "",
+          apiKey,
+          baseUrl,
+        });
+        if (retry.ok) return retry;
+        voiceLabErr = retry.error || voiceLabErr;
+      }
+    } else {
+      const firstTry = await callVoiceLabSdkSttOnce({
+        audioBuffer,
+        mimeType: normalized.mimeType,
+        filename: normalized.filename,
+        language: preferredLang,
+        apiKey,
+        baseUrl,
+      });
+      if (firstTry.ok) return firstTry;
+      voiceLabErr = firstTry.error || "VOICELAB_STT_FAILED";
+
+      // If strict language validation rejected an explicit ru/en hint, retry once with default "uz"
+      if (
+        preferredLang &&
+        normalizeVoiceLang(preferredLang) !== "uz" &&
+        (firstTry.status === 400 || firstTry.status === 422 || firstTry.error === "VOICELAB_EMPTY_TRANSCRIPT")
+      ) {
+        const retry = await callVoiceLabSdkSttOnce({
+          audioBuffer,
+          mimeType: normalized.mimeType,
+          filename: normalized.filename,
+          language: "uz",
+          apiKey,
+          baseUrl,
+        });
+        if (retry.ok) return retry;
+        voiceLabErr = retry.error || voiceLabErr;
+      }
     }
   }
 
-  // Fallback to Gemini native audio STT so voice flows keep working seamlessly
+  // Secondary safety net via Gemini native audio STT
   const fallback = await transcribeWithGeminiFallback(audioBuffer, normalized.mimeType);
   if (fallback.ok) return fallback;
 
@@ -409,14 +806,15 @@ export async function transcribeVoiceAudio({
 }
 
 /**
- * Text-to-Speech via VoiceLab.uz (Aisha REST API: POST /api/v1/tts/post/).
- * Supports Uzbek (Gulnoza), Russian (language=ru), and English (language=en).
+ * Text-to-Speech via official @voicelab/sdk (https://api.voicelab.uz).
+ * Automatically resolves valid voice IDs for Uzbek (uz), Russian (ru), and English (en),
+ * with optional overrides via VOICELAB_VOICE_ID_UZ / _RU / _EN.
  */
 export async function synthesizeVoiceSpeech({
   text,
   language = "uz",
   mood = "Neutral",
-  speed = "1.0",
+  speed = 1.0,
 }) {
   const apiKey = getVoiceLabApiKey();
   if (!apiKey) {
@@ -429,87 +827,23 @@ export async function synthesizeVoiceSpeech({
     return { ok: false, error: "EMPTY_TEXT" };
   }
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 16_000);
-  try {
-    const form = new FormData();
-    form.append("transcript", transcript);
-    form.append("language", lang);
-    form.append("speed", String(speed || "1.0"));
-
-    if (lang === "uz") {
-      form.append("model", (process.env.VOICELAB_TTS_MODEL_UZ || "Gulnoza").trim());
-      form.append("mood", mood || "Neutral");
-    } else if (lang === "ru" && process.env.VOICELAB_TTS_MODEL_RU) {
-      form.append("model", process.env.VOICELAB_TTS_MODEL_RU.trim());
-    } else if (lang === "en" && process.env.VOICELAB_TTS_MODEL_EN) {
-      form.append("model", process.env.VOICELAB_TTS_MODEL_EN.trim());
-    }
-
-    const res = await fetch(`${VOICELAB_BASE_URL}/api/v1/tts/post/`, {
-      method: "POST",
-      headers: {
-        "X-Api-Key": apiKey,
-        "Accept-Language": lang,
-      },
-      body: form,
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      return { ok: false, error: `VOICELAB_TTS_HTTP_${res.status}:${errBody.slice(0, 180)}` };
-    }
-
-    const contentType = res.headers.get("content-type") || "";
-    if (contentType.startsWith("audio/")) {
-      const arr = await res.arrayBuffer();
-      const ext = contentType.includes("mpeg") || contentType.includes("mp3") ? "mp3" : contentType.includes("ogg") ? "ogg" : "wav";
-      return {
-        ok: true,
-        provider: "voicelab",
-        language: lang,
-        audioBuffer: Buffer.from(arr),
-        contentType,
-        filename: `onacare-reply-${lang}.${ext}`,
-      };
-    }
-
-    const json = await res.json().catch(() => ({}));
-    let rawPath = json?.audio_path || json?.audioUrl || json?.url || json?.data?.audio_path || "";
-    if (!rawPath && (json?.id || json?.task_id)) {
-      rawPath = await pollVoiceLabTtsAudioPath(json.id || json.task_id, apiKey);
-    }
-    if (!rawPath) {
-      return { ok: false, error: "VOICELAB_TTS_NO_AUDIO_PATH" };
-    }
-
-    const audioUrl = rawPath.startsWith("http")
-      ? rawPath
-      : `${VOICELAB_BASE_URL}${rawPath.startsWith("/") ? "" : "/"}${rawPath}`;
-
-    const audioRes = await fetch(audioUrl, { signal: controller.signal });
-    if (!audioRes.ok) {
-      return { ok: false, error: `VOICELAB_AUDIO_FETCH_HTTP_${audioRes.status}` };
-    }
-    const audioArr = await audioRes.arrayBuffer();
-    const audioMime =
-      audioRes.headers.get("content-type") ||
-      (audioUrl.endsWith(".mp3") ? "audio/mpeg" : audioUrl.endsWith(".ogg") ? "audio/ogg" : "audio/wav");
-    const ext = audioUrl.endsWith(".mp3") ? "mp3" : audioUrl.endsWith(".ogg") ? "ogg" : "wav";
-
-    return {
-      ok: true,
-      provider: "voicelab",
+  const baseUrl = getVoiceLabBaseUrl(apiKey);
+  if (isLegacyAishaMode(apiKey)) {
+    return synthesizeWithLegacyAisha({
+      text: transcript,
       language: lang,
-      audioUrl,
-      audioBuffer: Buffer.from(audioArr),
-      contentType: audioMime,
-      filename: `onacare-reply-${lang}.${ext}`,
-    };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
-  } finally {
-    clearTimeout(timer);
+      mood,
+      speed,
+      apiKey,
+      baseUrl,
+    });
   }
+
+  return synthesizeWithVoiceLabSdk({
+    text: transcript,
+    language: lang,
+    speed,
+    apiKey,
+    baseUrl,
+  });
 }

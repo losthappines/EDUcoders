@@ -50,6 +50,10 @@ model User {
   psychConsents        PsychConsent[]       @relation("PsychologistConsents")
   psychSessions        PsychSession[]       @relation("PsychologistSessions")
   psychNotes           PsychNote[]          @relation("PsychologistNotes")
+  createdEvents        MotherEvent[]        @relation("EventCreator")
+  eventRsvps           EventRsvp[]          @relation("UserEventRsvps")
+  communityPosts       CommunityPost[]      @relation("CommunityPostAuthor")
+  communityReplies     CommunityReply[]     @relation("CommunityReplyAuthor")
 
   @@map("users")
 }
@@ -417,3 +421,83 @@ model PsychNote {
   @@map("psych_notes")
 }
 
+model MotherEvent {
+  id            String   @id @default(cuid())
+  titleUz       String
+  titleRu       String
+  titleEn       String
+  descriptionUz String
+  descriptionRu String
+  descriptionEn String
+  category      String   @default("WORKSHOP") // AUDIO_CIRCLE | WORKSHOP | CLINIC_DAY | SUPPORT_GROUP | WEBINAR
+  status        String   @default("UPCOMING") // IN_PROGRESS | BEING_ADDED | UPCOMING | COMPLETED
+  format        String   @default("ONLINE") // ONLINE | OFFLINE | TELEGRAM
+  district      String?
+  locationText  String?
+  hostName      String
+  hostRole      String   @default("Perinatal mutaxassis")
+  startsAt      DateTime?
+  endsAt        DateTime?
+  meetingUrl    String?
+  capacity      Int      @default(60)
+  createdById   String?
+  createdBy     User?    @relation("EventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  rsvps EventRsvp[]
+
+  @@index([status, startsAt])
+  @@map("mother_events")
+}
+
+model EventRsvp {
+  id        String      @id @default(cuid())
+  eventId   String
+  event     MotherEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation("UserEventRsvps", fields: [userId], references: [id], onDelete: Cascade)
+  status    String      @default("GOING") // GOING | INTERESTED
+  createdAt DateTime    @default(now())
+
+  @@unique([eventId, userId])
+  @@index([userId])
+  @@map("event_rsvps")
+}
+
+model CommunityPost {
+  id                String   @id @default(cuid())
+  cohortKey         String   @default("all") // all | d0_30 | m1_3 | m3_6 | m6_12
+  topicTag          String   @default("BABY_CARE") // FEEDING | SLEEP | RECOVERY | MENTAL_HEALTH | BABY_CARE
+  authorId          String?
+  author            User?    @relation("CommunityPostAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  authorDisplayName String
+  authorRole        String   @default("PATIENT")
+  isAnonymous       Boolean  @default(false)
+  title             String
+  body              String
+  likesCount        Int      @default(0)
+  likedByJson       String   @default("[]")
+  createdAt         DateTime @default(now())
+
+  replies CommunityReply[]
+
+  @@index([cohortKey, createdAt])
+  @@map("community_posts")
+}
+
+model CommunityReply {
+  id                String        @id @default(cuid())
+  postId            String
+  post              CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId          String?
+  author            User?         @relation("CommunityReplyAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  authorDisplayName String
+  authorRole        String        @default("PATIENT")
+  isAnonymous       Boolean       @default(false)
+  body              String
+  createdAt         DateTime      @default(now())
+
+  @@index([postId, createdAt])
+  @@map("community_replies")
+}

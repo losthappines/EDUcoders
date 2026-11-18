@@ -211,6 +211,26 @@ export async function POST(req) {
         return NextResponse.json({ success: true, session }, { status: 201 });
       }
 
+      if (action === "CANCEL_SESSION") {
+        const sessionId = String(body.sessionId || "").trim();
+        const session = await prisma.psychSession.findUnique({ where: { id: sessionId } });
+        if (!session || session.patientId !== patient.id) {
+          return NextResponse.json({ error: "Session not found" }, { status: 404 });
+        }
+        if (session.status !== "SCHEDULED") {
+          return NextResponse.json({ error: "Only scheduled sessions can be cancelled" }, { status: 400 });
+        }
+        const updated = await prisma.psychSession.update({
+          where: { id: session.id },
+          data: { status: "CANCELLED" },
+        });
+        await notifyUserViaTelegram(
+          session.psychologistId,
+          `ℹ️ <b>Seans bekor qilindi</b>\n👩 <b>Ona:</b> ${patient.fullName}\n🕒 <b>Vaqt:</b> ${new Date(session.scheduledAt).toISOString().slice(0, 16).replace("T", " ")}`
+        );
+        return NextResponse.json({ success: true, session: updated });
+      }
+
       return NextResponse.json({ error: "Unsupported patient action" }, { status: 400 });
     }
 

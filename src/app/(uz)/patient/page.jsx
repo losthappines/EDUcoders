@@ -1,7 +1,7 @@
 "use client";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { IconAlertOctagon, IconBell, IconBrandTelegram, IconCalendarEvent, IconCheck, IconChevronDown, IconChevronUp, IconCircleCheck, IconCrown, IconFlask, IconHeartHandshake, IconHeartbeat, IconKey, IconMapPin, IconMessageCircle, IconPhoneCall, IconPill, IconPlus, IconRobot, IconSend, IconShieldCheck, IconStethoscope, IconUser, IconX, } from "@tabler/icons-react";
+import { IconAlertOctagon, IconArrowRight, IconBell, IconBrandTelegram, IconBrandYoutube, IconCalendarEvent, IconCheck, IconChevronDown, IconChevronUp, IconCircleCheck, IconCrown, IconExternalLink, IconFlask, IconHeartHandshake, IconHeartbeat, IconKey, IconLock, IconMapPin, IconMessageCircle, IconPhoneCall, IconPill, IconPlus, IconRobot, IconSend, IconShieldCheck, IconStethoscope, IconUser, IconX, } from "@tabler/icons-react";
 import AIComposer from "@/components/ui/ai-prompt-composer-with-model-selector";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -11,6 +11,8 @@ import { GpsConsentButton } from "@/components/GpsConsentButton";
 import { SlaCountdownBadge } from "@/components/SlaCountdownBadge";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { VitalsTrendChart } from "@/components/VitalsTrendChart";
+import { MotherEventsPanel } from "@/components/MotherEventsPanel";
+import { OnalikDarslariPanel } from "@/components/OnalikDarslariPanel";
 import { CONDITION_SEVERITY_OPTIONS, EXTENDED_SYMPTOMS_CATALOG, getSeverityMeta, getSymptomLabel, PRIMARY_RED_FLAG_SYMPTOMS, } from "@/lib/symptoms-catalog";
 import { VISIT_DESTINATION_OPTIONS } from "@/lib/geo";
 import { PATIENT_PLANS } from "@/lib/subscriptions";
@@ -136,7 +138,17 @@ const COPY = {
         remindersGoChat: "Shifokor / hamshira bilan chat →",
         remindersEmpty: "Bugun uchun barcha asosiy eslatmalar bajarildi.",
         tabDashboard: "Kabinet",
+        tabEvents: "Tadbirlar",
+        tabLessons: "Onalik darslari",
+        tabPsych: "Psixolog seanslari",
         tabAiChat: "AI Yordamchi",
+        psychTabCta: "Psixolog seanslari va ruhiy ko'mak bo'limiga o'tish",
+        psychPrivacyNote: "Maxfiylik kafolati: Perinatal psixologlar hech qachon shifoxona EHR tashxislaringiz, JSHSHIR yoki laboratoriya tahlillaringizni ko'ra olmaydi.",
+        psychSlotsLabel: "Mavjud qabul vaqtlari:",
+        psychCancelBtn: "Bekor qilish",
+        psychCancelledOk: "Seans bekor qilindi.",
+        psychJoinBtn: "Seansga ulanish",
+        psychQuickTopics: ["Uyqusizlik va charchoq", "Emizishdagi xavotir", "Kayfiyat o'zgarishi", "Oila bilan munosabat"],
         aiTitle: "OnaCare AI Tibbiy Yordamchi",
         aiSubtitle: "Dorilaringiz, uy tashrifi, tug'ruqdan keyingi parvarish va chaqaloq parvarishi bo'yicha savollar bering",
         aiDisclaimer: "AI maslahati faqat ma'lumot uchundir; shoshilinch holatlarda darhol 103 ga qo'ng'iroq qiling yoki shifokoringizga yozing.",
@@ -272,7 +284,17 @@ const COPY = {
         remindersGoChat: "Чат с врачом / медсестрой →",
         remindersEmpty: "На сегодня все основные задачи выполнены.",
         tabDashboard: "Кабинет",
+        tabEvents: "Мероприятия",
+        tabLessons: "Onalik darslari",
+        tabPsych: "Сеансы психолога",
         tabAiChat: "ИИ Чат-бот",
+        psychTabCta: "Перейти в раздел сеансов психолога и поддержки",
+        psychPrivacyNote: "Гарантия конфиденциальности: перинатальные психологи не видят больничный EHR, ПИНФЛ и результаты анализов.",
+        psychSlotsLabel: "Доступные слоты:",
+        psychCancelBtn: "Отменить",
+        psychCancelledOk: "Сеанс отменен.",
+        psychJoinBtn: "Подключиться",
+        psychQuickTopics: ["Усталость и недосып", "Тревога при кормлении", "Перепады настроения", "Отношения с близкими"],
         aiTitle: "ИИ-помощник OnaCare",
         aiSubtitle: "Задавайте вопросы о ваших лекарствах, домашнем визите и послеродовом уходе",
         aiDisclaimer: "ИИ-ответы носят справочный характер; в экстренных случаях немедленно звоните 103.",
@@ -408,7 +430,17 @@ const COPY = {
         remindersGoChat: "Chat with doctor / nurse →",
         remindersEmpty: "All caught up for today.",
         tabDashboard: "Dashboard",
+        tabEvents: "Events",
+        tabLessons: "Onalik darslari",
+        tabPsych: "Psych Sessions",
         tabAiChat: "AI Chatbot",
+        psychTabCta: "Open Psychology Sessions & Emotional Support",
+        psychPrivacyNote: "Privacy guarantee: Perinatal psychologists can never view your clinical EHR diagnoses, JSHSHIR, or lab test results.",
+        psychSlotsLabel: "Available slots:",
+        psychCancelBtn: "Cancel",
+        psychCancelledOk: "Session cancelled.",
+        psychJoinBtn: "Join Session",
+        psychQuickTopics: ["Sleep exhaustion", "Feeding anxiety", "Mood swings", "Family support"],
         aiTitle: "OnaCare AI Health Assistant",
         aiSubtitle: "Ask questions about your prescribed medicines, upcoming home visit, and postpartum care",
         aiDisclaimer: "AI answers are for informational guidance only; call 103 immediately for any medical emergency.",
@@ -506,10 +538,61 @@ export default function PatientPortalPage() {
     const [psychChatBody, setPsychChatBody] = useState("");
     const [sendingPsychChat, setSendingPsychChat] = useState(false);
     const [activeTab, setActiveTab] = useState("dashboard");
+    const [motherEvents, setMotherEvents] = useState([]);
+    const [motherEventsLoading, setMotherEventsLoading] = useState(true);
+    const [rsvpBusyId, setRsvpBusyId] = useState(null);
     const [aiMessages, setAiMessages] = useState([]);
     const [aiBusy, setAiBusy] = useState(false);
     const aiSeqRef = useRef(1);
     const aiEndRef = useRef(null);
+    const loadMotherEvents = useCallback(async () => {
+        try {
+            const res = await fetch("/api/community/events", { cache: "no-store", credentials: "include" });
+            if (res.ok) {
+                const json = await res.json();
+                setMotherEvents(json.events || []);
+            }
+        }
+        catch {
+            // ignore events load failure
+        }
+        finally {
+            setMotherEventsLoading(false);
+        }
+    }, []);
+    useEffect(() => {
+        let active = true;
+        fetch("/api/community/events", { cache: "no-store", credentials: "include" })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((json) => {
+                if (active && json) setMotherEvents(json.events || []);
+            })
+            .catch(() => {})
+            .finally(() => {
+                if (active) setMotherEventsLoading(false);
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
+    useEffect(() => {
+        const rafId = requestAnimationFrame(() => {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const qTab = params.get("tab");
+                if (qTab && ["dashboard", "events", "lessons", "psych", "chatbot"].includes(qTab)) {
+                    setActiveTab(qTab);
+                }
+                else if (window.location.hash === "#psychologist-support") {
+                    setActiveTab("psych");
+                }
+            }
+            catch {
+                // ignore URL parsing errors
+            }
+        });
+        return () => cancelAnimationFrame(rafId);
+    }, []);
     const activeCalls = useMemo(() => data?.activeCalls ?? [], [data?.activeCalls]);
     const call = activeCalls[0];
     const ownPatient = data?.patients?.[0];
@@ -862,6 +945,38 @@ export default function PatientPortalPage() {
             setSendingPsychChat(false);
         }
     };
+    const handleMotherEventRsvp = async (eventId, status) => {
+        setRsvpBusyId(eventId);
+        try {
+            const res = await fetchWithAuth("/api/community/events", {
+                method: "POST",
+                body: JSON.stringify({ action: "TOGGLE_RSVP", eventId, status }),
+            });
+            if (res.ok) {
+                await loadMotherEvents();
+                showToast("success", "✓");
+            }
+        }
+        finally {
+            setRsvpBusyId(null);
+        }
+    };
+    const handleCancelPsychSession = async (sessionId) => {
+        setPsychActionBusy(true);
+        try {
+            const res = await fetchWithAuth("/api/psychologist/sessions", {
+                method: "POST",
+                body: JSON.stringify({ action: "CANCEL_SESSION", sessionId }),
+            });
+            if (res.ok) {
+                await refreshData();
+                showToast("success", t.psychCancelledOk);
+            }
+        }
+        finally {
+            setPsychActionBusy(false);
+        }
+    };
     const handleAiChatSubmit = async (submission) => {
         const promptText = String(submission?.prompt || "").trim();
         const filesList = Array.isArray(submission?.attachedFiles) ? submission.attachedFiles : [];
@@ -983,21 +1098,269 @@ export default function PatientPortalPage() {
         </div>
       </div>
 
-      {/* Patient Portal Tabs: Dashboard vs AI Chatbot */}
-      <div role="tablist" aria-label="Patient sections" className="sticky top-[68px] z-20 sm:static grid grid-cols-2 gap-2 med-card p-1.5 shadow-sm">
-        <button type="button" role="tab" aria-selected={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "dashboard"
+      {/* Patient Portal Tabs: Dashboard, Events, Onalik darslari, Psych Sessions, AI Chatbot */}
+      <div role="tablist" aria-label="Patient sections" className="sticky top-[68px] z-20 sm:static flex items-center gap-1.5 overflow-x-auto no-scrollbar med-card p-1.5 shadow-sm">
+        <button type="button" role="tab" aria-selected={activeTab === "dashboard"} onClick={() => setActiveTab("dashboard")} className={`inline-flex min-h-[46px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "dashboard"
             ? "bg-teal-700 dark:bg-teal-600 text-white shadow-sm"
             : "text-slate-600 dark:text-slate-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B]"}`}>
-          <IconHeartbeat className="h-5 w-5"/>
+          <IconHeartbeat className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"/>
           <span>{t.tabDashboard}</span>
         </button>
-        <button type="button" role="tab" aria-selected={activeTab === "chatbot"} onClick={() => setActiveTab("chatbot")} className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "chatbot"
+        <button type="button" role="tab" aria-selected={activeTab === "events"} onClick={() => setActiveTab("events")} className={`inline-flex min-h-[46px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "events"
+            ? "bg-teal-700 dark:bg-teal-600 text-white shadow-sm"
+            : "text-slate-600 dark:text-slate-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B]"}`}>
+          <IconCalendarEvent className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"/>
+          <span>{t.tabEvents}</span>
+          {motherEvents.some((e) => e.status === "IN_PROGRESS" || e.status === "BEING_ADDED") && (
+            <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-bold leading-none ${activeTab === "events" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"}`}>
+              {motherEvents.filter((e) => e.status === "IN_PROGRESS" || e.status === "BEING_ADDED").length}
+            </span>
+          )}
+        </button>
+        <button type="button" role="tab" aria-selected={activeTab === "lessons"} onClick={() => setActiveTab("lessons")} className={`inline-flex min-h-[46px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "lessons"
+            ? "bg-teal-700 dark:bg-teal-600 text-white shadow-sm"
+            : "text-slate-600 dark:text-slate-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B]"}`}>
+          <IconBrandYoutube className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"/>
+          <span>{t.tabLessons}</span>
+        </button>
+        <button type="button" role="tab" aria-selected={activeTab === "psych"} onClick={() => setActiveTab("psych")} className={`inline-flex min-h-[46px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "psych"
+            ? "bg-teal-700 dark:bg-teal-600 text-white shadow-sm"
+            : "text-slate-600 dark:text-slate-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B]"}`}>
+          <IconHeartHandshake className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"/>
+          <span>{t.tabPsych}</span>
+          {upcomingPsych.length > 0 && (
+            <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-bold leading-none ${activeTab === "psych" ? "bg-white/20 text-white" : "bg-[#EDF5F3] text-teal-800 dark:bg-[#16272B] dark:text-teal-200"}`}>
+              {upcomingPsych.length}
+            </span>
+          )}
+        </button>
+        <button type="button" role="tab" aria-selected={activeTab === "chatbot"} onClick={() => setActiveTab("chatbot")} className={`inline-flex min-h-[46px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.98] ${activeTab === "chatbot"
             ? "bg-slate-900 dark:bg-teal-500 text-white dark:text-slate-950 shadow-sm"
             : "text-slate-600 dark:text-slate-300 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B]"}`}>
-          <IconRobot className="h-5 w-5"/>
+          <IconRobot className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"/>
           <span>{t.tabAiChat}</span>
         </button>
       </div>
+
+      {/* Events Tab */}
+      {activeTab === "events" && (
+        <div key="tab-events">
+          <MotherEventsPanel
+            mode="full"
+            events={motherEvents}
+            loading={motherEventsLoading}
+            onRsvp={handleMotherEventRsvp}
+            rsvpBusyId={rsvpBusyId}
+            authUser={authUser}
+            canCreateEvent={false}
+          />
+        </div>
+      )}
+
+      {/* Onalik darslari Tab */}
+      {activeTab === "lessons" && (
+        <div key="tab-lessons">
+          <OnalikDarslariPanel userId={authUser?.id || ownPatient?.id || "patient"}/>
+        </div>
+      )}
+
+      {/* Psychology Sessions Tab */}
+      {activeTab === "psych" && (
+        <section key="tab-psych" className="med-card oc-fade-up p-4 sm:p-6 space-y-5">
+          <div className="space-y-2">
+            <h2 className="font-heading text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <IconHeartHandshake className="h-6 w-6 text-teal-700 dark:text-teal-300"/>
+              <span>{t.psychTitle}</span>
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{t.psychSub}</p>
+            <div className="rounded-xl border border-teal-200 dark:border-teal-800 bg-[#EDF5F3] dark:bg-[#16272B] px-3.5 py-2.5 text-xs sm:text-sm font-medium text-teal-900 dark:text-teal-200 flex items-start gap-2">
+              <IconLock className="h-4 w-4 text-teal-700 dark:text-teal-300 shrink-0 mt-0.5"/>
+              <span>{t.psychPrivacyNote}</span>
+            </div>
+          </div>
+
+          {psychologists.length === 0 ? (
+            <p className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-5 text-sm text-slate-600 dark:text-slate-300">
+              {t.psychEmpty}
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {psychologists.map((psych) => {
+                  const isSelected = psych.id === activePsychId;
+                  const hasConsent = psychConsents.some((c) => c.psychologistId === psych.id && c.status === "ACTIVE");
+                  const slots = Array.isArray(psych.scheduleSlots) ? psych.scheduleSlots : [];
+                  return (
+                    <div key={psych.id} className={`rounded-2xl border p-4 space-y-3 transition-all ${isSelected
+                        ? "border-teal-600 bg-[#EDF5F3] dark:bg-teal-950/30 ring-1 ring-teal-500/40"
+                        : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315]"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <button type="button" onClick={() => setSelectedPsychId(psych.id)} className="text-left">
+                          <p className="text-base font-bold text-slate-900 dark:text-white">{psych.fullName}</p>
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
+                            {psych.specialty || psych.expertiseArea || "Perinatal"} • {psych.district}
+                            {psych.experienceYears ? ` • ${psych.experienceYears} ${t.expYearsWord}` : ""}
+                          </p>
+                          {psych.bioSummary && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">{psych.bioSummary}</p>
+                          )}
+                        </button>
+                        {hasConsent && (
+                          <span className="rounded-full bg-emerald-100 dark:bg-emerald-950/70 px-2.5 py-0.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 shrink-0">
+                            ACTIVE
+                          </span>
+                        )}
+                      </div>
+
+                      {slots.length > 0 && (
+                        <div className="space-y-1.5">
+                          <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{t.psychSlotsLabel}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {slots.slice(0, 6).map((slot, sIdx) => (
+                              <button
+                                key={sIdx}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedPsychId(psych.id);
+                                  setPsychTopic((prev) => prev || String(slot));
+                                }}
+                                className="rounded-lg border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-2.5 py-1 text-xs font-medium text-teal-800 dark:text-teal-200 hover:border-teal-600"
+                              >
+                                {String(slot)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <button type="button" disabled={psychActionBusy} onClick={() => handlePsychConsent(psych.id, !hasConsent)} className={`w-full min-h-[44px] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold border transition-all active:scale-[0.98] disabled:opacity-50 ${hasConsent
+                            ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-200 hover:bg-rose-100"
+                            : "border-teal-600 bg-teal-700 text-white hover:bg-teal-800"}`}>
+                        {hasConsent ? t.psychConsentWithdraw : t.psychConsentGrant}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {activePsychId && (() => {
+                const selectedConsentActive = psychConsents.some((c) => c.psychologistId === activePsychId && c.status === "ACTIVE");
+                return (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+                    <form onSubmit={handleBookPsychSession} className="rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/80 dark:bg-[#091315] p-4 space-y-3">
+                      <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                        <IconCalendarEvent className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
+                        <span>{t.psychBookBtn}</span>
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <select value={psychSessionType} onChange={(e) => setPsychSessionType(e.target.value)} className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-2 text-base sm:text-sm text-slate-900 dark:text-white">
+                          <option value="CHAT">Chat</option>
+                          <option value="VOICE">Voice</option>
+                          <option value="VIDEO">Video</option>
+                          <option value="TELEGRAM_CALL">Telegram Call</option>
+                        </select>
+                        <input type="datetime-local" value={psychSessionAt} onChange={(e) => setPsychSessionAt(e.target.value)} className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-2 text-base sm:text-sm text-slate-900 dark:text-white"/>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(t.psychQuickTopics || []).map((qt) => (
+                          <button
+                            key={qt}
+                            type="button"
+                            onClick={() => setPsychTopic(qt)}
+                            className="rounded-full border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 hover:border-teal-600"
+                          >
+                            {qt}
+                          </button>
+                        ))}
+                      </div>
+                      <input type="text" value={psychTopic} onChange={(e) => setPsychTopic(e.target.value)} placeholder={t.psychTopicPlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"/>
+                      <button type="submit" disabled={psychActionBusy || !selectedConsentActive} className="w-full min-h-[46px] rounded-xl bg-teal-700 dark:bg-teal-600 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
+                        {t.psychBookBtn}
+                      </button>
+                    </form>
+
+                    <div className="rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/80 dark:bg-[#091315] p-4 space-y-3 flex flex-col justify-between">
+                      <div className="space-y-2.5">
+                        <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                          <IconMessageCircle className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
+                          <span>{t.psychChatTitle}</span>
+                        </p>
+                        {!selectedConsentActive && (
+                          <p className="text-xs sm:text-sm text-amber-700 dark:text-amber-300">
+                            {t.psychConsentGrant}
+                          </p>
+                        )}
+                        <div className="max-h-56 min-h-[120px] overflow-y-auto space-y-2 pr-1">
+                          {psychChatMessages.length === 0 ? (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">—</p>
+                          ) : (
+                            psychChatMessages.map((m) => {
+                              const isMine = m.senderUserId === authUser?.id || m.senderRole === "PATIENT";
+                              return (
+                                <div key={m.id} className={`rounded-xl px-3.5 py-2.5 text-sm max-w-[90%] leading-relaxed ${isMine
+                                    ? "ml-auto bg-teal-700 dark:bg-teal-600 text-white"
+                                    : "mr-auto bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100"}`}>
+                                  <p className="font-bold text-xs opacity-80">{m.senderName}</p>
+                                  <p>{m.body}</p>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                      <form onSubmit={handleSendPsychChat} className="flex gap-2">
+                        <input type="text" value={psychChatBody} onChange={(e) => setPsychChatBody(e.target.value)} disabled={!selectedConsentActive} placeholder={t.psychChatPlaceholder} className="flex-1 min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white disabled:opacity-50"/>
+                        <button type="submit" disabled={sendingPsychChat || !selectedConsentActive || !psychChatBody.trim()} className="min-h-[46px] min-w-[46px] inline-flex items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
+                          <IconSend className="h-4 w-4"/>
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {psychSessions.length > 0 && (
+                <div className="space-y-2.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
+                  <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">{t.psychSessionsTitle}</p>
+                  {psychSessions.map((s) => (
+                    <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] px-4 py-3 text-sm">
+                      <div>
+                        <span className="font-bold text-slate-900 dark:text-white">
+                          {s.psychologist?.fullName || "Psychologist"}
+                        </span>{" "}
+                        <span className="text-slate-600 dark:text-slate-300">
+                          • {s.sessionType} • {new Date(s.scheduledAt).toLocaleString("en-GB")}
+                        </span>
+                        {s.topic && <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">{s.topic}</p>}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {s.meetingUrl && s.status === "SCHEDULED" && (
+                          <a href={s.meetingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[38px] items-center gap-1 rounded-xl bg-teal-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-800">
+                            <span>{t.psychJoinBtn}</span>
+                            <IconExternalLink className="h-3.5 w-3.5"/>
+                          </a>
+                        )}
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${s.status === "COMPLETED"
+                            ? "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 text-emerald-800 dark:text-emerald-200"
+                            : s.status === "CANCELLED"
+                              ? "bg-slate-100 dark:bg-slate-800 border-slate-200 text-slate-500"
+                              : "bg-[#EDF5F3] dark:bg-[#16272B] border-[#D7E4E1] dark:border-[#1E353A] text-teal-800 dark:text-teal-200"}`}>
+                          {s.status}
+                        </span>
+                        {s.status === "SCHEDULED" && (
+                          <button type="button" disabled={psychActionBusy} onClick={() => handleCancelPsychSession(s.id)} className="inline-flex min-h-[36px] items-center rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 px-3 py-1 text-xs font-semibold text-rose-700 dark:text-rose-200 hover:bg-rose-100 disabled:opacity-50">
+                            {t.psychCancelBtn}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
 
       {/* AI Chatbot Tab */}
       {activeTab === "chatbot" && (<section key="tab-chatbot" className="med-card oc-fade-up p-4 sm:p-6 space-y-4">
@@ -1077,6 +1440,17 @@ export default function PatientPortalPage() {
         </section>)}
 
       {activeTab === "dashboard" && (<div key="tab-dashboard" className="space-y-5 oc-fade-up">
+
+      {/* Mother Events Summary (In Progress & Being Added) */}
+      <MotherEventsPanel
+        mode="summary"
+        events={motherEvents}
+        loading={motherEventsLoading}
+        onRsvp={handleMotherEventRsvp}
+        rsvpBusyId={rsvpBusyId}
+        onOpenAllEvents={() => setActiveTab("events")}
+        authUser={authUser}
+      />
 
       {/* Bugungi Eslatmalar / Today's Reminders Card */}
       <section className="med-card p-5 space-y-3.5">
@@ -1261,9 +1635,9 @@ export default function PatientPortalPage() {
                   </a>
                 </div>
               </div>)}
-            {wbResult.suggestPsychologist && (<a href="#psychologist-support" className="inline-flex min-h-[40px] items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline">
+            {wbResult.suggestPsychologist && (<button type="button" onClick={() => setActiveTab("psych")} className="inline-flex min-h-[40px] items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline">
                 {t.wbSuggestPsych}
-              </a>)}
+              </button>)}
           </div>)}
 
         {(ownPatient?.wellbeingCheckins ?? []).length > 0 && (<VitalsTrendChart records={ownPatient.wellbeingCheckins} mode="mood"/>)}
@@ -1938,114 +2312,19 @@ export default function PatientPortalPage() {
           </div>
         </section>)}
 
-      {/* Perinatal Psychologist Support, Consent, Sessions & Direct Chat */}
-      <section id="psychologist-support" className="med-card p-4 sm:p-5 space-y-4">
-        <div>
+      {/* Compact Psychology Sessions CTA Card */}
+      <section className="med-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-teal-200 dark:border-teal-800/80 bg-[#EDF5F3]/70 dark:bg-[#101E21]">
+        <div className="space-y-1">
           <h2 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <IconHeartHandshake className="h-5 w-5 text-teal-700 dark:text-teal-300"/>
-            {t.psychTitle}
+            <span>{t.psychTitle}</span>
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{t.psychSub}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t.psychSub}</p>
         </div>
-
-        {psychologists.length === 0 ? (<p className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-4 text-sm text-slate-600 dark:text-slate-300">
-            {t.psychEmpty}
-          </p>) : (<>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {psychologists.map((psych) => {
-                    const isSelected = psych.id === activePsychId;
-                    const hasConsent = psychConsents.some((c) => c.psychologistId === psych.id && c.status === "ACTIVE");
-                    return (<div key={psych.id} className={`rounded-xl border p-3.5 space-y-2.5 transition-all ${isSelected
-                            ? "border-teal-600 bg-[#EDF5F3] dark:bg-teal-950/30 ring-1 ring-teal-500/40"
-                            : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315]"}`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <button type="button" onClick={() => setSelectedPsychId(psych.id)} className="text-left">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">{psych.fullName}</p>
-                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
-                            {psych.specialty || psych.expertiseArea || "Perinatal"} • {psych.district}
-                            {psych.experienceYears ? ` • ${psych.experienceYears} ${t.expYearsWord}` : ""}
-                          </p>
-                        </button>
-                        {hasConsent && (<span className="rounded-full bg-emerald-100 dark:bg-emerald-950/70 px-2.5 py-0.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 shrink-0">
-                            ACTIVE
-                          </span>)}
-                      </div>
-                      <button type="button" disabled={psychActionBusy} onClick={() => handlePsychConsent(psych.id, !hasConsent)} className={`w-full min-h-[44px] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold border transition-all active:scale-[0.98] disabled:opacity-50 ${hasConsent
-                            ? "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-200 hover:bg-rose-100"
-                            : "border-teal-600 bg-teal-700 text-white hover:bg-teal-800"}`}>
-                        {hasConsent ? t.psychConsentWithdraw : t.psychConsentGrant}
-                      </button>
-                    </div>);
-                })}
-            </div>
-
-            {activePsychId && (() => {
-                    const selectedConsentActive = psychConsents.some((c) => c.psychologistId === activePsychId && c.status === "ACTIVE");
-                    return (<div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
-                  <form onSubmit={handleBookPsychSession} className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/80 dark:bg-[#091315] p-3.5 space-y-2.5">
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                      <IconCalendarEvent className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
-                      {t.psychBookBtn}
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <select value={psychSessionType} onChange={(e) => setPsychSessionType(e.target.value)} className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-2 text-base sm:text-sm text-slate-900 dark:text-white">
-                        <option value="CHAT">Chat</option>
-                        <option value="VOICE">Voice</option>
-                        <option value="VIDEO">Video</option>
-                        <option value="TELEGRAM_CALL">Telegram Call</option>
-                      </select>
-                      <input type="datetime-local" value={psychSessionAt} onChange={(e) => setPsychSessionAt(e.target.value)} className="min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3 py-2 text-base sm:text-sm text-slate-900 dark:text-white"/>
-                    </div>
-                    <input type="text" value={psychTopic} onChange={(e) => setPsychTopic(e.target.value)} placeholder={t.psychTopicPlaceholder} className="w-full min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white"/>
-                    <button type="submit" disabled={psychActionBusy || !selectedConsentActive} className="w-full min-h-[46px] rounded-xl bg-teal-700 dark:bg-teal-600 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
-                      {t.psychBookBtn}
-                    </button>
-                  </form>
-
-                  <div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/80 dark:bg-[#091315] p-3.5 space-y-2.5">
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.psychChatTitle}</p>
-                    {!selectedConsentActive && (<p className="text-xs sm:text-sm text-amber-700 dark:text-amber-300">
-                        {t.psychConsentGrant}
-                      </p>)}
-                    <div className="max-h-44 overflow-y-auto space-y-2">
-                      {psychChatMessages.length === 0 ? (<p className="text-sm text-slate-500 dark:text-slate-400">—</p>) : (psychChatMessages.map((m) => {
-                            const isMine = m.senderUserId === authUser?.id || m.senderRole === "PATIENT";
-                            return (<div key={m.id} className={`rounded-xl px-3.5 py-2.5 text-sm max-w-[90%] leading-relaxed ${isMine
-                                    ? "ml-auto bg-teal-700 dark:bg-teal-600 text-white"
-                                    : "mr-auto bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100"}`}>
-                              <p className="font-bold text-xs opacity-80">{m.senderName}</p>
-                              <p>{m.body}</p>
-                            </div>);
-                        }))}
-                    </div>
-                    <form onSubmit={handleSendPsychChat} className="flex gap-2">
-                      <input type="text" value={psychChatBody} onChange={(e) => setPsychChatBody(e.target.value)} disabled={!selectedConsentActive} placeholder={t.psychChatPlaceholder} className="flex-1 min-h-[46px] rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-white disabled:opacity-50"/>
-                      <button type="submit" disabled={sendingPsychChat || !selectedConsentActive || !psychChatBody.trim()} className="min-h-[46px] min-w-[46px] inline-flex items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 px-4 py-2 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] disabled:opacity-50 transition-all">
-                        <IconSend className="h-4 w-4"/>
-                      </button>
-                    </form>
-                  </div>
-                </div>);
-                })()}
-
-            {psychSessions.length > 0 && (<div className="space-y-2 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.psychSessionsTitle}</p>
-                {psychSessions.map((s) => (<div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/60 dark:bg-[#091315] px-3.5 py-2.5 text-sm">
-                    <div>
-                      <span className="font-bold text-slate-900 dark:text-white">
-                        {s.psychologist?.fullName || "Psychologist"}
-                      </span>{" "}
-                      <span className="text-slate-600 dark:text-slate-300">
-                        • {s.sessionType} • {new Date(s.scheduledAt).toLocaleString("en-GB")}
-                      </span>
-                      {s.topic && <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">{s.topic}</p>}
-                    </div>
-                    <span className="rounded-full bg-[#EDF5F3] dark:bg-[#16272B] border border-[#D7E4E1] dark:border-[#1E353A] px-2.5 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-200">
-                      {s.status}
-                    </span>
-                  </div>))}
-              </div>)}
-          </>)}
+        <button type="button" onClick={() => setActiveTab("psych")} className="inline-flex min-h-[46px] shrink-0 items-center justify-center gap-2 rounded-xl bg-teal-700 dark:bg-teal-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-800 dark:hover:bg-teal-500 active:scale-[0.98] transition-all">
+          <span>{t.psychTabCta}</span>
+          <IconArrowRight className="h-4 w-4"/>
+        </button>
       </section>
       </div>)}
     </div>);

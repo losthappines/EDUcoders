@@ -10,6 +10,8 @@ import {
   IconLink,
   IconLinkOff,
   IconMapPin,
+  IconMicrophone,
+  IconPlayerStop,
   IconRefresh,
   IconRobot,
   IconSend,
@@ -17,6 +19,7 @@ import {
   IconSparkles,
   IconUser,
   IconUserPlus,
+  IconVolume,
 } from "@tabler/icons-react";
 import { PublicHeader } from "@/components/PublicHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -40,6 +43,12 @@ const TG_COPY = {
     gpsLoading: "GPS aniqlanmoqda...",
     inputPlaceholder: "Xabar yoki buyruq yozing (/profile, /delete_account, /start, /link)...",
     sendBtn: "Yuborish",
+    recordVoiceBtn: "Ovoz yozish",
+    stopVoiceBtn: "To'xtatish va yuborish",
+    voiceUnsupported: "Brauzeringiz mikrofon yozuvini qo'llab-quvvatlamaydi.",
+    voiceLabActive: "VoiceLab STT + TTS (UZ / RU / EN) faol",
+    voiceLabNeedsKey: "VOICELAB_API_KEY ulansa o'zbekcha/ruscha/inglizcha ovozli javob qaytadi",
+    voiceReplyBadge: "VoiceLab AI ovozli javobi",
     quickGpsLabel: "Tezkor sinov GPS nuqtalari:",
     botStatusTitle: "Haqiqiy Telegram bot (@BotFather) holati",
     configured: "Ulangan (Token faol)",
@@ -84,6 +93,12 @@ const TG_COPY = {
     gpsLoading: "Определение GPS...",
     inputPlaceholder: "Введите сообщение или команду (/profile, /delete_account, /start, /link)...",
     sendBtn: "Отправить",
+    recordVoiceBtn: "Голосовое",
+    stopVoiceBtn: "Стоп и отправить",
+    voiceUnsupported: "Ваш браузер не поддерживает запись с микрофона.",
+    voiceLabActive: "VoiceLab STT + TTS (UZ / RU / EN) активен",
+    voiceLabNeedsKey: "Добавьте VOICELAB_API_KEY для голосовых ответов на русском/узбекском/английском",
+    voiceReplyBadge: "Голосовой ответ VoiceLab AI",
     quickGpsLabel: "Быстрые тестовые GPS-точки:",
     botStatusTitle: "Статус реального Telegram-бота (@BotFather)",
     configured: "Подключен (Токен активен)",
@@ -128,6 +143,12 @@ const TG_COPY = {
     gpsLoading: "Detecting GPS...",
     inputPlaceholder: "Type a message or command (/profile, /delete_account, /start, /link)...",
     sendBtn: "Send",
+    recordVoiceBtn: "Record Voice",
+    stopVoiceBtn: "Stop & Send",
+    voiceUnsupported: "Microphone recording is not supported in this browser.",
+    voiceLabActive: "VoiceLab STT + TTS (UZ / RU / EN) Active",
+    voiceLabNeedsKey: "Add VOICELAB_API_KEY to enable Uzbek/Russian/English voice replies",
+    voiceReplyBadge: "VoiceLab AI Voice Reply",
     quickGpsLabel: "Quick test GPS locations:",
     botStatusTitle: "Live @BotFather Connection Status",
     configured: "Connected (Token Active)",
@@ -184,6 +205,10 @@ function TelegramConsoleContent() {
   const [copiedCmd, setCopiedCmd] = useState(false);
   const [inputText, setInputText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [voiceAudioMap, setVoiceAudioMap] = useState({});
+  const mediaRecorderRef = useRef(null);
+  const mediaChunksRef = useRef([]);
   const bottomRef = useRef(null);
 
   const loadPersonalLink = useCallback(async () => {
@@ -380,9 +405,22 @@ function TelegramConsoleContent() {
         return;
       }
       const prevLinkedId = linkedUser?.id || null;
-      setHistory(data.history || []);
+      const nextHistory = data.history || [];
+      setHistory(nextHistory);
       setFlowState(data.flowState || "IDLE");
       setLinkedUser(data.linkedUser || null);
+      if (data.reply?.voiceReplyDataUrl) {
+        const lastBot = [...nextHistory].reverse().find((m) => m.from === "bot");
+        if (lastBot?.id) {
+          setVoiceAudioMap((prev) => ({
+            ...prev,
+            [lastBot.id]: {
+              url: data.reply.voiceReplyDataUrl,
+              lang: data.reply.voiceReplyLang || "uz",
+            },
+          }));
+        }
+      }
       if (payload.callbackData === "ACCOUNT:DELETE_EXECUTE" && !data.linkedUser) {
         try {
           window.sessionStorage.removeItem("onacare_tg_link_token");
@@ -403,6 +441,65 @@ function TelegramConsoleContent() {
       showToast("error", "Network error while contacting Telegram backend");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function toggleVoiceRecording() {
+    if (busy) return;
+    if (recording && mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+      return;
+    }
+
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      showToast("error", t.voiceUnsupported);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const preferredMime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+          ? "audio/mp4"
+          : "";
+      const recorder = preferredMime
+        ? new MediaRecorder(stream, { mimeType: preferredMime })
+        : new MediaRecorder(stream);
+      mediaChunksRef.current = [];
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (ev) => {
+        if (ev.data && ev.data.size > 0) {
+          mediaChunksRef.current.push(ev.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        stream.getTracks().forEach((tr) => tr.stop());
+        const mimeType = recorder.mimeType || "audio/webm";
+        const blob = new Blob(mediaChunksRef.current, { type: mimeType });
+        if (blob.size < 200) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const dataUrl = typeof reader.result === "string" ? reader.result : "";
+          if (dataUrl) {
+            sendPayload({
+              voiceAudioBase64: dataUrl,
+              voiceMimeType: mimeType,
+              lang,
+            });
+          }
+        };
+        reader.readAsDataURL(blob);
+      };
+
+      recorder.start();
+      setRecording(true);
+    } catch {
+      showToast("error", t.voiceUnsupported);
+      setRecording(false);
     }
   }
 
@@ -563,21 +660,42 @@ function TelegramConsoleContent() {
                         __html: String(msg.text || ""),
                       }}
                     />
+                    {msg.from === "bot" && voiceAudioMap[msg.id]?.url && (
+                      <div className="mt-2.5 rounded-xl border border-teal-200 dark:border-teal-800 bg-[#F4F8F7] dark:bg-[#091315] p-2.5 space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-800 dark:text-teal-200">
+                          <IconVolume className="h-4 w-4 shrink-0" />
+                          <span>
+                            {t.voiceReplyBadge} ({String(voiceAudioMap[msg.id].lang || "uz").toUpperCase()})
+                          </span>
+                        </div>
+                        <audio controls autoPlay src={voiceAudioMap[msg.id].url} className="w-full h-9" />
+                      </div>
+                    )}
                     {msg.from === "bot" && Array.isArray(msg.buttons) && msg.buttons.length > 0 && (
                       <div className="mt-3 space-y-2 pt-3 border-t border-[#D7E4E1] dark:border-[#1E353A]">
                         {msg.buttons.map((row, rIdx) => (
                           <div key={rIdx} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {row.map((btn) => (
-                              <button
-                                key={btn.callbackData}
-                                type="button"
-                                disabled={busy}
-                                onClick={() => sendPayload({ callbackData: btn.callbackData })}
-                                className="min-h-[42px] rounded-xl border border-teal-200 dark:border-teal-800 bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 text-xs font-semibold text-teal-800 dark:text-teal-200 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] transition-colors text-center"
-                              >
-                                {btn.text}
-                              </button>
-                            ))}
+                            {row.map((btn, bIdx) =>
+                              btn.webAppUrl ? (
+                                <Link
+                                  key={`${rIdx}-${bIdx}-${btn.text}`}
+                                  href="/tg"
+                                  className="min-h-[42px] inline-flex items-center justify-center rounded-xl border border-teal-200 dark:border-teal-800 bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 text-xs font-semibold text-teal-800 dark:text-teal-200 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] transition-colors text-center"
+                                >
+                                  {btn.text}
+                                </Link>
+                              ) : (
+                                <button
+                                  key={btn.callbackData || `${rIdx}-${bIdx}`}
+                                  type="button"
+                                  disabled={busy}
+                                  onClick={() => sendPayload({ callbackData: btn.callbackData })}
+                                  className="min-h-[42px] rounded-xl border border-teal-200 dark:border-teal-800 bg-[#F4F8F7] dark:bg-[#091315] px-3 py-2 text-xs font-semibold text-teal-800 dark:text-teal-200 hover:bg-[#EDF5F3] dark:hover:bg-[#16272B] transition-colors text-center"
+                                >
+                                  {btn.text}
+                                </button>
+                              )
+                            )}
                           </div>
                         ))}
                       </div>
@@ -636,6 +754,20 @@ function TelegramConsoleContent() {
                 placeholder={t.inputPlaceholder}
                 className="min-h-[46px] flex-1 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] px-4 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none transition-colors"
               />
+              <button
+                type="button"
+                disabled={busy}
+                onClick={toggleVoiceRecording}
+                title={recording ? t.stopVoiceBtn : t.recordVoiceBtn}
+                className={`inline-flex min-h-[46px] items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 ${
+                  recording
+                    ? "bg-rose-600 text-white animate-pulse hover:bg-rose-700"
+                    : "border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] text-teal-700 dark:text-teal-300 hover:border-teal-600"
+                }`}
+              >
+                {recording ? <IconPlayerStop className="h-4 w-4" /> : <IconMicrophone className="h-4 w-4" />}
+                <span className="hidden md:inline">{recording ? t.stopVoiceBtn : t.recordVoiceBtn}</span>
+              </button>
               <button
                 type="submit"
                 disabled={busy || !inputText.trim()}
@@ -750,6 +882,17 @@ function TelegramConsoleContent() {
                   <IconSparkles className="h-4 w-4 shrink-0" />
                 )}
                 <span>{botStatus?.configured ? t.configured : t.notConfigured}</span>
+              </div>
+
+              <div
+                className={`rounded-xl border px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 ${
+                  botStatus?.voiceLabConfigured
+                    ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200"
+                    : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300"
+                }`}
+              >
+                <IconVolume className="h-4 w-4 shrink-0" />
+                <span>{botStatus?.voiceLabConfigured ? t.voiceLabActive : t.voiceLabNeedsKey}</span>
               </div>
 
               {botStatus?.username && (

@@ -153,33 +153,44 @@ export async function POST(req) {
       return NextResponse.json(res);
     }
 
-    const update = body.callbackData
+    const update = body.voiceAudioBase64
       ? {
-          callback_query: {
-            id: `sim-cb-${Date.now()}`,
+          chatId,
+          voiceAudioBase64: String(body.voiceAudioBase64),
+          voiceMimeType: typeof body.voiceMimeType === "string" ? body.voiceMimeType : "audio/webm",
+          lang: typeof body.lang === "string" ? body.lang : "uz",
+          message: {
+            chat: { id: chatId },
             from: { username: "onacare_user", first_name: "OnaCare User" },
-            message: { chat: { id: chatId } },
-            data: String(body.callbackData),
           },
         }
-      : body.location
+      : body.callbackData
         ? {
-            message: {
-              chat: { id: chatId },
+            callback_query: {
+              id: `sim-cb-${Date.now()}`,
               from: { username: "onacare_user", first_name: "OnaCare User" },
-              location: {
-                latitude: Number(body.location.latitude),
-                longitude: Number(body.location.longitude),
-              },
+              message: { chat: { id: chatId } },
+              data: String(body.callbackData),
             },
           }
-        : {
-            message: {
-              chat: { id: chatId },
-              from: { username: "onacare_user", first_name: "OnaCare User" },
-              text: String(body.text || "/start"),
-            },
-          };
+        : body.location
+          ? {
+              message: {
+                chat: { id: chatId },
+                from: { username: "onacare_user", first_name: "OnaCare User" },
+                location: {
+                  latitude: Number(body.location.latitude),
+                  longitude: Number(body.location.longitude),
+                },
+              },
+            }
+          : {
+              message: {
+                chat: { id: chatId },
+                from: { username: "onacare_user", first_name: "OnaCare User" },
+                text: String(body.text || "/start"),
+              },
+            };
 
     const result = await processTelegramUpdate(update, { dryRun: true });
     return NextResponse.json(result);

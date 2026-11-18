@@ -12,6 +12,8 @@ import {
   triggerWellbeingRiskAlerts,
 } from "@/lib/wellbeing";
 import { parseReminderTimesJson } from "@/lib/wellbeing-catalog";
+import { isVoiceLabConfigured, synthesizeVoiceSpeech, transcribeVoiceAudio } from "@/lib/voicelab";
+import { runVoiceIntentAssistant } from "@/lib/voice-triage";
 
 export function getTelegramMiniAppUrl() {
   const envUrl = (process.env.NEXT_PUBLIC_TG_WEBAPP_URL || "").trim();
@@ -185,6 +187,76 @@ export async function callTelegramApi(method, payload = {}, explicitToken = "") 
   }
 }
 
+async function downloadTelegramFileBuffer(fileId, explicitToken = "") {
+  const token = explicitToken || (await getTelegramBotToken());
+  if (!token || !fileId) return { ok: false, error: "Missing token or fileId" };
+  const fileInfo = await callTelegramApi("getFile", { file_id: fileId }, token);
+  const filePath = fileInfo?.result?.file_path;
+  if (!fileInfo?.ok || !filePath) {
+    return { ok: false, error: fileInfo?.description || "Telegram getFile failed" };
+  }
+  try {
+    const res = await fetch(`https://api.telegram.org/file/bot${token}/${filePath}`);
+    if (!res.ok) return { ok: false, error: `File download HTTP ${res.status}` };
+    const arr = await res.arrayBuffer();
+    const filename = filePath.split("/").pop() || "voice.ogg";
+    const lower = filename.toLowerCase();
+    const inferredMime = lower.endsWith(".m4a")
+      ? "audio/mp4"
+      : lower.endsWith(".mp3")
+        ? "audio/mpeg"
+        : lower.endsWith(".wav")
+          ? "audio/wav"
+          : "audio/ogg";
+    return {
+      ok: true,
+      buffer: Buffer.from(arr),
+      filePath,
+      filename,
+      mimeType: inferredMime,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Telegram file download error" };
+  }
+}
+
+async function sendTelegramVoiceOrAudio(
+  { chatId, audioBuffer, filename = "reply.wav", contentType = "audio/wav", caption = "", replyMarkup = null, language = "uz" },
+  explicitToken = ""
+) {
+  const token = explicitToken || (await getTelegramBotToken());
+  if (!token || !audioBuffer) return { ok: false, error: "Missing token or audio" };
+
+  const useVoiceEndpoint = contentType.includes("ogg") || filename.endsWith(".ogg") || filename.endsWith(".oga");
+  const method = useVoiceEndpoint ? "sendVoice" : "sendAudio";
+  const fieldName = useVoiceEndpoint ? "voice" : "audio";
+
+  const form = new FormData();
+  form.append("chat_id", String(chatId));
+  form.append(fieldName, new Blob([audioBuffer], { type: contentType }), filename);
+  if (caption) {
+    form.append("caption", String(caption).slice(0, 1000));
+    form.append("parse_mode", "HTML");
+  }
+  if (!useVoiceEndpoint) {
+    form.append("title", "OnaCare AI");
+    form.append("performer", language === "ru" ? "OnaCare (RU)" : language === "en" ? "OnaCare (EN)" : "OnaCare (UZ)");
+  }
+  if (replyMarkup) {
+    form.append("reply_markup", JSON.stringify(replyMarkup));
+  }
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+      method: "POST",
+      body: form,
+    });
+    return await res.json();
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Telegram voice send error" };
+  }
+}
+
 export async function getTelegramBotStatus() {
   const token = await getTelegramBotToken();
   const state = await prisma.systemSimState.findUnique({ where: { id: "singleton" } }).catch(() => null);
@@ -197,6 +269,7 @@ export async function getTelegramBotStatus() {
   if (!token) {
     return {
       configured: false,
+      voiceLabConfigured: isVoiceLabConfigured(),
       username: state?.telegramBotUsername || process.env.TELEGRAM_BOT_USERNAME || "OnaCarePatronajBot",
       webhookUrl: null,
       linkedPatients,
@@ -212,6 +285,7 @@ export async function getTelegramBotStatus() {
 
   return {
     configured: true,
+    voiceLabConfigured: isVoiceLabConfigured(),
     botLive: Boolean(meRes?.ok),
     username: meRes?.result?.username || state?.telegramBotUsername || "OnaCarePatronajBot",
     firstName: meRes?.result?.first_name || "OnaCare Bot",
@@ -802,14 +876,24 @@ export async function processTelegramUpdate(update, options = {}) {
     history = [];
   }
 
+  const userInclude = {
+    patientProfile: {
+      include: {
+        assignedFamilyDoctor: true,
+        prescriptions: { where: { active: true }, take: 6 },
+        activeCalls: { orderBy: { createdAt: "desc" }, take: 1, include: { assignedDoctor: true } },
+      },
+    },
+  };
+
   let linkedUser = session.userId
     ? await prisma.user.findUnique({
         where: { id: session.userId },
-        include: { patientProfile: { include: { assignedFamilyDoctor: true } } },
+        include: userInclude,
       })
     : await prisma.user.findFirst({
         where: { telegramChatId: chatId },
-        include: { patientProfile: { include: { assignedFamilyDoctor: true } } },
+        include: userInclude,
       });
 
   if (linkedUser && session.userId !== linkedUser.id) {
@@ -823,6 +907,66 @@ export async function processTelegramUpdate(update, options = {}) {
   const callbackData = (callbackQuery?.data || "").trim();
   const incomingLocation = message?.location || null;
   const incomingContact = message?.contact || null;
+  const incomingVoice = message?.voice || message?.audio || null;
+  const simVoiceBase64 = typeof update?.voiceAudioBase64 === "string" ? update.voiceAudioBase64.trim() : "";
+  const simVoiceMime = typeof update?.voiceMimeType === "string" ? update.voiceMimeType : "audio/webm";
+  const hasIncomingVoice = Boolean(incomingVoice || simVoiceBase64);
+
+  let voiceTranscript = "";
+  let voiceLanguage = update?.lang || "uz";
+  let voiceSttError = "";
+  let voiceSttProvider = "";
+
+  if (hasIncomingVoice) {
+    const durationSec = Number(incomingVoice?.duration || 0);
+    const fileSize = Number(incomingVoice?.file_size || 0);
+    if (durationSec > 95 || fileSize > 5_000_000) {
+      voiceSttError = "VOICE_TOO_LONG";
+    } else {
+      let audioBuffer = null;
+      let audioMime = simVoiceMime;
+      let audioFilename = "voice.ogg";
+
+      if (simVoiceBase64) {
+        const cleanB64 = simVoiceBase64.includes(",") ? simVoiceBase64.split(",").pop() : simVoiceBase64;
+        audioBuffer = Buffer.from(cleanB64, "base64");
+        audioFilename = simVoiceMime.includes("mp4") || simVoiceMime.includes("m4a")
+          ? "voice.m4a"
+          : simVoiceMime.includes("ogg")
+            ? "voice.ogg"
+            : "voice.webm";
+      } else if (incomingVoice?.file_id) {
+        const token = await getTelegramBotToken();
+        if (!dryRun && token) {
+          callTelegramApi("sendChatAction", { chat_id: chatId, action: "typing" }, token).catch(() => {});
+        }
+        const dl = await downloadTelegramFileBuffer(incomingVoice.file_id, token);
+        if (dl.ok) {
+          audioBuffer = dl.buffer;
+          audioMime = incomingVoice.mime_type || dl.mimeType;
+          audioFilename = incomingVoice.file_name || dl.filename;
+        } else {
+          voiceSttError = dl.error || "DOWNLOAD_FAILED";
+        }
+      }
+
+      if (audioBuffer && audioBuffer.length > 0 && !voiceSttError) {
+        const stt = await transcribeVoiceAudio({
+          audioBuffer,
+          mimeType: audioMime,
+          filename: audioFilename,
+          preferredLang: update?.lang || "",
+        });
+        if (stt.ok && stt.transcript) {
+          voiceTranscript = stt.transcript;
+          voiceLanguage = stt.language || "uz";
+          voiceSttProvider = stt.provider || "voicelab";
+        } else {
+          voiceSttError = stt.error || "STT_FAILED";
+        }
+      }
+    }
+  }
 
   // Mask passwords before writing user messages into persistent transcript history
   let sanitizedTextForHistory = rawText;
@@ -843,11 +987,15 @@ export async function processTelegramUpdate(update, options = {}) {
   // Record user action in transcript history
   const incomingLabel = callbackData
     ? `[Tugma] ${callbackData}`
-    : incomingLocation
-      ? `📍 GPS: ${incomingLocation.latitude.toFixed(5)}, ${incomingLocation.longitude.toFixed(5)}`
-      : incomingContact
-        ? `📱 Kontakt: ${incomingContact.phone_number}`
-        : sanitizedTextForHistory || "/start";
+    : hasIncomingVoice
+      ? voiceTranscript
+        ? `🎙️ "${voiceTranscript}"`
+        : "🎙️ [Ovozli xabar]"
+      : incomingLocation
+        ? `📍 GPS: ${incomingLocation.latitude.toFixed(5)}, ${incomingLocation.longitude.toFixed(5)}`
+        : incomingContact
+          ? `📱 Kontakt: ${incomingContact.phone_number}`
+          : sanitizedTextForHistory || "/start";
 
   history.push({
     id: `u-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -858,6 +1006,7 @@ export async function processTelegramUpdate(update, options = {}) {
 
   let nextFlowState = session.flowState || "IDLE";
   let reply = null;
+  let voiceReplyPayload = null;
 
   const setIdleWithMenu = () => {
     nextFlowState = "IDLE";
@@ -912,6 +1061,355 @@ export async function processTelegramUpdate(update, options = {}) {
     callbackData === "MENU:REFRESH"
   ) {
     setIdleWithMenu();
+  }
+  // ==================== VOICE MESSAGES (VOICELAB STT -> GEMINI -> VOICELAB TTS) ====================
+  else if (hasIncomingVoice) {
+    if (voiceSttError === "VOICE_TOO_LONG") {
+      reply = makeBotReply(
+        "⚠️ Ovozli xabar juda uzun (maksimal 90 soniya). Iltimos, qisqaroq ovozli xabar yuboring yoki matn yozing.",
+        [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
+      );
+    } else if (!voiceTranscript) {
+      reply = makeBotReply(
+        "⚠️ Ovozli xabarni matnga aylantirib bo'lmadi. Iltimos, aniqroq qayta gapiring yoki matn ko'rinishida yuboring.",
+        [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
+      );
+    } else {
+      const aiVoice = await runVoiceIntentAssistant({
+        transcript: voiceTranscript,
+        flowState: nextFlowState,
+        linkedUser,
+        draft,
+        preferredLang: voiceLanguage,
+      });
+      const vLang = aiVoice.detectedLanguage || voiceLanguage || "uz";
+      const safeTranscriptHtml = escapeHtml(voiceTranscript);
+
+      if (aiVoice.intent === "SIGNUP") {
+        const sf = aiVoice.signupFields || {};
+        if (!draft.targetRole) {
+          draft.targetRole = ["PATIENT", "FAMILY_MD", "OVABMU_MD"].includes(sf.role) ? sf.role : "PATIENT";
+        }
+        if (sf.fullName) draft.fullName = sf.fullName;
+        if (sf.dateOfBirth) draft.dateOfBirth = sf.dateOfBirth;
+        if (sf.phone) draft.phone = sf.phone;
+        if (sf.email) draft.email = sf.email.toLowerCase();
+        if (sf.district || sf.region) {
+          draft.district = sf.district || sf.region;
+          const coords = resolveCoordinatesForLocation(draft.district, sf.region || "");
+          draft.latitude = coords.latitude;
+          draft.longitude = coords.longitude;
+        }
+
+        const isDoctor = draft.targetRole !== "PATIENT";
+        const filledLines = [
+          draft.fullName ? `👤 F.I.O.: <b>${escapeHtml(draft.fullName)}</b>` : null,
+          draft.dateOfBirth && !isDoctor ? `🎂 Tug'ilgan sana: <code>${escapeHtml(draft.dateOfBirth)}</code>` : null,
+          draft.phone ? `📱 Telefon: <code>${escapeHtml(draft.phone)}</code>` : null,
+          draft.district ? `📍 Hudud: <b>${escapeHtml(draft.district)}</b>` : null,
+          draft.email ? `✉️ Email: <code>${escapeHtml(draft.email)}</code>` : null,
+        ].filter(Boolean);
+
+        let nextPrompt = "";
+        let askLocation = false;
+        let askContact = false;
+        if (!draft.fullName) {
+          nextFlowState = "SIGNUP_NAME";
+          nextPrompt = vLang === "ru" ? "Напишите или продиктуйте ваше ФИО:" : vLang === "en" ? "Please share your full name:" : "To'liq ism-familiyangizni ayting yoki yozing:";
+        } else if (!isDoctor && !draft.dateOfBirth) {
+          nextFlowState = "SIGNUP_DOB";
+          nextPrompt = vLang === "ru" ? "Укажите дату рождения (например, 1995-05-14):" : vLang === "en" ? "Please share your date of birth (e.g. 1995-05-14):" : "Tug'ilgan sanangizni yozing (masalan: <code>1995-05-14</code>):";
+        } else if (isDoctor && !draft.expertiseArea) {
+          nextFlowState = "SIGNUP_EXPERTISE";
+          nextPrompt = vLang === "ru" ? "Укажите вашу медицинскую специальность:" : vLang === "en" ? "Please share your medical specialty:" : "Tibbiy mutaxassisligingizni yozing:";
+        } else if (!draft.phone) {
+          nextFlowState = "SIGNUP_PHONE";
+          askContact = true;
+          nextPrompt = vLang === "ru" ? "Поделитесь номером телефона:" : vLang === "en" ? "Please share your phone number:" : "Telefon raqamingizni yuboring:";
+        } else if (!draft.district) {
+          nextFlowState = "SIGNUP_LOCATION";
+          askLocation = true;
+          nextPrompt = vLang === "ru" ? "Отправьте GPS или назовите район:" : vLang === "en" ? "Share GPS location or district:" : "GPS lokatsiya ulashing yoki tuman nomini yozing:";
+        } else if (!draft.email) {
+          nextFlowState = "SIGNUP_EMAIL";
+          nextPrompt = vLang === "ru" ? "Укажите ваш Email для входа:" : vLang === "en" ? "Please type your login email:" : "Kirish uchun Email manzilingizni yozing:";
+        } else {
+          nextFlowState = "SIGNUP_PASSWORD";
+          nextPrompt =
+            vLang === "ru"
+              ? "🔒 Введите пароль текстом (минимум 6 символов; не диктуйте пароль вслух):"
+              : vLang === "en"
+                ? "🔒 Please type a password (at least 6 characters; never speak passwords aloud):"
+                : "🔒 Endi kamida 6 ta belgidan iborat parolni <b>matn</b> shaklida yozing (parolni ovozda aytmang):";
+        }
+
+        const headerTxt =
+          vLang === "ru"
+            ? `🎙️ <i>"${safeTranscriptHtml}"</i>\n\n✅ <b>Данные регистрации заполнены из голосового сообщения:</b>`
+            : vLang === "en"
+              ? `🎙️ <i>"${safeTranscriptHtml}"</i>\n\n✅ <b>Sign-up details filled from your voice message:</b>`
+              : `🎙️ <i>"${safeTranscriptHtml}"</i>\n\n✅ <b>Ovozli xabardan ro'yxatdan o'tish ma'lumotlari to'ldirildi:</b>`;
+
+        reply = makeBotReply(
+          `${headerTxt}\n${filledLines.join("\n") || "—"}\n\n${nextPrompt}`,
+          askLocation || askContact ? [] : [[{ text: "❌ Bekor qilish", callbackData: "MENU:HOME" }]],
+          askLocation,
+          askContact
+        );
+      } else if (aiVoice.intent === "ILLNESS_REPORT") {
+        if (!linkedUser || linkedUser.role !== "PATIENT" || linkedUser.verificationStatus !== "VERIFIED") {
+          reply = makeBotReply(
+            `🎙️ <i>"${safeTranscriptHtml}"</i>\n\n` +
+              (vLang === "ru"
+                ? "Чтобы отправить отчёт врачу, сначала привяжите или зарегистрируйте аккаунт пациента."
+                : vLang === "en"
+                  ? "To send a medical report to a doctor, please link or register your patient account first."
+                  : "Shifokorga shikoyat yuborish uchun avval bemor hisobingizni bog'lang yoki ro'yxatdan o'ting."),
+            [
+              [{ text: "🤰 Ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:PATIENT" }],
+              [{ text: "🔗 Hisobni bog'lash (/link)", callbackData: "MENU:LINK_HELP" }],
+            ]
+          );
+        } else {
+          const inf = aiVoice.illnessFields || {};
+          draft = {
+            category: ["POSTPARTUM", "CARDIO", "PEDIATRIC", "EMERGENCY", "GENERAL"].includes(inf.category)
+              ? inf.category
+              : "POSTPARTUM",
+            severity: ["MILD", "MODERATE", "SEVERE", "CRITICAL"].includes(inf.severity)
+              ? inf.severity
+              : aiVoice.urgentEmergency103
+                ? "CRITICAL"
+                : "MODERATE",
+            visitDestination: ["HOME", "CURRENT_GPS", "RELATIVE_HOME", "CLINIC", "CUSTOM"].includes(inf.visitDestination)
+              ? inf.visitDestination
+              : "HOME",
+            visitAddress: inf.visitAddress || linkedUser.patientProfile?.address || linkedUser.district || "",
+            description: inf.description || voiceTranscript,
+            title: (inf.description || voiceTranscript).slice(0, 72),
+          };
+          nextFlowState = "VOICE_COMPLAINT_CONFIRM";
+
+          const emergencyPrefix = aiVoice.urgentEmergency103
+            ? vLang === "ru"
+              ? "🚨 <b>ВНИМАНИЕ! Названы тревожные симптомы — при экстренном состоянии немедленно звоните 103!</b>\n\n"
+              : vLang === "en"
+                ? "🚨 <b>URGENT! Warning signs detected — call 103 immediately for any emergency!</b>\n\n"
+                : "🚨 <b>DIQQAT! Xavfli belgilar aniqlandi — shoshilinch holatda darhol 103 ga qo'ng'iroq qiling!</b>\n\n"
+            : "";
+
+          const cardText =
+            `${emergencyPrefix}🎙️ <i>"${safeTranscriptHtml}"</i>\n\n` +
+            `🩺 <b>${vLang === "ru" ? "Отчёт о состоянии подготовлен:" : vLang === "en" ? "Health report prepared:" : "Shikoyat va holat hisoboti tayyorlandi:"}</b>\n` +
+            `• ${vLang === "ru" ? "Направление" : vLang === "en" ? "Category" : "Yo'nalish"}: <b>${escapeHtml(draft.category)}</b>\n` +
+            `• ${vLang === "ru" ? "Степень" : vLang === "en" ? "Severity" : "Jiddiylik"}: <b>${escapeHtml(draft.severity)}</b>\n` +
+            `• ${vLang === "ru" ? "Адрес" : vLang === "en" ? "Address" : "Manzil"}: ${escapeHtml(draft.visitAddress || "Uy manzili")}\n` +
+            `• 📝 ${escapeHtml(draft.description)}\n\n` +
+            (vLang === "ru"
+              ? "Подтвердите отправку ближайшему врачу:"
+              : vLang === "en"
+                ? "Confirm dispatching this report to the nearest doctor:"
+                : "Eng yaqin shifokorga yuborishni tasdiqlang:");
+
+          reply = makeBotReply(cardText, [
+            [{ text: vLang === "ru" ? "✅ Отправить врачу" : vLang === "en" ? "✅ Send to doctor" : "✅ Ha, shifokorga yuborish", callbackData: "VOICE_COMPLAINT:CONFIRM" }],
+            [{ text: vLang === "ru" ? "📍 Уточнить GPS" : vLang === "en" ? "📍 Share exact GPS" : "📍 Aniq GPS qo'shish", callbackData: "VOICE_COMPLAINT:NEED_GPS" }],
+            [{ text: "❌ Bekor qilish", callbackData: "MENU:HOME" }],
+          ]);
+        }
+      } else if (aiVoice.intent === "WELLBEING_CHECKIN" && linkedUser?.role === "PATIENT" && linkedUser.verificationStatus === "VERIFIED") {
+        const wb = aiVoice.wellbeingFields || {};
+        draft = {
+          wellbeing: {
+            mood: Math.max(1, Math.min(5, Number(wb.mood) || 3)),
+            motherPain: ["none", "mild", "severe"].includes(wb.motherPain) ? wb.motherPain : "none",
+            motherBleeding: wb.motherBleeding === "heavy" ? "heavy" : "normal",
+            motherFever: Boolean(wb.motherFever),
+            newbornFeeding: ["good", "less", "refusing"].includes(wb.newbornFeeding) ? wb.newbornFeeding : "good",
+            newbornJaundice: Boolean(wb.newbornJaundice),
+            newbornTempHigh: Boolean(wb.newbornTempHigh),
+          },
+        };
+        nextFlowState = "VOICE_WELLBEING_CONFIRM";
+        reply = makeBotReply(
+          `🎙️ <i>"${safeTranscriptHtml}"</i>\n\n` +
+            `🧠 <b>Kundalik check-in tayyorlandi:</b>\n` +
+            `• Kayfiyat: <b>${draft.wellbeing.mood}/5</b>\n` +
+            `• Ona og'rig'i / isitmasi: ${draft.wellbeing.motherPain}${draft.wellbeing.motherFever ? " • Isitma bor" : ""}\n` +
+            `• Chaqaloq emishi: ${draft.wellbeing.newbornFeeding}${draft.wellbeing.newbornJaundice ? " • Sariqlik" : ""}\n\n` +
+            `Saqlashni tasdiqlaysizmi?`,
+          [
+            [{ text: "✅ Ha, check-inni saqlash", callbackData: "VOICE_WB:CONFIRM" }],
+            [{ text: "❌ Bekor qilish", callbackData: "MENU:HOME" }],
+          ]
+        );
+      } else {
+        // GENERAL_QUESTION -> synthesize VoiceLab TTS reply customized to uz / ru / en!
+        const emergencyPrefix = aiVoice.urgentEmergency103
+          ? vLang === "ru"
+            ? "🚨 <b>Срочно:</b> При опасных симптомах звоните <b>103</b>!\n\n"
+            : vLang === "en"
+              ? "🚨 <b>Urgent:</b> For warning signs, call <b>103</b> immediately!\n\n"
+              : "🚨 <b>Shoshilinch:</b> Xavfli belgilar bo'lsa darhol <b>103</b> ga qo'ng'iroq qiling!\n\n"
+          : "";
+
+        const textBody = `${emergencyPrefix}🎙️ <i>"${safeTranscriptHtml}"</i>\n\n🤖 <b>OnaCare AI (${vLang.toUpperCase()}):</b>\n${escapeHtml(aiVoice.replyText)}`;
+        const miniAppUrl = getTelegramMiniAppUrl();
+        const menuButtons = linkedUser
+          ? [
+              [{ text: "📱 Kabinetni ochish (Mini App)", webAppUrl: miniAppUrl }],
+              [{ text: "🚨 Shikoyat yuborish", callbackData: "PATIENT:NEW_COMPLAINT" }, { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+            ]
+          : [
+              [{ text: "🤰 Ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:PATIENT" }, { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+            ];
+
+        if (!dryRun) {
+          const tok = await getTelegramBotToken();
+          if (tok) {
+            callTelegramApi("sendChatAction", { chat_id: chatId, action: "record_voice" }, tok).catch(() => {});
+          }
+        }
+
+        const tts = await synthesizeVoiceSpeech({
+          text: aiVoice.replyText,
+          language: vLang,
+          mood: "Neutral",
+          speed: "1.0",
+        });
+
+        if (tts.ok && tts.audioBuffer) {
+          voiceReplyPayload = {
+            audioBuffer: tts.audioBuffer,
+            contentType: tts.contentType,
+            filename: tts.filename,
+            language: vLang,
+            provider: "voicelab",
+          };
+        }
+
+        reply = makeBotReply(textBody, menuButtons);
+        reply.voiceMeta = {
+          sttProvider: voiceSttProvider || "voicelab",
+          ttsDelivered: Boolean(tts.ok),
+          language: vLang,
+          transcript: voiceTranscript,
+        };
+      }
+    }
+  }
+  // ==================== VOICE CONFIRMATION CALLBACKS ====================
+  else if (callbackData === "VOICE_COMPLAINT:NEED_GPS" && linkedUser?.role === "PATIENT") {
+    nextFlowState = "COMPLAINT_GPS";
+    reply = makeBotReply(
+      `📍 Iltimos, hozirgi GPS lokatsiyangizni ulashing (<b>📍 Lokatsiya yuborish</b> tugmasi) yoki aniq manzilni yozing:`,
+      [],
+      true,
+      false
+    );
+  } else if (callbackData === "VOICE_COMPLAINT:CONFIRM" && linkedUser?.role === "PATIENT" && linkedUser.patientProfile) {
+    const patient = linkedUser.patientProfile;
+    const coords =
+      typeof patient.latitude === "number" && typeof patient.longitude === "number"
+        ? { latitude: patient.latitude, longitude: patient.longitude }
+        : resolveCoordinatesForLocation(patient.district, "");
+    const doctors = await prisma.user.findMany({
+      where: { role: { in: ["FAMILY_MD", "OVABMU_MD"] }, verificationStatus: "VERIFIED" },
+    });
+    const matched = matchNearestDoctor(doctors, {
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      district: patient.district,
+      category: draft.category || "POSTPARTUM",
+    });
+    const otp = String(Math.floor(1000 + Math.random() * 9000));
+    const complaint = await prisma.complaint.create({
+      data: {
+        patientId: patient.id,
+        assignedDoctorId: matched.doctor?.id ?? null,
+        title: draft.title || "Ovozli shikoyat",
+        description: draft.description || "Telegram ovozli xabar orqali yuborilgan shikoyat",
+        category: draft.category || "POSTPARTUM",
+        severity: draft.severity || "MODERATE",
+        status: "SUBMITTED",
+        visitDestination: draft.visitDestination || "HOME",
+        visitAddress: draft.visitAddress || patient.address || patient.district,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        distanceKm: matched.distanceKm,
+        preferredTimeWindow: "Eng qisqa vaqtda",
+        sourceChannel: "TELEGRAM_VOICE",
+        visitOtpCode: otp,
+      },
+    });
+    if (matched.doctor) {
+      await notifyUserViaTelegram(
+        matched.doctor.id,
+        `🚨 <b>Yangi bemor shikoyati (Telegram Ovozli xabar)!</b>\n\n` +
+          `👩 Bemor: <b>${escapeHtml(patient.fullName)}</b> (${escapeHtml(patient.phone)})\n` +
+          `📌 Yo'nalish: ${complaint.category} • Daraja: <b>${complaint.severity}</b>\n` +
+          `📍 Manzil: ${escapeHtml(complaint.visitAddress)}\n` +
+          `📝 Shikoyat: ${escapeHtml(complaint.description)}`,
+        [
+          [
+            { text: "💬 Javob berish", callbackData: `DOC_RESPOND:${complaint.id}` },
+            { text: "🚗 Yo'lga chiqdim", callbackData: `DOC_ENROUTE:${complaint.id}` },
+          ],
+          [{ text: "✅ Borib ko'rdim & Verifikatsiya", callbackData: `DOC_VERIFY:${complaint.id}` }],
+        ]
+      );
+    }
+    nextFlowState = "IDLE";
+    draft = {};
+    reply = makeBotReply(
+      `✅ <b>Shikoyatingiz shifokorga yuborildi!</b>\n\n` +
+        `🩺 Shifokor: <b>${escapeHtml(matched.doctor?.fullName || "Navbatchi shifokor")}</b>\n` +
+        `🔑 Tasdiqlash OTP kodi: <b>${otp}</b>`,
+      [
+        [{ text: "💬 Shifokorga yozish", callbackData: "PATIENT:DM_START" }],
+        [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+      ]
+    );
+  } else if (callbackData === "VOICE_WB:CONFIRM" && linkedUser?.role === "PATIENT" && linkedUser.patientProfile && draft?.wellbeing) {
+    const patient = linkedUser.patientProfile;
+    const answers = draft.wellbeing;
+    const recent = await prisma.wellbeingCheckin.findMany({
+      where: { patientId: patient.id },
+      orderBy: { createdAt: "desc" },
+      take: 14,
+    });
+    const evaluation = evaluateWellbeingSignals({
+      mood: answers.mood || 3,
+      answers,
+      recentCheckins: recent,
+    });
+    const dateStr = getTashkentDateString();
+    const checkin = await prisma.wellbeingCheckin.create({
+      data: {
+        patientId: patient.id,
+        date: dateStr,
+        mood: answers.mood || 3,
+        answersJson: JSON.stringify(answers),
+        riskFlag: evaluation.riskFlag,
+        source: "TELEGRAM_VOICE",
+      },
+    });
+    await triggerWellbeingRiskAlerts({
+      patient,
+      checkin,
+      evaluation,
+      notifyUserViaTelegram,
+      notifyAdminsViaTelegram,
+    });
+    nextFlowState = "IDLE";
+    draft = {};
+    reply = makeBotReply(
+      `✅ <b>Ovozli holat check-in saqlandi (${dateStr})!</b>\n` +
+        (evaluation.hasPhysicalRedFlag
+          ? "🚨 Xavfli belgi qayd etildi — oilaviy shifokoringiz ogohlantirildi. Zarur bo'lsa 103 ga qo'ng'iroq qiling!"
+          : "Shifokoringiz kunlik dinamikangizni ko'rishi mumkin."),
+      [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
+    );
   }
   // Profile & Essentials view (/profile, /me, /essentials, /account, /hisobim, MENU:PROFILE)
   else if (
@@ -2367,27 +2865,58 @@ export async function processTelegramUpdate(update, options = {}) {
       if (rawText.startsWith("/start")) {
         await ensureTelegramMenuButton(token);
       }
-      await callTelegramApi(
-        "sendMessage",
-        {
-          chat_id: chatId,
-          text: reply.text,
-          parse_mode: "HTML",
-          ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
-        },
-        token
-      );
+
+      let deliveredAsVoice = false;
+      if (voiceReplyPayload?.audioBuffer) {
+        const voiceSendRes = await sendTelegramVoiceOrAudio(
+          {
+            chatId,
+            audioBuffer: voiceReplyPayload.audioBuffer,
+            filename: voiceReplyPayload.filename,
+            contentType: voiceReplyPayload.contentType,
+            caption: reply.text,
+            replyMarkup,
+            language: voiceReplyPayload.language,
+          },
+          token
+        );
+        deliveredAsVoice = Boolean(voiceSendRes?.ok);
+      }
+
+      if (!deliveredAsVoice) {
+        await callTelegramApi(
+          "sendMessage",
+          {
+            chat_id: chatId,
+            text: reply.text,
+            parse_mode: "HTML",
+            ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+          },
+          token
+        );
+      }
+
       if (callbackQuery?.id) {
         await callTelegramApi("answerCallbackQuery", { callback_query_id: callbackQuery.id }, token);
       }
     }
   }
 
+  const replyWithAudio = voiceReplyPayload?.audioBuffer
+    ? {
+        ...reply,
+        voiceReplyDataUrl: `data:${voiceReplyPayload.contentType};base64,${Buffer.from(
+          voiceReplyPayload.audioBuffer
+        ).toString("base64")}`,
+        voiceReplyLang: voiceReplyPayload.language,
+      }
+    : reply;
+
   return {
     ok: true,
     chatId,
     flowState: nextFlowState,
-    reply,
+    reply: replyWithAudio,
     history: history.slice(-40),
     linkedUser: linkedUser
       ? {

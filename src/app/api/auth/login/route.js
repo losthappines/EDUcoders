@@ -69,6 +69,7 @@ export async function POST(req) {
                 polyclinicId: user.polyclinicId,
                 polyclinicName: user.polyclinicName,
                 district: user.district,
+                avatarUrl: user.avatarUrl || null,
             },
         });
         setSessionCookie(res, user.id, user.role);

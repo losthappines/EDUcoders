@@ -1,6 +1,9 @@
 "use client";
 import React, { useMemo, useState } from "react";
-import { IconSearch, IconX } from "@tabler/icons-react";
+import { IconCamera, IconSearch, IconX } from "@tabler/icons-react";
+import { usePlatform } from "@/context/PlatformContext";
+import { useStaffNav } from "@/components/AppShell";
+import { UserAvatar } from "@/components/UserAvatar";
 
 const TONE_MAP = {
   blue: {
@@ -32,7 +35,14 @@ export function StaffWelcomeHeader({
   onSearchChange,
   searchPlaceholder = "Search anything...",
   rightSlot = null,
+  showProfileAvatar = true,
+  onProfileClick,
 }) {
+  const platform = usePlatform();
+  const nav = useStaffNav();
+  const actor = platform?.data?.actor ?? platform?.authUser ?? null;
+  const handleAvatarClick = onProfileClick || nav?.openAccountModal;
+
   return (
     <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
@@ -48,7 +58,7 @@ export function StaffWelcomeHeader({
 
       <div className="flex flex-wrap items-center gap-2.5 shrink-0">
         {typeof onSearchChange === "function" && (
-          <div className="relative w-full sm:w-64 lg:w-72">
+          <div className="relative flex-1 min-w-[200px] sm:w-64 lg:w-72">
             <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               type="search"
@@ -71,6 +81,25 @@ export function StaffWelcomeHeader({
           </div>
         )}
         {rightSlot}
+        {showProfileAvatar && actor && (
+          <button
+            type="button"
+            onClick={handleAvatarClick}
+            title={actor.fullName || "Profile"}
+            aria-label={actor.fullName || "Open profile"}
+            className="group relative inline-flex items-center gap-2 rounded-full border border-[#E3ECF3] dark:border-[#1E353A] bg-white dark:bg-[#101E21] p-1 pr-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] hover:border-[#2585F5] transition-all active:scale-[0.98]"
+          >
+            <span className="relative">
+              <UserAvatar avatarUrl={actor.avatarUrl} fullName={actor.fullName} size="sm" />
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#1D6CE0] text-white border border-white dark:border-[#101E21] opacity-90 group-hover:scale-110 transition-transform">
+                <IconCamera className="h-2 w-2" />
+              </span>
+            </span>
+            <span className="hidden md:inline max-w-[120px] truncate text-xs font-semibold text-slate-700 dark:text-slate-200">
+              {actor.fullName}
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );

@@ -175,6 +175,7 @@ export function PlatformProvider({ children }) {
                 polyclinicId: out.user.polyclinicId,
                 polyclinicName: out.user.polyclinicName,
                 district: out.user.district,
+                avatarUrl: out.user.avatarUrl || null,
             });
             setAuthChecked(true);
             await refreshData();

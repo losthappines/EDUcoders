@@ -32,6 +32,7 @@ model User {
   phone                 String?
   telegramHandle        String?
   telegramChatId        String?   @unique
+  avatarUrl             String?
   subscriptionTier      String    @default("FREE") // FREE | CARE_PLUS | CARE_FAMILY | DOCTOR_PRO | DOCTOR_CLINIC
   subscriptionStatus    String    @default("NONE") // NONE | ACTIVE | EXPIRED
   subscriptionExpiresAt DateTime?

@@ -24,6 +24,7 @@ function sanitizeUser(u) {
         phone: u.phone,
         telegramHandle: u.telegramHandle,
         telegramLinked: Boolean(u.telegramChatId),
+        avatarUrl: u.avatarUrl || null,
         subscriptionTier: u.subscriptionTier,
         subscriptionStatus: u.subscriptionStatus,
         subscriptionExpiresAt: u.subscriptionExpiresAt,

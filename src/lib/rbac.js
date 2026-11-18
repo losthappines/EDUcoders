@@ -34,6 +34,7 @@ export async function resolveActorContext(req) {
         polyclinicId: user.polyclinicId,
         polyclinicName: user.polyclinicName,
         district: user.district,
+        avatarUrl: user.avatarUrl || null,
         ipAddress,
     };
 }

@@ -33,12 +33,12 @@ const TG_COPY = {
       "Bemor va shifokorlarni GPS lokatsiyasi bilan ro'yxatdan o'tkazadi, shikoyatlarni qabul qiladi, profil va asosiy ma'lumotlarni ko'rsatadi, shifokorlarga tashrif eslatmasi yuboradi va maslahat chatini bog'laydi.",
     liveChatTitle: "Jonli Telegram bot interfeysi (@OnaCarePatronajBot)",
     liveChatSub: "Har bir tugma va xabar to'g'ridan-to'g'ri PostgreSQL bazasiga ulangan.",
-    profileQuickBtn: "Profilim (/profile)",
+    profileQuickBtn: "Mening hisobim (/profile)",
     linkMeBtn: "Hozirgi hisobimni ulash",
     resetChatBtn: "Qayta boshlash (/start)",
     shareGpsBtn: "GPS lokatsiya yuborish",
     gpsLoading: "GPS aniqlanmoqda...",
-    inputPlaceholder: "Xabar yoki buyruq yozing (/profile, /start, /complaint, /link)...",
+    inputPlaceholder: "Xabar yoki buyruq yozing (/profile, /delete_account, /start, /link)...",
     sendBtn: "Yuborish",
     quickGpsLabel: "Tezkor sinov GPS nuqtalari:",
     botStatusTitle: "Haqiqiy Telegram bot (@BotFather) holati",
@@ -77,12 +77,12 @@ const TG_COPY = {
       "Регистрирует пациентов и врачей с GPS-локацией, показывает профиль и основные данные, принимает жалобы, отправляет напоминания врачам и связывает их в прямом чате.",
     liveChatTitle: "Живой интерфейс Telegram-бота (@OnaCarePatronajBot)",
     liveChatSub: "Каждая кнопка и сообщение работают напрямую с базой данных PostgreSQL.",
-    profileQuickBtn: "Мой профиль (/profile)",
+    profileQuickBtn: "Мой аккаунт (/profile)",
     linkMeBtn: "Привязать мой аккаунт",
     resetChatBtn: "Сбросить чат (/start)",
     shareGpsBtn: "Отправить GPS-локацию",
     gpsLoading: "Определение GPS...",
-    inputPlaceholder: "Введите сообщение или команду (/profile, /start, /complaint, /link)...",
+    inputPlaceholder: "Введите сообщение или команду (/profile, /delete_account, /start, /link)...",
     sendBtn: "Отправить",
     quickGpsLabel: "Быстрые тестовые GPS-точки:",
     botStatusTitle: "Статус реального Telegram-бота (@BotFather)",
@@ -121,12 +121,12 @@ const TG_COPY = {
       "Registers patients & doctors with GPS location, displays your profile & essentials, collects complaints & visit destinations, reminds doctors, and connects direct advice chat.",
     liveChatTitle: "Live Telegram Bot Console (@OnaCarePatronajBot)",
     liveChatSub: "Every button tap and message runs directly against the live PostgreSQL backend.",
-    profileQuickBtn: "My Profile (/profile)",
+    profileQuickBtn: "My Account (/profile)",
     linkMeBtn: "Link My Signed-In Account",
     resetChatBtn: "Restart Bot (/start)",
     shareGpsBtn: "Share GPS Location",
     gpsLoading: "Detecting GPS...",
-    inputPlaceholder: "Type a message or command (/profile, /start, /complaint, /link)...",
+    inputPlaceholder: "Type a message or command (/profile, /delete_account, /start, /link)...",
     sendBtn: "Send",
     quickGpsLabel: "Quick test GPS locations:",
     botStatusTitle: "Live @BotFather Connection Status",
@@ -167,7 +167,7 @@ const QUICK_GPS_POINTS = [
 ];
 
 function TelegramConsoleContent() {
-  const { authUser, showToast, refreshData } = usePlatform();
+  const { authUser, showToast, refreshData, clearLocalSession } = usePlatform();
   const { lang } = useLanguage();
   const searchParams = useSearchParams();
   const t = TG_COPY[lang];
@@ -379,9 +379,22 @@ function TelegramConsoleContent() {
         showToast("error", data.error || "Telegram error");
         return;
       }
+      const prevLinkedId = linkedUser?.id || null;
       setHistory(data.history || []);
       setFlowState(data.flowState || "IDLE");
       setLinkedUser(data.linkedUser || null);
+      if (payload.callbackData === "ACCOUNT:DELETE_EXECUTE" && !data.linkedUser) {
+        try {
+          window.sessionStorage.removeItem("onacare_tg_link_token");
+        } catch {
+          // ignore
+        }
+        setActiveLinkToken("");
+        if (authUser && prevLinkedId === authUser.userId) {
+          clearLocalSession();
+          return;
+        }
+      }
       if (authUser) {
         refreshData();
         loadPersonalLink();
@@ -788,10 +801,10 @@ function TelegramConsoleContent() {
               </ol>
               <div className="pt-3 border-t border-[#DDD8CC] dark:border-[#2F3733] font-mono text-[11px] text-[#525954] dark:text-[#B8C2BA] space-y-1">
                 <div>
-                  <code>/start</code> • <code>/profile</code> • <code>/link</code> • <code>/signup</code>
+                  <code>/start</code> • <code>/profile</code> • <code>/account</code> • <code>/link</code> • <code>/delete_account</code>
                 </div>
                 <div>
-                  <code>/complaint</code> • <code>/nearby</code> • <code>/reminders</code> • <code>/dm</code>
+                  <code>/signup</code> • <code>/complaint</code> • <code>/nearby</code> • <code>/reminders</code> • <code>/dm</code>
                 </div>
               </div>
             </div>

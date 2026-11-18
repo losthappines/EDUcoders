@@ -4,6 +4,7 @@ import { verifyPassword, hashPassword, verifyTelegramLinkToken } from "@/lib/aut
 import { haversineDistanceKm, matchNearestDoctor, resolveCoordinatesForLocation, VISIT_DESTINATION_OPTIONS } from "@/lib/geo";
 import { getPlanByCode, formatUzs } from "@/lib/subscriptions";
 import { resolvePolyclinicForLocation } from "@/lib/uz-locations";
+import { permanentlyDeleteUserAccount } from "@/lib/account-deletion";
 
 export async function getTelegramBotUsername() {
   try {
@@ -375,7 +376,7 @@ async function buildUserProfileMessage(user) {
       : "Ulashilmagan";
 
   const lines = [
-    `👤 <b>Mening Profilim va Asosiy Ma'lumotlarim</b>`,
+    `👤 <b>Mening Hisobim va Profilim</b>`,
     ``,
     `• <b>F.I.O.:</b> ${escapeHtml(u.fullName)}`,
     `• <b>Rol:</b> ${formatRoleLabel(u.role)}`,
@@ -438,12 +439,14 @@ async function buildUserProfileMessage(user) {
               { text: "💎 Obunalar", callbackData: "MENU:SUBSCRIPTIONS" },
               { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
             ],
+            [{ text: "🗑️ Hisobni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_CONFIRM" }],
           ]
         : [
             [
               { text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" },
               { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
             ],
+            [{ text: "🗑️ Hisobni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_CONFIRM" }],
           ];
     return { text: lines.join("\n"), buttons };
   }
@@ -486,12 +489,14 @@ async function buildUserProfileMessage(user) {
               { text: "💎 Obuna", callbackData: "MENU:SUBSCRIPTIONS" },
               { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
             ],
+            [{ text: "🗑️ Hisobni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_CONFIRM" }],
           ]
         : [
             [
               { text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" },
               { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
             ],
+            [{ text: "🗑️ Hisobni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_CONFIRM" }],
           ];
     return { text: lines.join("\n"), buttons };
   }
@@ -517,6 +522,7 @@ async function buildUserProfileMessage(user) {
         { text: "📊 Jonli statistika", callbackData: "ADMIN:STATS" },
         { text: "🏠 Bosh menyu", callbackData: "MENU:HOME" },
       ],
+      [{ text: "🗑️ Hisobni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_CONFIRM" }],
     ],
   };
 }
@@ -529,7 +535,7 @@ function buildMainMenuForUser(user) {
         "Bu bot orqali:\n" +
         "• 🤰 Bemor yoki 🩺 Shifokor sifatida GPS lokatsiyangiz bilan ro'yxatdan o'tishingiz\n" +
         "• 🔗 Saytda (SI yordamchisi yoki shakl orqali) yaratilgan hisobingizni Telegramga ulashingiz\n" +
-        "• 👤 Profil va asosiy tibbiy ma'lumotlaringizni Telegramda ko'rishingiz\n" +
+        "• 👤 Mening hisobim bo'limida profil va asosiy tibbiy ma'lumotlaringizni ko'rishingiz (yoki hisobni o'chirishingiz)\n" +
         "• 🚨 Shikoyat yuborib, shifokor bilan bevosita maslahatlashishingiz mumkin.\n\n" +
         "Quyidagi amallardan birini tanlang:",
       buttons: [
@@ -551,7 +557,7 @@ function buildMainMenuForUser(user) {
         `Sizning <b>${formatRoleLabel(user.role)}</b> hisobingiz ro'yxatga olingan va hozirda Administrator tasdig'ini kutmoqda.\n` +
         `Tasdiqlangandan so'ng darhol barcha imkoniyatlar (shikoyat yuborish, GPS qidiruv, maslahat) faollashadi.`,
       buttons: [
-        [{ text: "👤 Profilim va ma'lumotlarim (/profile)", callbackData: "MENU:PROFILE" }],
+        [{ text: "👤 Mening hisobim / Profilim (/profile)", callbackData: "MENU:PROFILE" }],
         [{ text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" }],
       ],
     };
@@ -562,7 +568,7 @@ function buildMainMenuForUser(user) {
       text:
         `❌ <b>Hisob rad etilgan</b>\nSabab: ${escapeHtml(user.verificationNote || "Admin bilan bog'laning.")}`,
       buttons: [
-        [{ text: "👤 Profilim va ma'lumotlarim", callbackData: "MENU:PROFILE" }],
+        [{ text: "👤 Mening hisobim / Profilim", callbackData: "MENU:PROFILE" }],
         [{ text: "🔄 Qayta ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:PATIENT" }],
       ],
     };
@@ -582,7 +588,7 @@ function buildMainMenuForUser(user) {
           { text: "💬 Shifokordan maslahat olish", callbackData: "PATIENT:DM_START" },
         ],
         [
-          { text: "👤 Profilim va ma'lumotlarim", callbackData: "MENU:PROFILE" },
+          { text: "👤 Mening hisobim", callbackData: "MENU:PROFILE" },
           { text: "💎 Obuna sotib olish", callbackData: "MENU:SUBSCRIPTIONS" },
         ],
       ],
@@ -606,7 +612,7 @@ function buildMainMenuForUser(user) {
         ],
         [
           { text: "💬 Bemorlarga maslahat yozish", callbackData: "DOCTOR:DM_LIST" },
-          { text: "👤 Profilim va ma'lumotlarim", callbackData: "MENU:PROFILE" },
+          { text: "👤 Mening hisobim", callbackData: "MENU:PROFILE" },
         ],
         [{ text: "💎 Shifokor PRO obunasi", callbackData: "MENU:SUBSCRIPTIONS" }],
       ],
@@ -618,7 +624,7 @@ function buildMainMenuForUser(user) {
       `🛡️ <b>OnaCare Admin — ${escapeHtml(user.fullName)}</b>\n` +
       `Tizimdagi barcha bemor, shifokor va shikoyatlarni nazorat qilishingiz mumkin.`,
     buttons: [
-      [{ text: "👤 Profilim va ma'lumotlarim", callbackData: "MENU:PROFILE" }],
+      [{ text: "👤 Mening hisobim", callbackData: "MENU:PROFILE" }],
       [{ text: "⏰ Barcha shifokorlarga eslatma yuborish", callbackData: "ADMIN:REMIND_ALL" }],
       [{ text: "📊 Jonli statistika", callbackData: "ADMIN:STATS" }],
     ],
@@ -790,18 +796,20 @@ export async function processTelegramUpdate(update, options = {}) {
   ) {
     setIdleWithMenu();
   }
-  // Profile & Essentials view (/profile, /me, /essentials, MENU:PROFILE)
+  // Profile & Essentials view (/profile, /me, /essentials, /account, /hisobim, MENU:PROFILE)
   else if (
     rawText === "/profile" ||
     rawText === "/me" ||
     rawText === "/essentials" ||
+    rawText === "/account" ||
+    rawText === "/hisobim" ||
     callbackData === "MENU:PROFILE"
   ) {
     nextFlowState = "IDLE";
     draft = {};
     if (!linkedUser) {
       reply = makeBotReply(
-        "🔗 Profilingizni ko'rish uchun avval saytdagi hisobingizni bog'lang yoki bot orqali ro'yxatdan o'ting.",
+        "🔗 Hisobingizni ko'rish uchun avval saytdagi hisobingizni bog'lang yoki bot orqali ro'yxatdan o'ting.",
         [
           [{ text: "🔗 Saytdagi hisobni bog'lash (/link)", callbackData: "MENU:LINK_HELP" }],
           [
@@ -814,6 +822,47 @@ export async function processTelegramUpdate(update, options = {}) {
       const profileMsg = await buildUserProfileMessage(linkedUser);
       reply = makeBotReply(profileMsg.text, profileMsg.buttons);
     }
+  }
+  // Permanent account & records deletion confirmation inside Mening hisobim
+  else if (
+    (callbackData === "ACCOUNT:DELETE_CONFIRM" ||
+      rawText === "/delete_account" ||
+      rawText === "/hisobni_ochirish") &&
+    linkedUser
+  ) {
+    nextFlowState = "ACCOUNT_DELETE_CONFIRM";
+    draft = {};
+    reply = makeBotReply(
+      `⚠️ <b>Diqqat! Hisobingizni butunlay o'chirmoqchimisiz?</b>\n\n` +
+        `Bu amal qaytarib bo'lmaydi. Sizning hisobingiz (<code>${escapeHtml(linkedUser.email)}</code>) va unga bog'liq <b>barcha yozuvlar</b> ` +
+        `(bemor profili, tibbiy yozuvlar, shikoyatlar, tashriflar, retseptlar, xabarlar, obunalar va Telegram sessiyasi) bazadan butunlay o'chiriladi.\n\n` +
+        `Tasdiqlash uchun pastdagi tugmani bosing:`,
+      [
+        [{ text: "✅ Ha, hisobimni butunlay o'chirish", callbackData: "ACCOUNT:DELETE_EXECUTE" }],
+        [{ text: "❌ Bekor qilish", callbackData: "MENU:PROFILE" }],
+      ]
+    );
+  } else if (callbackData === "ACCOUNT:DELETE_EXECUTE" && linkedUser) {
+    const deletedEmail = linkedUser.email;
+    await permanentlyDeleteUserAccount({ userId: linkedUser.id });
+    linkedUser = null;
+    nextFlowState = "IDLE";
+    draft = {};
+    // Wipe previous user conversation/profile entries from transcript
+    history = [
+      {
+        id: `u-${Date.now()}-del`,
+        from: "user",
+        text: "[Tugma] ACCOUNT:DELETE_EXECUTE",
+        at: new Date().toISOString(),
+      },
+    ];
+    reply = makeBotReply(
+      `🗑️ <b>Hisobingiz va barcha yozuvlar butunlay o'chirildi.</b>\n` +
+        `(O'chirilgan hisob: <code>${escapeHtml(deletedEmail)}</code>)\n\n` +
+        `Xohlasangiz /start orqali yangidan ro'yxatdan o'tishingiz mumkin.`,
+      [[{ text: "🏠 Bosh menyu (/start)", callbackData: "MENU:HOME" }]]
+    );
   }
   // /link <token> OR /link <email> <password>
   else if (rawText === "/link" || rawText.startsWith("/link ") || callbackData === "MENU:LINK_HELP") {
@@ -1712,9 +1761,19 @@ export async function processTelegramUpdate(update, options = {}) {
     at: new Date().toISOString(),
   });
 
-  await prisma.telegramSession.update({
+  await prisma.telegramSession.upsert({
     where: { chatId },
-    data: {
+    update: {
+      userId: linkedUser?.id || null,
+      telegramUsername: tgUsername || session.telegramUsername,
+      telegramFirstName: tgFirstName || session.telegramFirstName,
+      flowState: nextFlowState,
+      draftJson: JSON.stringify(draft),
+      historyJson: JSON.stringify(history.slice(-40)),
+    },
+    create: {
+      chatId,
+      userId: linkedUser?.id || null,
       telegramUsername: tgUsername || session.telegramUsername,
       telegramFirstName: tgFirstName || session.telegramFirstName,
       flowState: nextFlowState,

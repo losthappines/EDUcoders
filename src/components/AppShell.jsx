@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { IconBrandTelegram, IconBuildingHospital, IconCheck, IconCopy, IconExternalLink, IconHeartHandshake, IconLinkOff, IconLock, IconLogout, IconMenu2, IconShieldCheck, IconStethoscope, IconUserCheck, IconX, } from "@tabler/icons-react";
+import { IconBrandTelegram, IconBuildingHospital, IconCheck, IconCopy, IconExternalLink, IconHeartHandshake, IconLinkOff, IconLock, IconLogout, IconMenu2, IconShieldCheck, IconStethoscope, IconTrash, IconUserCheck, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -60,6 +60,14 @@ const SHELL_COPY = {
         tgCopied: "Nusxalandi ✓",
         tgUnlink: "Telegramni uzish",
         tgLoading: "Yuklanmoqda...",
+        acctTitle: "Mening hisobim",
+        acctEmail: "Elektron pochta:",
+        acctDistrict: "Hudud:",
+        acctDeleteTitle: "Hisobni butunlay o'chirish",
+        acctDeleteDesc: "Hisobingiz va unga bog'liq barcha yozuvlar (tibbiy ma'lumotlar, shikoyatlar, tashriflar, xabarlar, obunalar) bazadan butunlay o'chiriladi.",
+        acctDeleteInputLabel: "Tasdiqlash uchun DELETE so'zini yozing:",
+        acctDeleteBtn: "Hisob va barcha yozuvlarni o'chirish",
+        acctDeleting: "O'chirilmoqda...",
     },
     ru: {
         privateBadge: "Приватно и зашифровано",
@@ -86,6 +94,14 @@ const SHELL_COPY = {
         tgCopied: "Скопировано ✓",
         tgUnlink: "Отвязать Telegram",
         tgLoading: "Загрузка...",
+        acctTitle: "Мой аккаунт",
+        acctEmail: "Эл. почта:",
+        acctDistrict: "Район:",
+        acctDeleteTitle: "Удалить аккаунт навсегда",
+        acctDeleteDesc: "Аккаунт и все связанные записи (медданные, жалобы, визиты, сообщения, подписки) будут безвозвратно удалены.",
+        acctDeleteInputLabel: "Введите DELETE для подтверждения:",
+        acctDeleteBtn: "Удалить аккаунт и все записи",
+        acctDeleting: "Удаление...",
     },
     en: {
         privateBadge: "Encrypted & private",
@@ -112,6 +128,14 @@ const SHELL_COPY = {
         tgCopied: "Copied ✓",
         tgUnlink: "Unlink Telegram",
         tgLoading: "Loading...",
+        acctTitle: "My Account",
+        acctEmail: "Email:",
+        acctDistrict: "District:",
+        acctDeleteTitle: "Delete Account Permanently",
+        acctDeleteDesc: "This permanently erases your account and all associated records (medical records, complaints, visits, messages, subscriptions).",
+        acctDeleteInputLabel: "Type DELETE to confirm permanent removal:",
+        acctDeleteBtn: "Delete Account & All Records",
+        acctDeleting: "Deleting...",
     },
 };
 export function AppShell({ children }) {
@@ -123,9 +147,35 @@ export function AppShell({ children }) {
     const [tgLinkData, setTgLinkData] = useState(null);
     const [tgBusy, setTgBusy] = useState(false);
     const [copiedTg, setCopiedTg] = useState(false);
-    const { authUser, authChecked, data, toast, logout, refreshData } = usePlatform();
+    const [acctModalOpen, setAcctModalOpen] = useState(false);
+    const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
+    const [deletingAcct, setDeletingAcct] = useState(false);
+    const [deleteAcctErr, setDeleteAcctErr] = useState(null);
+    const { authUser, authChecked, data, toast, logout, deleteMyAccount, refreshData } = usePlatform();
     const isProtected = isProtectedPortalPath(pathname);
     const t = SHELL_COPY[lang];
+    const openAccountModal = () => {
+        setMobileMenuOpen(false);
+        setDeleteConfirmInput("");
+        setDeleteAcctErr(null);
+        setAcctModalOpen(true);
+    };
+    const handleSelfDeleteAccount = async () => {
+        setDeleteAcctErr(null);
+        setDeletingAcct(true);
+        try {
+            const res = await deleteMyAccount();
+            if (res.ok) {
+                setAcctModalOpen(false);
+            }
+            else {
+                setDeleteAcctErr(res.error || "Failed to delete account.");
+            }
+        }
+        finally {
+            setDeletingAcct(false);
+        }
+    };
     const openTelegramModal = async () => {
         setMobileMenuOpen(false);
         setTgModalOpen(true);
@@ -310,10 +360,10 @@ export function AppShell({ children }) {
               <IconLock className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
               <InfoTooltip label={t.privateBadge} explanation={t.privateTooltip}/>
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1 font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#A7BBAA] dark:border-[#6E8572]">
+            <button type="button" onClick={openAccountModal} title={t.acctTitle} className="inline-flex items-center gap-1.5 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1 font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#A7BBAA] dark:border-[#6E8572] hover:border-[#244C40] dark:hover:border-[#A7BBAA] transition-colors">
               <IconUserCheck className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
               {authUser.fullName}
-            </span>
+            </button>
             <button type="button" onClick={logout} className="inline-flex items-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-1.5 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:bg-[#EFECE3] dark:hover:bg-[#242A27] transition-colors">
               <IconLogout className="h-3.5 w-3.5"/>
               {t.signOut}
@@ -332,10 +382,10 @@ export function AppShell({ children }) {
         {/* Mobile Drawer */}
         {mobileMenuOpen && (<div className="md:hidden border-t border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] px-4 py-3 space-y-3 text-xs">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1 font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#A7BBAA] dark:border-[#6E8572]">
+              <button type="button" onClick={openAccountModal} className="inline-flex items-center gap-1.5 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-3 py-1 font-semibold text-[#244C40] dark:text-[#A7BBAA] border border-[#A7BBAA] dark:border-[#6E8572]">
                 <IconUserCheck className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
                 {authUser.fullName}
-              </span>
+              </button>
               <span className="inline-flex items-center gap-1 rounded-sm bg-[#EFECE3] dark:bg-[#242A27] px-2.5 py-1 font-medium text-[#292E2B] dark:text-[#F3F0E8] border border-[#DDD8CC] dark:border-[#2F3733]">
                 <IconLock className="h-3.5 w-3.5 text-[#244C40] dark:text-[#A7BBAA]"/>
                 {t.privateBadge}
@@ -470,6 +520,68 @@ export function AppShell({ children }) {
                     <span>{t.tgUnlink}</span>
                   </button>)}
               </div>)}
+          </div>
+        </div>)}
+
+      {acctModalOpen && (<div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4">
+          <div className="w-full max-w-md rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 sm:p-6 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-[#EFECE3] dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA] border border-[#DDD8CC] dark:border-[#2F3733]">
+                  <IconUserCheck className="h-4 w-4"/>
+                </div>
+                <div>
+                  <h2 className="font-heading text-sm font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                    {t.acctTitle}
+                  </h2>
+                  <p className="text-[11px] text-[#525954] dark:text-[#B8C2BA]">
+                    {authUser.fullName}
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setAcctModalOpen(false)} aria-label="Close" className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] text-[#525954] hover:text-[#292E2B] dark:text-[#B8C2BA]">
+                <IconX className="h-4 w-4"/>
+              </button>
+            </div>
+
+            <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] p-3.5 text-xs space-y-1">
+              <p className="text-[#525954] dark:text-[#B8C2BA]">
+                {t.acctEmail} <strong className="font-mono text-[#292E2B] dark:text-[#F3F0E8]">{authUser.email}</strong>
+              </p>
+              {authUser.district && (<p className="text-[#525954] dark:text-[#B8C2BA]">
+                  {t.acctDistrict} <strong className="text-[#292E2B] dark:text-[#F3F0E8]">{authUser.district}</strong>
+                </p>)}
+              <button type="button" onClick={() => {
+                setAcctModalOpen(false);
+                openTelegramModal();
+            }} className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
+                <IconBrandTelegram className="h-3.5 w-3.5"/>
+                {data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}
+              </button>
+            </div>
+
+            <div className="rounded-sm border border-[#D9B8AE] dark:border-[#6B3A3A] bg-[#F3EAE7]/70 dark:bg-[#2E1E1D]/60 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#7A2E2E] dark:text-[#F0C8C4]">
+                <IconTrash className="h-4 w-4 shrink-0"/>
+                <span>{t.acctDeleteTitle}</span>
+              </div>
+              <p className="text-[11px] text-[#525954] dark:text-[#D5C3BF] leading-relaxed">
+                {t.acctDeleteDesc}
+              </p>
+              <div className="space-y-1.5">
+                <label htmlFor="delete-acct-confirm" className="block text-[11px] font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                  {t.acctDeleteInputLabel}
+                </label>
+                <input id="delete-acct-confirm" type="text" value={deleteConfirmInput} onChange={(e) => setDeleteConfirmInput(e.target.value)} placeholder="DELETE" className="min-h-[38px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#4A3232] bg-[#FFFFFF] dark:bg-[#161A18] px-3 py-1.5 text-xs font-mono text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#9E4747] focus:outline-none"/>
+              </div>
+              {deleteAcctErr && (<p className="text-[11px] font-semibold text-[#7A2E2E] dark:text-[#F0C8C4]">
+                  {deleteAcctErr}
+                </p>)}
+              <button type="button" disabled={deletingAcct || deleteConfirmInput.trim().toUpperCase() !== "DELETE"} onClick={handleSelfDeleteAccount} className="w-full inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-sm bg-[#9E4747] px-4 py-2 text-xs font-semibold text-white hover:bg-[#7A2E2E] disabled:opacity-45 transition-colors">
+                <IconTrash className="h-3.5 w-3.5"/>
+                <span>{deletingAcct ? t.acctDeleting : t.acctDeleteBtn}</span>
+              </button>
+            </div>
           </div>
         </div>)}
     </div>);

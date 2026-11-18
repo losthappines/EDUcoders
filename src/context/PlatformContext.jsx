@@ -276,6 +276,58 @@ export function PlatformProvider({ children }) {
                 : "Tizimdan muvaffaqiyatli chiqdingiz.");
         router.push("/");
     }, [router, showToast]);
+    const clearLocalSession = useCallback(() => {
+        try {
+            window.sessionStorage.removeItem("onacare_tg_link_token");
+        }
+        catch {
+            // ignore
+        }
+        setAuthUser(null);
+        setData(null);
+        setAuthChecked(true);
+    }, []);
+    const deleteMyAccount = useCallback(async () => {
+        const l = getGlobalLanguage();
+        try {
+            const res = await fetch("/api/auth/me", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ confirm: true }),
+            });
+            const out = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                return {
+                    ok: false,
+                    error: out.error ||
+                        (l === "ru"
+                            ? "Не удалось удалить аккаунт."
+                            : l === "en"
+                                ? "Could not delete account."
+                                : "Hisobni o'chirib bo'lmadi."),
+                };
+            }
+            clearLocalSession();
+            showToast("success", l === "ru"
+                ? "Аккаунт и все ваши записи безвозвратно удалены."
+                : l === "en"
+                    ? "Your account and all records were permanently deleted."
+                    : "Hisobingiz va barcha yozuvlaringiz bazadan butunlay o'chirildi.");
+            router.push("/login");
+            return { ok: true };
+        }
+        catch {
+            return {
+                ok: false,
+                error: l === "ru"
+                    ? "Ошибка сети при удалении аккаунта."
+                    : l === "en"
+                        ? "Network error while deleting account."
+                        : "Serverga ulanishda xatolik yuz berdi.",
+            };
+        }
+    }, [clearLocalSession, router, showToast]);
     const fastForwardTime = useCallback(async (hours) => {
         setSimBusy(true);
         try {
@@ -342,6 +394,8 @@ export function PlatformProvider({ children }) {
         login,
         signup,
         logout,
+        deleteMyAccount,
+        clearLocalSession,
         fastForwardTime,
         resetDemo,
         dataLoadedAtMs,
@@ -360,6 +414,8 @@ export function PlatformProvider({ children }) {
         login,
         signup,
         logout,
+        deleteMyAccount,
+        clearLocalSession,
         fastForwardTime,
         resetDemo,
         dataLoadedAtMs,

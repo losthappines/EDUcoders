@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { IconAlertTriangle, IconArrowLeft, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClock, IconCrown, IconMail, IconMapPin, IconPhone, IconSearch, IconStethoscope, IconUser, IconUserCheck, IconX, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconArrowLeft, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClock, IconCrown, IconMail, IconMapPin, IconPhone, IconSearch, IconStethoscope, IconTrash, IconUser, IconUserCheck, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 const COPY = {
@@ -32,6 +32,10 @@ const COPY = {
         approveBtn: "Tasdiqlash va faollashtirish",
         rejectBtn: "Rad etish",
         reapproveBtn: "Qayta tasdiqlash",
+        deleteBtn: "Butunlay o'chirish",
+        deleteConfirmPrompt: "Ushbu hisob va uning barcha yozuvlari (tibbiy ma'lumotlar, shikoyatlar, tashriflar) bazadan butunlay o'chiriladi. Tasdiqlaysizmi?",
+        confirmDeleteBtn: "Ha, butunlay o'chirish",
+        deletedToast: "Hisob va barcha yozuvlari bazadan butunlay o'chirildi.",
         notePlaceholder: "Rad etish sababi (ixtiyoriy)...",
         confirmRejectBtn: "Rad etishni tasdiqlash",
         cancelBtn: "Bekor qilish",
@@ -73,6 +77,10 @@ const COPY = {
         approveBtn: "Подтвердить и активировать",
         rejectBtn: "Отклонить",
         reapproveBtn: "Подтвердить повторно",
+        deleteBtn: "Удалить навсегда",
+        deleteConfirmPrompt: "Аккаунт и все связанные записи (медданные, жалобы, визиты) будут безвозвратно удалены. Продолжить?",
+        confirmDeleteBtn: "Да, удалить навсегда",
+        deletedToast: "Аккаунт и все его записи безвозвратно удалены.",
         notePlaceholder: "Причина отклонения (необязательно)...",
         confirmRejectBtn: "Подтвердить отказ",
         cancelBtn: "Отмена",
@@ -114,6 +122,10 @@ const COPY = {
         approveBtn: "Verify & Activate",
         rejectBtn: "Decline",
         reapproveBtn: "Verify Account",
+        deleteBtn: "Delete Permanently",
+        deleteConfirmPrompt: "This will permanently erase this account and all associated records (medical records, complaints, visits, messages). Continue?",
+        confirmDeleteBtn: "Yes, Delete Permanently",
+        deletedToast: "Account and all its records permanently deleted.",
         notePlaceholder: "Reason for declining (optional)...",
         confirmRejectBtn: "Confirm Decline",
         cancelBtn: "Cancel",
@@ -147,6 +159,7 @@ export default function AdminVerificationsPage() {
     const [busyId, setBusyId] = useState(null);
     const [rejectingId, setRejectingId] = useState(null);
     const [rejectNote, setRejectNote] = useState("");
+    const [deletingId, setDeletingId] = useState(null);
     const loadQueue = useCallback(async () => {
         try {
             const res = await fetchWithAuth("/api/admin/verifications");
@@ -189,6 +202,27 @@ export default function AdminVerificationsPage() {
                 showToast("success", decision === "APPROVE" ? t.approvedToast : t.rejectedToast);
                 setRejectingId(null);
                 setRejectNote("");
+                await Promise.all([loadQueue(), refreshData()]);
+            }
+            else {
+                const err = (await res.json().catch(() => ({})));
+                showToast("error", err.error || t.errorToast);
+            }
+        }
+        finally {
+            setBusyId(null);
+        }
+    };
+    const handleDeleteAccount = async (userId) => {
+        setBusyId(userId);
+        try {
+            const res = await fetchWithAuth("/api/admin/verifications", {
+                method: "DELETE",
+                body: JSON.stringify({ userId }),
+            });
+            if (res.ok) {
+                showToast("success", t.deletedToast);
+                setDeletingId(null);
                 await Promise.all([loadQueue(), refreshData()]);
             }
             else {
@@ -445,11 +479,20 @@ export default function AdminVerificationsPage() {
                         </button>)}
 
                       {acc.verificationStatus !== "REJECTED" && !isRejecting && (<button type="button" disabled={isBusy} onClick={() => {
+                            setDeletingId(null);
                             setRejectingId(acc.id);
                             setRejectNote("");
                         }} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/60 disabled:opacity-50 transition">
                           <IconX className="h-4 w-4"/>
                           {t.rejectBtn}
+                        </button>)}
+
+                      {deletingId !== acc.id && (<button type="button" disabled={isBusy} onClick={() => {
+                            setRejectingId(null);
+                            setDeletingId(acc.id);
+                        }} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-red-300 dark:border-red-900 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50 disabled:opacity-50 transition">
+                          <IconTrash className="h-4 w-4"/>
+                          {t.deleteBtn}
                         </button>)}
                     </div>
                   </div>
@@ -461,6 +504,20 @@ export default function AdminVerificationsPage() {
                           {t.confirmRejectBtn}
                         </button>
                         <button type="button" disabled={isBusy} onClick={() => setRejectingId(null)} className="min-h-[40px] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                          {t.cancelBtn}
+                        </button>
+                      </div>
+                    </div>)}
+
+                  {deletingId === acc.id && (<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-red-200 dark:border-red-900/70 bg-red-50/70 dark:bg-red-950/30 rounded-lg px-3 py-2.5">
+                      <p className="text-xs font-medium text-red-800 dark:text-red-200">
+                        {t.deleteConfirmPrompt}
+                      </p>
+                      <div className="flex gap-2 shrink-0">
+                        <button type="button" disabled={isBusy} onClick={() => handleDeleteAccount(acc.id)} className="min-h-[38px] rounded-xl bg-red-700 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-red-800 disabled:opacity-50 transition">
+                          {t.confirmDeleteBtn}
+                        </button>
+                        <button type="button" disabled={isBusy} onClick={() => setDeletingId(null)} className="min-h-[38px] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                           {t.cancelBtn}
                         </button>
                       </div>

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { recordAuditLog, resolveActorAfterSeed } from "@/lib/rbac";
 import { activateVerifiedPatientOnboardingTx } from "@/lib/patient-onboarding";
 import { notifyUserViaTelegram } from "@/lib/telegram-bot";
+import { permanentlyDeleteUserAccount } from "@/lib/account-deletion";
 export async function GET(req) {
     await connection();
     try {
@@ -171,5 +172,63 @@ export async function POST(req) {
     catch (error) {
         console.error("POST /api/admin/verifications error:", error);
         return NextResponse.json({ error: "Failed to update verification status" }, { status: 500 });
+    }
+}
+
+export async function DELETE(req) {
+    try {
+        const actor = await resolveActorAfterSeed(req);
+        if (!actor) {
+            return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+        }
+        if (actor.role !== "ADMIN_RECEPTION") {
+            await recordAuditLog({
+                actor,
+                action: "RBAC_DENIED",
+                resourceType: "AdminVerifications",
+                resourceId: "delete",
+                details: { reason: "Only ADMIN_RECEPTION can permanently delete accounts" },
+            });
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        const body = await req.json().catch(() => ({}));
+        const userId = (body.userId || req.nextUrl.searchParams.get("userId") || "").trim();
+        if (!userId) {
+            return NextResponse.json({ error: "userId is required." }, { status: 400 });
+        }
+        if (userId === actor.userId) {
+            return NextResponse.json({ error: "Use your account settings to delete your own active admin account." }, { status: 400 });
+        }
+        const target = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, email: true, fullName: true, role: true },
+        });
+        if (!target) {
+            return NextResponse.json({ error: "Account not found." }, { status: 404 });
+        }
+        const result = await permanentlyDeleteUserAccount({ userId: target.id });
+        if (!result.deleted) {
+            return NextResponse.json({ error: "Failed to delete account." }, { status: 500 });
+        }
+        await recordAuditLog({
+            actor,
+            action: "ACCOUNT_PERMANENTLY_DELETED",
+            resourceType: "User",
+            resourceId: target.id,
+            details: {
+                deletedEmail: target.email,
+                deletedName: target.fullName,
+                deletedRole: target.role,
+            },
+        });
+        return NextResponse.json({
+            success: true,
+            deleted: true,
+            userId: target.id,
+        });
+    }
+    catch (error) {
+        console.error("DELETE /api/admin/verifications error:", error);
+        return NextResponse.json({ error: "Failed to delete account permanently" }, { status: 500 });
     }
 }

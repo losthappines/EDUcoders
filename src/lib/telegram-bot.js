@@ -5,6 +5,54 @@ import { haversineDistanceKm, matchNearestDoctor, resolveCoordinatesForLocation,
 import { getPlanByCode, formatUzs } from "@/lib/subscriptions";
 import { resolvePolyclinicForLocation } from "@/lib/uz-locations";
 import { permanentlyDeleteUserAccount } from "@/lib/account-deletion";
+import {
+  evaluateWellbeingSignals,
+  getTashkentDateString,
+  getTashkentTimeParts,
+  triggerWellbeingRiskAlerts,
+} from "@/lib/wellbeing";
+import { parseReminderTimesJson } from "@/lib/wellbeing-catalog";
+
+export function getTelegramMiniAppUrl() {
+  const envUrl = (process.env.NEXT_PUBLIC_TG_WEBAPP_URL || "").trim();
+  if (envUrl) return envUrl;
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/$/, "");
+  return appUrl ? `${appUrl}/tg` : "https://edu-coders.vercel.app/tg";
+}
+
+function mapTelegramInlineButton(b) {
+  if (b?.webAppUrl) {
+    return { text: b.text, web_app: { url: b.webAppUrl } };
+  }
+  if (b?.url) {
+    return { text: b.text, url: b.url };
+  }
+  return {
+    text: b?.text || "Tanlash",
+    callback_data: b?.callbackData || "MENU:HOME",
+  };
+}
+
+let menuButtonSynced = false;
+async function ensureTelegramMenuButton(token) {
+  if (menuButtonSynced || !token) return;
+  menuButtonSynced = true;
+  try {
+    await callTelegramApi(
+      "setChatMenuButton",
+      {
+        menu_button: {
+          type: "web_app",
+          text: "📱 Kabinet",
+          web_app: { url: getTelegramMiniAppUrl() },
+        },
+      },
+      token
+    );
+  } catch {
+    menuButtonSynced = false;
+  }
+}
 
 export async function getTelegramBotUsername() {
   try {
@@ -216,10 +264,7 @@ export async function notifyUserViaTelegram(userId, text, buttons = []) {
     buttons.length > 0
       ? {
           inline_keyboard: buttons.map((row) =>
-            (Array.isArray(row) ? row : [row]).map((b) => ({
-              text: b.text,
-              callback_data: b.callbackData,
-            }))
+            (Array.isArray(row) ? row : [row]).map(mapTelegramInlineButton)
           ),
         }
       : undefined;
@@ -301,9 +346,15 @@ export async function sendDoctorVisitReminders() {
         );
       }
     }
-    lines.push(`\nKo'rikdan o'tkazish va tasdiqlash uchun /reminders yoki web kabinetdan foydalaning.`);
+    lines.push(`\nKo'rikdan o'tkazish va tasdiqlash uchun /reminders yoki Mini App kabinetidan foydalaning.`);
 
-    const delivery = await notifyUserViaTelegram(doc.id, lines.join("\n"));
+    const delivery = await notifyUserViaTelegram(doc.id, lines.join("\n"), [
+      [{ text: "📱 Kabinetni ochish (Mini App)", webAppUrl: getTelegramMiniAppUrl() }],
+      [
+        { text: "⏰ Eslatmalar (/reminders)", callbackData: "DOCTOR:REMINDERS" },
+        { text: "💬 Bemorlar chati", callbackData: "DOCTOR:DM_LIST" },
+      ],
+    ]);
     results.push({
       doctorId: doc.id,
       doctorName: doc.fullName,
@@ -574,15 +625,16 @@ function buildMainMenuForUser(user) {
       text:
         "👋 <b>OnaCare Patronaj & Shoshilinch Yordam Botiga xush kelibsiz!</b>\n\n" +
         "Bu bot orqali:\n" +
-        "• 🤰 Bemor yoki 🩺 Shifokor sifatida GPS lokatsiyangiz bilan ro'yxatdan o'tishingiz\n" +
-        "• 🔗 Saytda yaratilgan hisobingizni Telegramga ulashingiz\n" +
-        "• 🧠 Kundalik holat check-in (/checkin) va 💊 dori eslatmalarini (/dorilar) boshqarishingiz\n" +
-        "• 🚨 Shikoyat yuborib, shifokor bilan bevosita maslahatlashishingiz mumkin.\n\n" +
+        "• 📱 <b>Mini App</b> orqali tizimga kirib to'g'ridan-to'g'ri kabinetingizga o'tishingiz\n" +
+        "• 🤰 Bemor yoki 🩺 Shifokor / Hamshira sifatida ro'yxatdan o'tishingiz\n" +
+        "• 🧠 Kundalik holat check-in (/checkin) va 💊 dori eslatmalarini (/dorilar) olishingiz\n" +
+        "• 💬 Biriktirilgan shifokor / hamshira bilan bevosita suhbatlashishingiz mumkin.\n\n" +
         "Quyidagi amallardan birini tanlang:",
       buttons: [
+        [{ text: "📱 Kabinetga kirish (Mini App)", webAppUrl: miniAppUrl }],
         [
           { text: "🤰 Bemor bo'lib ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:PATIENT" },
-          { text: "🩺 Shifokor bo'lib ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:DOCTOR" },
+          { text: "🩺 Shifokor / Hamshira ro'yxatdan o'tishi", callbackData: "SIGNUP_ROLE:DOCTOR" },
         ],
         [
           { text: "🔗 Saytdagi hisobni bog'lash (/link)", callbackData: "MENU:LINK_HELP" },
@@ -596,8 +648,9 @@ function buildMainMenuForUser(user) {
       text:
         `⏳ <b>Salom, ${escapeHtml(user.fullName)}!</b>\n\n` +
         `Sizning <b>${formatRoleLabel(user.role)}</b> hisobingiz ro'yxatga olingan va hozirda Administrator tasdig'ini kutmoqda.\n` +
-        `Tasdiqlangandan so'ng darhol barcha imkoniyatlar (shikoyat yuborish, GPS qidiruv, maslahat) faollashadi.`,
+        `Tasdiqlangandan so'ng darhol barcha imkoniyatlar (kabinet, eslatmalar, shifokor/hamshira bilan chat) faollashadi.`,
       buttons: [
+        [{ text: "📱 Kabinet holati (Mini App)", webAppUrl: miniAppUrl }],
         [{ text: "👤 Mening hisobim / Profilim (/profile)", callbackData: "MENU:PROFILE" }],
         [{ text: "🔄 Holatni tekshirish", callbackData: "MENU:REFRESH" }],
       ],
@@ -816,33 +869,37 @@ export async function processTelegramUpdate(update, options = {}) {
   // Handle /start <linkToken> deep link from website signup / portal
   if (rawText.startsWith("/start ")) {
     const startArg = rawText.slice(7).trim();
-    const tokenPayload = verifyTelegramLinkToken(startArg);
-    if (tokenPayload) {
-      const boundUser = await linkTelegramChatToUser({
-        chatId,
-        userId: tokenPayload.userId,
-        tgUsername,
-      });
-      if (boundUser) {
-        linkedUser = boundUser;
+    if (!startArg || startArg === "webapp") {
+      setIdleWithMenu();
+    } else {
+      const tokenPayload = verifyTelegramLinkToken(startArg);
+      if (tokenPayload) {
+        const boundUser = await linkTelegramChatToUser({
+          chatId,
+          userId: tokenPayload.userId,
+          tgUsername,
+        });
+        if (boundUser) {
+          linkedUser = boundUser;
+          nextFlowState = "IDLE";
+          draft = {};
+          const profileMsg = await buildUserProfileMessage(linkedUser);
+          reply = makeBotReply(
+            `✅ <b>Saytdagi hisobingiz Telegram botga muvaffaqiyatli bog'landi!</b>\n\n${profileMsg.text}`,
+            profileMsg.buttons
+          );
+        } else {
+          setIdleWithMenu();
+        }
+      } else {
+        const m = buildMainMenuForUser(linkedUser);
         nextFlowState = "IDLE";
         draft = {};
-        const profileMsg = await buildUserProfileMessage(linkedUser);
         reply = makeBotReply(
-          `✅ <b>Saytdagi hisobingiz Telegram botga muvaffaqiyatli bog'landi!</b>\n\n${profileMsg.text}`,
-          profileMsg.buttons
+          `⚠️ Bog'lash havolasi muddati tugagan yoki noto'g'ri. Hisobingizni <code>/link</code> buyrug'i orqali bog'lashingiz mumkin.\n\n${m.text}`,
+          m.buttons
         );
-      } else {
-        setIdleWithMenu();
       }
-    } else {
-      const m = buildMainMenuForUser(linkedUser);
-      nextFlowState = "IDLE";
-      draft = {};
-      reply = makeBotReply(
-        `⚠️ Bog'lash havolasi muddati tugagan yoki noto'g'ri. Hisobingizni <code>/link</code> buyrug'i orqali bog'lashingiz mumkin.\n\n${m.text}`,
-        m.buttons
-      );
     }
   }
   // Global reset commands
@@ -869,12 +926,13 @@ export async function processTelegramUpdate(update, options = {}) {
     draft = {};
     if (!linkedUser) {
       reply = makeBotReply(
-        "🔗 Hisobingizni ko'rish uchun avval saytdagi hisobingizni bog'lang yoki bot orqali ro'yxatdan o'ting.",
+        "🔗 Hisobingizni ko'rish uchun Mini App orqali tizimga kiring, saytdagi hisobingizni bog'lang yoki bot orqali ro'yxatdan o'ting.",
         [
+          [{ text: "📱 Kabinetga kirish (Mini App)", webAppUrl: getTelegramMiniAppUrl() }],
           [{ text: "🔗 Saytdagi hisobni bog'lash (/link)", callbackData: "MENU:LINK_HELP" }],
           [
             { text: "🤰 Bemor bo'lib ro'yxatdan o'tish", callbackData: "SIGNUP_ROLE:PATIENT" },
-            { text: "🩺 Shifokor ro'yxatdan o'tishi", callbackData: "SIGNUP_ROLE:DOCTOR" },
+            { text: "🩺 Shifokor / Hamshira ro'yxatdan o'tishi", callbackData: "SIGNUP_ROLE:DOCTOR" },
           ],
         ]
       );
@@ -1417,9 +1475,35 @@ export async function processTelegramUpdate(update, options = {}) {
     linkedUser?.role === "PATIENT" &&
     linkedUser.verificationStatus === "VERIFIED"
   ) {
+    const patient = linkedUser.patientProfile;
+    const latestComp = patient
+      ? await prisma.complaint.findFirst({
+          where: { patientId: patient.id, assignedDoctorId: { not: null } },
+          include: { assignedDoctor: { select: { fullName: true, specialty: true } } },
+          orderBy: { createdAt: "desc" },
+        })
+      : null;
+    const assignee =
+      latestComp?.assignedDoctor ||
+      patient?.assignedFamilyDoctor ||
+      (patient?.polyclinicId
+        ? await prisma.user.findFirst({
+            where: {
+              role: { in: ["FAMILY_MD", "OVABMU_MD"] },
+              polyclinicId: patient.polyclinicId,
+              verificationStatus: "VERIFIED",
+            },
+            select: { fullName: true, specialty: true },
+          })
+        : null);
     nextFlowState = "PATIENT_DM_ACTIVE";
     reply = makeBotReply(
-      "💬 <b>Shifokor bilan to'g'ridan-to'g'ri maslahat</b>\nSavolingizni yozing — biriktirilgan shifokoringizga darhol yetkaziladi (yoki /cancel):"
+      `💬 <b>Shifokor / Hamshira bilan to'g'ridan-to'g'ri chat</b>\n` +
+        (assignee
+          ? `🩺 Qabul qiluvchi: <b>${escapeHtml(assignee.fullName)}</b>${assignee.specialty ? ` (${escapeHtml(assignee.specialty)})` : ""}\n\n`
+          : "") +
+        `Savolingizni yozing — xabaringiz darhol yetkaziladi (bekor qilish uchun /cancel):`,
+      [[{ text: "📱 Mini Appda chatni ochish", webAppUrl: getTelegramMiniAppUrl() }]]
     );
   } else if (nextFlowState === "PATIENT_DM_ACTIVE" && rawText) {
     const patient = linkedUser?.patientProfile;
@@ -1430,7 +1514,25 @@ export async function processTelegramUpdate(update, options = {}) {
         where: { patientId: patient.id },
         orderBy: { createdAt: "desc" },
       });
-      const recipientId = latestComp?.assignedDoctorId || patient.assignedFamilyDoctorId || null;
+      let recipientId = latestComp?.assignedDoctorId || patient.assignedFamilyDoctorId || null;
+      if (!recipientId) {
+        const fallbackDoc =
+          (patient.polyclinicId
+            ? await prisma.user.findFirst({
+                where: {
+                  role: "FAMILY_MD",
+                  polyclinicId: patient.polyclinicId,
+                  verificationStatus: "VERIFIED",
+                },
+                select: { id: true },
+              })
+            : null) ||
+          (await prisma.user.findFirst({
+            where: { role: { in: ["FAMILY_MD", "OVABMU_MD"] }, verificationStatus: "VERIFIED" },
+            select: { id: true },
+          }));
+        recipientId = fallbackDoc?.id || null;
+      }
       await prisma.directMessage.create({
         data: {
           complaintId: latestComp?.id || null,
@@ -1444,15 +1546,24 @@ export async function processTelegramUpdate(update, options = {}) {
         },
       });
       if (recipientId) {
+        const replyAction = latestComp
+          ? { text: "✍️ Javob qaytarish", callbackData: `DOC_RESPOND:${latestComp.id}` }
+          : { text: "✍️ Javob qaytarish", callbackData: `DOC_DM_PATIENT:${patient.id}` };
         await notifyUserViaTelegram(
           recipientId,
-          `💬 <b>Bemor xabari (${linkedUser.fullName}):</b>\n\n${rawText}`,
-          latestComp ? [[{ text: "✍️ Javob qaytarish", callbackData: `DOC_RESPOND:${latestComp.id}` }]] : []
+          `💬 <b>Bemor xabari (${escapeHtml(linkedUser.fullName)}):</b>\n\n${escapeHtml(rawText)}`,
+          [
+            [replyAction],
+            [{ text: "📱 Kabinetni ochish", webAppUrl: getTelegramMiniAppUrl() }],
+          ]
         );
       }
       reply = makeBotReply(
-        "✅ Xabaringiz shifokorga yuborildi! Yana yozishingiz mumkin yoki menyuga qayting.",
-        [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
+        "✅ Xabaringiz biriktirilgan shifokor / hamshiraga yuborildi! Yana yozishingiz mumkin yoki menyuga qayting.",
+        [
+          [{ text: "📱 Mini Appda ko'rish", webAppUrl: getTelegramMiniAppUrl() }],
+          [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+        ]
       );
     }
   }
@@ -1615,8 +1726,11 @@ export async function processTelegramUpdate(update, options = {}) {
       if (comp.patient.userId) {
         await notifyUserViaTelegram(
           comp.patient.userId,
-          `🩺 <b>${linkedUser.fullName} javob berdi:</b>\n\n"${rawText}"\n\n` +
-            `Javob yozish uchun /dm ni bosing.`
+          `🩺 <b>${escapeHtml(linkedUser.fullName)} javob berdi:</b>\n\n"${escapeHtml(rawText)}"`,
+          [
+            [{ text: "💬 Javob yozish", callbackData: "PATIENT:DM_START" }],
+            [{ text: "📱 Mini Appda ochish", webAppUrl: getTelegramMiniAppUrl() }],
+          ]
         );
       }
       nextFlowState = "IDLE";
@@ -1675,23 +1789,149 @@ export async function processTelegramUpdate(update, options = {}) {
       [[{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]]
     );
   } else if (
-    callbackData === "DOCTOR:DM_LIST" &&
+    (callbackData === "DOCTOR:DM_LIST" || rawText === "/patients_chat") &&
     (linkedUser?.role === "FAMILY_MD" || linkedUser?.role === "OVABMU_MD")
   ) {
-    const open = await prisma.complaint.findMany({
-      where: { assignedDoctorId: linkedUser.id },
-      include: { patient: true },
-      orderBy: { updatedAt: "desc" },
-      take: 4,
-    });
-    if (open.length === 0) {
+    const [assignedPatients, assignedCalls, openComps, recentDms] = await Promise.all([
+      prisma.patient.findMany({
+        where: {
+          assignedFamilyDoctorId: linkedUser.id,
+          status: { notIn: ["PENDING_VERIFICATION", "REJECTED"] },
+        },
+        take: 6,
+      }),
+      prisma.activeCall.findMany({
+        where: { assignedDoctorId: linkedUser.id },
+        include: { patient: true },
+        orderBy: { slaDeadlineAt: "asc" },
+        take: 6,
+      }),
+      prisma.complaint.findMany({
+        where: { assignedDoctorId: linkedUser.id },
+        include: { patient: true },
+        orderBy: { updatedAt: "desc" },
+        take: 6,
+      }),
+      prisma.directMessage.findMany({
+        where: { OR: [{ recipientUserId: linkedUser.id }, { senderUserId: linkedUser.id }] },
+        include: { patient: true },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+    ]);
+
+    const patientMap = new Map();
+    for (const dm of recentDms) {
+      if (dm.patient && !patientMap.has(dm.patient.id)) {
+        patientMap.set(dm.patient.id, dm.patient);
+      }
+    }
+    for (const c of openComps) {
+      if (c.patient && !patientMap.has(c.patient.id)) {
+        patientMap.set(c.patient.id, c.patient);
+      }
+    }
+    for (const call of assignedCalls) {
+      if (call.patient && !patientMap.has(call.patient.id)) {
+        patientMap.set(call.patient.id, call.patient);
+      }
+    }
+    for (const p of assignedPatients) {
+      if (!patientMap.has(p.id)) {
+        patientMap.set(p.id, p);
+      }
+    }
+
+    const chatPatients = Array.from(patientMap.values()).slice(0, 6);
+    if (chatPatients.length === 0) {
       reply = makeBotReply("Hozircha sizga biriktirilgan faol suhbatlar yo'q.", [
+        [{ text: "📱 Kabinetni ochish (Mini App)", webAppUrl: getTelegramMiniAppUrl() }],
         [{ text: "📍 Eng yaqin bemorlar", callbackData: "DOCTOR:NEARBY" }],
       ]);
     } else {
+      const btnRows = chatPatients.map((p) => [
+        {
+          text: `👩 ${p.fullName}${p.district ? ` • ${p.district}` : ""}`.slice(0, 48),
+          callbackData: `DOC_DM_PATIENT:${p.id}`,
+        },
+      ]);
+      btnRows.push([{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }]);
       reply = makeBotReply(
-        "💬 Qaysi bemorga maslahat yozmoqchisiz?",
-        open.map((c) => [{ text: `👩 ${c.patient.fullName} — ${c.title.slice(0, 28)}`, callbackData: `DOC_RESPOND:${c.id}` }])
+        "💬 <b>Bemor bilan to'g'ridan-to'g'ri chat</b>\nQaysi bemorga maslahat yozmoqchisiz?",
+        btnRows
+      );
+    }
+  } else if (
+    callbackData.startsWith("DOC_DM_PATIENT:") &&
+    (linkedUser?.role === "FAMILY_MD" || linkedUser?.role === "OVABMU_MD")
+  ) {
+    const patientId = callbackData.split(":")[1];
+    const targetPatient = await prisma.patient.findUnique({ where: { id: patientId } });
+    if (!targetPatient) {
+      setIdleWithMenu();
+    } else {
+      const recentMsgs = await prisma.directMessage.findMany({
+        where: { patientId: targetPatient.id },
+        orderBy: { createdAt: "desc" },
+        take: 4,
+      });
+      const preview = recentMsgs
+        .reverse()
+        .map((m) => `• <b>${escapeHtml(m.senderName)}:</b> ${escapeHtml(m.body)}`)
+        .join("\n");
+      draft = { patientId: targetPatient.id };
+      nextFlowState = "DOC_DM_REPLY";
+      reply = makeBotReply(
+        `💬 <b>${escapeHtml(targetPatient.fullName)}</b> bilan chat\n` +
+          (preview ? `\n<i>Oxirgi xabarlar:</i>\n${preview}\n` : "") +
+          `\nJavobingizni yozing (bekor qilish uchun /cancel):`,
+        [[{ text: "📱 Mini Appda ko'rish", webAppUrl: getTelegramMiniAppUrl() }]]
+      );
+    }
+  } else if (
+    nextFlowState === "DOC_DM_REPLY" &&
+    rawText &&
+    draft.patientId &&
+    (linkedUser?.role === "FAMILY_MD" || linkedUser?.role === "OVABMU_MD")
+  ) {
+    const targetPatient = await prisma.patient.findUnique({ where: { id: draft.patientId } });
+    if (!targetPatient) {
+      setIdleWithMenu();
+    } else {
+      const latestComp = await prisma.complaint.findFirst({
+        where: { patientId: targetPatient.id },
+        orderBy: { createdAt: "desc" },
+      });
+      await prisma.directMessage.create({
+        data: {
+          complaintId: latestComp?.id || null,
+          patientId: targetPatient.id,
+          senderUserId: linkedUser.id,
+          senderName: linkedUser.fullName,
+          senderRole: linkedUser.role,
+          recipientUserId: targetPatient.userId || null,
+          body: rawText,
+          channel: "TELEGRAM",
+        },
+      });
+      if (targetPatient.userId) {
+        await notifyUserViaTelegram(
+          targetPatient.userId,
+          `🩺 <b>${escapeHtml(linkedUser.fullName)} javob berdi:</b>\n\n"${escapeHtml(rawText)}"`,
+          [
+            [{ text: "💬 Javob yozish", callbackData: "PATIENT:DM_START" }],
+            [{ text: "📱 Mini Appda ochish", webAppUrl: getTelegramMiniAppUrl() }],
+          ]
+        );
+      }
+      nextFlowState = "IDLE";
+      draft = {};
+      reply = makeBotReply(
+        `✅ Xabaringiz <b>${escapeHtml(targetPatient.fullName)}</b> bemorga yuborildi!`,
+        [
+          [{ text: "✍️ Yana xabar yozish", callbackData: `DOC_DM_PATIENT:${targetPatient.id}` }],
+          [{ text: "🏠 Bosh menyu", callbackData: "MENU:HOME" }],
+        ]
       );
     }
   }
@@ -2123,6 +2363,9 @@ export async function processTelegramUpdate(update, options = {}) {
             row.map(mapTelegramInlineButton)
           ),
         };
+      }
+      if (rawText.startsWith("/start")) {
+        await ensureTelegramMenuButton(token);
       }
       await callTelegramApi(
         "sendMessage",

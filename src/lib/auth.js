@@ -261,20 +261,22 @@ export function getSessionFromRequest(req) {
 }
 export function setSessionCookie(res, userId, role) {
     const token = createSessionToken(userId, role);
+    const isProd = process.env.NODE_ENV === "production";
     res.cookies.set(SESSION_COOKIE_NAME, token, {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: isProd ? "none" : "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: isProd,
         maxAge: SESSION_TTL_SECONDS,
     });
 }
 export function clearSessionCookie(res) {
+    const isProd = process.env.NODE_ENV === "production";
     res.cookies.set(SESSION_COOKIE_NAME, "", {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: isProd ? "none" : "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: isProd,
         maxAge: 0,
     });
     res.cookies.delete("patronaj_role");

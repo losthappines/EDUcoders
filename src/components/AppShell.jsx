@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Script from "next/script";
 import { usePathname, useRouter } from "next/navigation";
 import { IconBrandTelegram, IconBuildingHospital, IconCheck, IconCopy, IconExternalLink, IconHeartHandshake, IconLinkOff, IconLock, IconLogout, IconMenu2, IconShieldCheck, IconStethoscope, IconTrash, IconUserCheck, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
@@ -340,6 +341,15 @@ export function AppShell({ children }) {
                         icon: <IconShieldCheck className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>,
                     };
     return (<div className="min-h-screen flex flex-col bg-[#F7F5EF] dark:bg-[#161A18] transition-colors duration-200">
+      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="lazyOnload" onLoad={() => {
+            try {
+                window.Telegram?.WebApp?.ready();
+                window.Telegram?.WebApp?.expand();
+            }
+            catch {
+                // ignore
+            }
+        }}/>
       {/* Strictly Role-Isolated Portal Header (Responsive at 375px) */}
       <header className="border-b border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] transition-colors duration-200">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3">

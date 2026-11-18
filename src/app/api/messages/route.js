@@ -1,7 +1,7 @@
 import { NextResponse, connection } from "next/server";
 import { prisma } from "@/lib/db";
 import { canVerifyVisitAsDoctor, resolveActorAfterSeed } from "@/lib/rbac";
-import { notifyUserViaTelegram } from "@/lib/telegram-bot";
+import { getTelegramMiniAppUrl, notifyUserViaTelegram } from "@/lib/telegram-bot";
 
 export async function GET(req) {
   await connection();
@@ -119,6 +119,24 @@ export async function POST(req) {
         orderBy: { createdAt: "desc" },
       });
       recipientUserId = latestComp?.assignedDoctorId || patient.assignedFamilyDoctorId || null;
+      if (!recipientUserId) {
+        const fallbackDoc =
+          (patient.polyclinicId
+            ? await prisma.user.findFirst({
+                where: {
+                  role: "FAMILY_MD",
+                  polyclinicId: patient.polyclinicId,
+                  verificationStatus: "VERIFIED",
+                },
+                select: { id: true },
+              })
+            : null) ||
+          (await prisma.user.findFirst({
+            where: { role: { in: ["FAMILY_MD", "OVABMU_MD"] }, verificationStatus: "VERIFIED" },
+            select: { id: true },
+          }));
+        recipientUserId = fallbackDoc?.id || null;
+      }
     } else if (actor.role !== "PATIENT" && !recipientUserId) {
       recipientUserId = patient.userId || null;
     }
@@ -137,13 +155,31 @@ export async function POST(req) {
     });
 
     if (recipientUserId) {
+      const miniAppUrl = getTelegramMiniAppUrl();
       const prefix =
         actor.role === "PATIENT"
           ? `💬 <b>Bemordan xabar (${actor.fullName}):</b>`
           : actor.role === "PSYCHOLOGIST"
             ? `💜 <b>Psixologdan xabar (${actor.fullName}):</b>`
-            : `🩺 <b>Shifokor maslahati (${actor.fullName}):</b>`;
-      await notifyUserViaTelegram(recipientUserId, `${prefix}\n\n${text}`);
+            : `🩺 <b>Shifokor / Hamshira maslahati (${actor.fullName}):</b>`;
+      const actionButtons =
+        actor.role === "PATIENT"
+          ? [
+              [
+                {
+                  text: "✍️ Javob qaytarish",
+                  callbackData: body.complaintId ? `DOC_RESPOND:${body.complaintId}` : `DOC_DM_PATIENT:${patient.id}`,
+                },
+              ],
+              [{ text: "📱 Kabinetni ochish", webAppUrl: miniAppUrl }],
+            ]
+          : actor.role === "PSYCHOLOGIST"
+            ? [[{ text: "📱 Mini Appda javob berish", webAppUrl: miniAppUrl }]]
+            : [
+                [{ text: "💬 Javob yozish", callbackData: "PATIENT:DM_START" }],
+                [{ text: "📱 Mini Appda ochish", webAppUrl: miniAppUrl }],
+              ];
+      await notifyUserViaTelegram(recipientUserId, `${prefix}\n\n${text}`, actionButtons);
     }
 
     return NextResponse.json({ success: true, message }, { status: 201 });

@@ -120,6 +120,13 @@ const CLINICAL_COPY = {
         selfHarmAlert: "SHOSHILINCH: EPDS Q10 (103 SLA)",
         rxReminderTimesLabel: "Telegram eslatma vaqtlari (24s)",
         rxRemindersOn: "10 daqiqa oldin eslatish faol",
+        remindersStripTitle: "Bugungi eslatmalar va vazifalar",
+        pendingVisitsCount: "24s uy tashriflari:",
+        openComplaintsCount: "Faol shikoyatlar:",
+        directMessagesCount: "Bemor xabarlari:",
+        directChatPanelTitle: "Bemorlar bilan to'g'ridan-to'g'ri chat (Bot + Mini App)",
+        selectPatientLabel: "Bemor:",
+        noPatientsForChat: "Hozircha chat uchun bemorlar mavjud emas.",
     },
     ru: {
         ovabmuTitle: "Врач роддома — Выписка и передача на патронаж",
@@ -336,6 +343,13 @@ const CLINICAL_COPY = {
         selfHarmAlert: "URGENT: EPDS Q10 (103 SLA)",
         rxReminderTimesLabel: "Telegram Reminder Times (24h)",
         rxRemindersOn: "10m pre-dose Telegram reminders active",
+        remindersStripTitle: "Today's Reminders & Tasks",
+        pendingVisitsCount: "24h Home Visits:",
+        openComplaintsCount: "Open Complaints:",
+        directMessagesCount: "Patient Messages:",
+        directChatPanelTitle: "Direct Patient Chat (Bot + Mini App)",
+        selectPatientLabel: "Patient:",
+        noPatientsForChat: "No patients available to message yet.",
     },
 };
 export default function ClinicalDashboardPage() {
@@ -361,6 +375,9 @@ export default function ClinicalDashboardPage() {
     const [verifyingComp, setVerifyingComp] = useState(false);
     const [chatBody, setChatBody] = useState("");
     const [sendingChat, setSendingChat] = useState(false);
+    const [selectedChatPatientId, setSelectedChatPatientId] = useState("");
+    const [directChatBody, setDirectChatBody] = useState("");
+    const [sendingDirectChat, setSendingDirectChat] = useState(false);
     const [discharging, setDischarging] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const [orderingLab, setOrderingLab] = useState(false);
@@ -379,7 +396,7 @@ export default function ClinicalDashboardPage() {
     const [temp, setTemp] = useState("36.6");
     const [spo2, setSpo2] = useState("98");
     const [visitNotes, setVisitNotes] = useState("Uy sharoitida ko'rik o'tkazildi. Bemorning umumiy ahvoli qoniqarli, dorilarni o'z vaqtida ichmoqda.");
-    const patients = data?.patients ?? [];
+    const patients = useMemo(() => data?.patients ?? [], [data?.patients]);
     const activeCalls = useMemo(() => data?.activeCalls ?? [], [data?.activeCalls]);
     const complaints = useMemo(() => data?.complaints ?? [], [data?.complaints]);
     const directMessages = useMemo(() => data?.directMessages ?? [], [data?.directMessages]);
@@ -393,6 +410,55 @@ export default function ClinicalDashboardPage() {
     const needsProfileSetup = Boolean(authUser && (!authUser.expertiseArea || authUser.experienceYears == null || authUser.latitude == null));
     const activeDocLat = docLat ?? authUser?.latitude ?? null;
     const activeDocLng = docLng ?? authUser?.longitude ?? null;
+    const chatPatients = useMemo(() => {
+        const map = new Map();
+        for (const p of patients) {
+            map.set(p.id, {
+                id: p.id,
+                fullName: p.fullName,
+                district: p.district || "",
+            });
+        }
+        for (const c of activeCalls) {
+            if (c.patient?.id && !map.has(c.patient.id)) {
+                map.set(c.patient.id, {
+                    id: c.patient.id,
+                    fullName: c.patient.fullName,
+                    district: c.district || c.patient.district || "",
+                });
+            }
+        }
+        for (const comp of complaints) {
+            if (comp.patient?.id && !map.has(comp.patient.id)) {
+                map.set(comp.patient.id, {
+                    id: comp.patient.id,
+                    fullName: comp.patient.fullName,
+                    district: comp.patient.district || "",
+                });
+            }
+        }
+        for (const m of directMessages) {
+            if (m.patientId && !map.has(m.patientId)) {
+                map.set(m.patientId, {
+                    id: m.patientId,
+                    fullName: m.senderRole === "PATIENT" ? m.senderName : `Bemor #${m.patientId.slice(0, 6)}`,
+                    district: "",
+                });
+            }
+        }
+        return Array.from(map.values());
+    }, [patients, activeCalls, complaints, directMessages]);
+    const effectiveChatPatientId = selectedChatPatientId ||
+        selectedComplaint?.patientId ||
+        selectedCall?.patientId ||
+        selectedPatient?.id ||
+        chatPatients[0]?.id ||
+        "";
+    const directPatientMessages = useMemo(() => {
+        if (!effectiveChatPatientId)
+            return [];
+        return directMessages.filter((m) => m.patientId === effectiveChatPatientId);
+    }, [directMessages, effectiveChatPatientId]);
     const complaintMessages = useMemo(() => {
         if (!selectedComplaint)
             return directMessages;
@@ -518,11 +584,39 @@ export default function ClinicalDashboardPage() {
             });
             if (res.ok) {
                 setChatBody("");
-                await refreshData();
+                await refreshData({ silent: true });
             }
         }
         finally {
             setSendingChat(false);
+        }
+    };
+    const handleSendDirectPatientChat = async (e) => {
+        e.preventDefault();
+        if (!directChatBody.trim() || !effectiveChatPatientId)
+            return;
+        setSendingDirectChat(true);
+        try {
+            const linkedComp = complaints.find((c) => c.patientId === effectiveChatPatientId && c.status !== "VERIFIED_COMPLETED");
+            const res = await fetchWithAuth("/api/messages", {
+                method: "POST",
+                body: JSON.stringify({
+                    patientId: effectiveChatPatientId,
+                    ...(linkedComp ? { complaintId: linkedComp.id } : {}),
+                    body: directChatBody.trim(),
+                }),
+            });
+            if (res.ok) {
+                setDirectChatBody("");
+                await refreshData({ silent: true });
+            }
+            else {
+                const json = await res.json().catch(() => ({}));
+                showToast("error", json.error || "Could not send message");
+            }
+        }
+        finally {
+            setSendingDirectChat(false);
         }
     };
     const handleTriggerDischarge = async (patientId) => {
@@ -728,6 +822,71 @@ export default function ClinicalDashboardPage() {
             </button>
           </form>
         </section>)}
+
+      {/* In-App Reminders Summary Strip & Quick Task Counts */}
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100">
+          <IconBell className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+          <span>{t.remindersStripTitle}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+          <span className="rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60 px-3 py-1 text-amber-800 dark:text-amber-300">
+            {t.pendingVisitsCount} {activeCalls.filter((c) => c.status !== "COMPLETED").length}
+          </span>
+          <span className="rounded-full border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 px-3 py-1 text-rose-800 dark:text-rose-300">
+            {t.openComplaintsCount} {complaints.filter((c) => c.status !== "VERIFIED_COMPLETED").length}
+          </span>
+          <a href="#direct-patient-chat" className="rounded-full border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/60 px-3 py-1 text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/60">
+            {t.directMessagesCount} {directMessages.length}
+          </a>
+        </div>
+      </section>
+
+      {/* Standalone Direct Patient Chat (Works with or without complaints, Bot + Mini App synced) */}
+      <section id="direct-patient-chat" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <IconMessageCircle className="h-4 w-4 text-teal-600 dark:text-teal-400"/>
+            {t.directChatPanelTitle}
+          </h2>
+          {chatPatients.length > 0 && (<div className="flex items-center gap-2">
+              <label htmlFor="clinical-direct-chat-patient" className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {t.selectPatientLabel}
+              </label>
+              <select id="clinical-direct-chat-patient" value={effectiveChatPatientId} onChange={(e) => setSelectedChatPatientId(e.target.value)} className="min-h-[36px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-slate-100">
+                {chatPatients.map((cp) => (<option key={cp.id} value={cp.id}>
+                    {cp.fullName}{cp.district ? ` (${cp.district})` : ""}
+                  </option>))}
+              </select>
+            </div>)}
+        </div>
+
+        {chatPatients.length === 0 ? (<p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center">
+            {t.noPatientsForChat}
+          </p>) : (<div className="space-y-2.5">
+            <div className="max-h-48 overflow-y-auto space-y-1.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-3">
+              {directPatientMessages.length === 0 ? (<p className="text-xs text-slate-400 text-center py-2">{t.chatEmpty}</p>) : (directPatientMessages.map((msg) => {
+                const isDoc = msg.senderRole !== "PATIENT";
+                return (<div key={msg.id} className={`rounded-lg p-2.5 text-xs max-w-[88%] ${isDoc
+                        ? "ml-auto bg-teal-700 text-white"
+                        : "mr-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"}`}>
+                      <div className="flex items-center justify-between gap-2 text-[10px] opacity-80 mb-0.5">
+                        <span className="font-bold">{msg.senderName}</span>
+                        <span>[{msg.channel}]</span>
+                      </div>
+                      <p>{msg.body}</p>
+                    </div>);
+            }))}
+            </div>
+            <form onSubmit={handleSendDirectPatientChat} className="flex gap-2">
+              <input type="text" value={directChatBody} onChange={(e) => setDirectChatBody(e.target.value)} placeholder={t.chatPlaceholder} aria-label={t.chatPlaceholder} className="flex-1 min-h-[40px] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-slate-100"/>
+              <button type="submit" disabled={sendingDirectChat || !directChatBody.trim() || !effectiveChatPatientId} className="inline-flex min-h-[40px] items-center gap-1 rounded-xl bg-slate-900 dark:bg-teal-700 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:hover:bg-teal-600 disabled:opacity-50">
+                <IconSend className="h-3.5 w-3.5"/>
+                {t.chatSendBtn}
+              </button>
+            </form>
+          </div>)}
+      </section>
 
       {/* Nearest Patient Complaints Queue (GPS Ranked) */}
       <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-4">

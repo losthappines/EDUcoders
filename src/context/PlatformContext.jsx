@@ -30,8 +30,11 @@ export function PlatformProvider({ children }) {
             cache: "no-store",
         });
     }, []);
-    const refreshData = useCallback(async () => {
-        setLoading(true);
+    const refreshData = useCallback(async (options = {}) => {
+        const silent = Boolean(options?.silent);
+        if (!silent) {
+            setLoading(true);
+        }
         try {
             const res = await fetchWithAuth("/api/platform");
             if (res.status === 401) {
@@ -50,7 +53,9 @@ export function PlatformProvider({ children }) {
             console.error("Failed to refresh platform data:", err);
         }
         finally {
-            setLoading(false);
+            if (!silent) {
+                setLoading(false);
+            }
         }
     }, [fetchWithAuth]);
     useEffect(() => {
@@ -83,6 +88,29 @@ export function PlatformProvider({ children }) {
             cancelled = true;
         };
     }, [refreshData]);
+    useEffect(() => {
+        if (!authUser)
+            return;
+        const intervalId = setInterval(() => {
+            if (typeof document !== "undefined" && document.visibilityState === "visible") {
+                refreshData({ silent: true });
+            }
+        }, 15000);
+        const onVisible = () => {
+            if (typeof document !== "undefined" && document.visibilityState === "visible") {
+                refreshData({ silent: true });
+            }
+        };
+        if (typeof document !== "undefined") {
+            document.addEventListener("visibilitychange", onVisible);
+        }
+        return () => {
+            clearInterval(intervalId);
+            if (typeof document !== "undefined") {
+                document.removeEventListener("visibilitychange", onVisible);
+            }
+        };
+    }, [authUser, refreshData]);
     const login = useCallback(async (email, password) => {
         const l = getGlobalLanguage();
         try {

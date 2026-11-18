@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/db";
-import { getTashkentDateString, getTashkentTimeParts, tashkentDateTimeToUtcDate } from "@/lib/wellbeing";
+import { getTashkentTimeParts, tashkentDateTimeToUtcDate } from "@/lib/wellbeing";
 import {
   inferReminderTimesFromFrequency,
   parseReminderTimesJson,
   validateReminderTimes,
 } from "@/lib/wellbeing-catalog";
-import { notifyAdminsViaTelegram, notifyUserViaTelegram } from "@/lib/telegram-bot";
+import { getTelegramMiniAppUrl, notifyAdminsViaTelegram, notifyUserViaTelegram } from "@/lib/telegram-bot";
 
 export {
   inferReminderTimesFromFrequency,
@@ -13,11 +13,27 @@ export {
   validateReminderTimes,
 };
 
-function getMiniAppUrl() {
-  const envUrl = (process.env.NEXT_PUBLIC_TG_WEBAPP_URL || "").trim();
-  if (envUrl) return envUrl;
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "").trim().replace(/\/$/, "");
-  return appUrl ? `${appUrl}/tg` : "https://edu-coders.vercel.app/tg";
+let lastThrottledRunMs = 0;
+let activeRunPromise = null;
+
+export async function maybeRunThrottledReminders() {
+  const nowMs = Date.now();
+  if (nowMs - lastThrottledRunMs < 60_000) {
+    return null;
+  }
+  if (activeRunPromise) {
+    return activeRunPromise;
+  }
+  lastThrottledRunMs = nowMs;
+  activeRunPromise = runReminderDispatchCycle({ now: new Date() })
+    .catch((err) => {
+      console.error("Throttled reminder cycle warning:", err);
+      return null;
+    })
+    .finally(() => {
+      activeRunPromise = null;
+    });
+  return activeRunPromise;
 }
 
 export async function runReminderDispatchCycle({ now = new Date() } = {}) {
@@ -33,6 +49,7 @@ export async function runReminderDispatchCycle({ now = new Date() } = {}) {
     psychSessionReminders: 0,
     morningWellbeingPrompts: 0,
     selfHarmSlaEscalations: 0,
+    visitRemindersSent: 0,
   };
 
   // 1. Prescription Medication Reminders
@@ -47,7 +64,7 @@ export async function runReminderDispatchCycle({ now = new Date() } = {}) {
     },
   });
 
-  const webAppUrl = getMiniAppUrl();
+  const webAppUrl = getTelegramMiniAppUrl();
 
   for (const rx of prescriptions) {
     const elapsedDays = Math.floor((now.getTime() - new Date(rx.createdAt).getTime()) / 86400000);
@@ -218,8 +235,8 @@ export async function runReminderDispatchCycle({ now = new Date() } = {}) {
     summary.psychSessionReminders += 1;
   }
 
-  // 3. 09:00 Asia/Tashkent Daily Wellbeing Prompt
-  if (tashkent.hour === 9 && tashkent.minute <= 20) {
+  // 3. Morning Daily Wellbeing Prompt (09:00–11:59 Asia/Tashkent, deduped once daily per patient)
+  if (tashkent.hour >= 9 && tashkent.hour < 12) {
     const patientsWithTg = await prisma.patient.findMany({
       where: {
         status: { notIn: ["PENDING_VERIFICATION", "REJECTED"] },
@@ -316,6 +333,93 @@ export async function runReminderDispatchCycle({ now = new Date() } = {}) {
       },
     });
     summary.selfHarmSlaEscalations += 1;
+  }
+
+  // 5. 24-Hour Home-Visit Reminders for Assigned Doctors / Nurses & Patients (deduped every 6h)
+  const pendingCalls = await prisma.activeCall.findMany({
+    where: {
+      status: { in: ["SCHEDULED", "ESCALATED_12H", "CRITICAL_18H"] },
+    },
+    include: {
+      patient: {
+        select: { id: true, fullName: true, phone: true, address: true, district: true, userId: true },
+      },
+      assignedDoctor: {
+        select: { id: true, fullName: true, phone: true, telegramChatId: true },
+      },
+    },
+  });
+
+  const blockSlot = Math.floor(tashkent.hour / 6);
+  for (const call of pendingCalls) {
+    if (call.assignedDoctorId && call.assignedDoctor?.telegramChatId) {
+      const docMarker = `VISIT_REMINDER_DOC:${call.id}:${tashkent.dateStr}:${blockSlot}`;
+      const docSeen = await prisma.auditLog.findFirst({ where: { action: docMarker } });
+      if (!docSeen) {
+        const windowStart = getTashkentTimeParts(new Date(call.scheduledWindowStart)).hhmm;
+        const windowEnd = getTashkentTimeParts(new Date(call.scheduledWindowEnd)).hhmm;
+        const sentDoc = await notifyUserViaTelegram(
+          call.assignedDoctorId,
+          `⏰ <b>24 soatlik uy tashrifi eslatmasi (${call.status})</b>\n\n` +
+            `👩 <b>Bemor:</b> ${call.patient.fullName} (${call.patient.phone})\n` +
+            `📍 <b>Manzil:</b> ${call.patient.address}\n` +
+            `🕒 <b>Tashrif oynasi:</b> ${windowStart} – ${windowEnd}`,
+          [
+            [{ text: "📱 Kabinetni ochish (Mini App)", webAppUrl }],
+            [{ text: "💬 Bemorga yozish", callbackData: `DOC_DM_PATIENT:${call.patientId}` }],
+          ]
+        );
+        if (sentDoc.delivered || sentDoc.storedInSession) {
+          await prisma.auditLog.create({
+            data: {
+              actorId: "SYSTEM_CRON",
+              actorName: "OnaCare Visit Reminder",
+              actorRole: "SYSTEM",
+              action: docMarker,
+              resourceType: "ActiveCall",
+              resourceId: call.id,
+              ipAddress: "cron",
+              detailsJson: JSON.stringify({ patientId: call.patientId }),
+            },
+          });
+          summary.visitRemindersSent += 1;
+        }
+      }
+    }
+
+    if (call.patient?.userId) {
+      const patMarker = `VISIT_REMINDER_PAT:${call.id}:${tashkent.dateStr}`;
+      const patSeen = await prisma.auditLog.findFirst({ where: { action: patMarker } });
+      if (!patSeen) {
+        const windowStart = getTashkentTimeParts(new Date(call.scheduledWindowStart)).hhmm;
+        const windowEnd = getTashkentTimeParts(new Date(call.scheduledWindowEnd)).hhmm;
+        const sentPat = await notifyUserViaTelegram(
+          call.patient.userId,
+          `🩺 <b>Uy tashrifi eslatmasi</b>\n\n` +
+            `Shifokor / hamshira <b>${call.assignedDoctor?.fullName || "Patronaj guruhi"}</b> bugun <b>${windowStart} – ${windowEnd}</b> oralig'ida tashrif buyurishi rejalashtirilgan.\n` +
+            `🔑 Tasdiqlash OTP kodi: <b>${call.patientOtpCode}</b>`,
+          [
+            [{ text: "📱 Kabinetni ochish (Mini App)", webAppUrl }],
+            [{ text: "💬 Shifokorga yozish", callbackData: "PATIENT:DM_START" }],
+          ]
+        );
+        if (sentPat.delivered || sentPat.storedInSession) {
+          await prisma.auditLog.create({
+            data: {
+              actorId: "SYSTEM_CRON",
+              actorName: "OnaCare Visit Reminder",
+              actorRole: "SYSTEM",
+              action: patMarker,
+              resourceType: "ActiveCall",
+              resourceId: call.id,
+              ipAddress: "cron",
+              detailsJson: JSON.stringify({ patientId: call.patientId }),
+            },
+          });
+          summary.visitRemindersSent += 1;
+        }
+      }
+    }
   }
 
   return summary;

@@ -9,7 +9,10 @@ import {
   IconBrandTelegram,
   IconCheck,
   IconClock,
+  IconEye,
+  IconEyeOff,
   IconHeartHandshake,
+  IconLock,
   IconLogin,
   IconRefresh,
   IconShieldCheck,
@@ -20,18 +23,34 @@ import { usePlatform } from "@/context/PlatformContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
+function getPortalForRole(role) {
+  switch (role) {
+    case "PATIENT":
+      return "/patient";
+    case "OVABMU_MD":
+    case "FAMILY_MD":
+      return "/clinical";
+    case "PSYCHOLOGIST":
+      return "/psychologist";
+    case "ADMIN_RECEPTION":
+      return "/admin";
+    default:
+      return "/patient";
+  }
+}
+
 const TG_COPY = {
   uz: {
     eyebrow: "OnaCare Telegram Mini App",
     checkingTitle: "Kabinetga xavfsiz kirilmoqda...",
     checkingSub: "Telegram sessiyasi tekshirilmoqda va hisobingiz bilan moslanmoqda.",
-    readyTitle: "Tasdiqlandi — yo'naltirilmoqda",
-    notInTgTitle: "Bu sahifa Telegram Mini App uchun",
+    readyTitle: "Tasdiqlandi — kabinetga yo'naltirilmoqda",
+    notInTgTitle: "Kabinetga kirish (Mini App)",
     notInTgSub:
-      "Telegram ichidagi «📱 Kabinet» tugmasini bosing yoki quyidagi havolalar orqali veb-kabinet va hamjamiyatga kiring.",
-    notLinkedTitle: "Telegram hisobingiz hali bog'lanmagan",
+      "OnaCare hisobingizga kiring — keyingi safar Telegram botdan ochganingizda darhol kabinetingiz ochiladi.",
+    notLinkedTitle: "Hisobingizni Telegram bilan bog'lang",
     notLinkedSub:
-      "Kabinetga kirish uchun avval saytda ro'yxatdan o'ting yoki tizimga kiring va Telegram profilingizni ulang.",
+      "Bir marta kiring: hisobingiz ushbu Telegram profiliga avtomatik ulanadi va kabinetingiz darhol ochiladi.",
     pendingTitle: "Hisobingiz tasdiqlanmoqda",
     pendingSub:
       "Administrator hisobingizni ko'rib chiqmoqda. Tasdiqlangandan so'ng kabinetingiz avtomatik ochiladi.",
@@ -39,8 +58,13 @@ const TG_COPY = {
     rejectedSub:
       "Batafsil ma'lumot uchun @OnaCarePatronajBot yoki poliklinika qabulxonasiga murojaat qiling.",
     errorTitle: "Kirishda xatolik yuz berdi",
+    emailLabel: "Elektron pochta",
+    emailPlaceholder: "ism@example.uz",
+    passwordLabel: "Parol",
+    passwordPlaceholder: "Parolingizni kiriting",
+    signInSubmitBtn: "Kirish va kabinetni ochish",
+    signingInBtn: "Tekshirilmoqda...",
     openBotBtn: "Telegram botni ochish",
-    loginBtn: "Kirish (Web)",
     signupBtn: "Ro'yxatdan o'tish",
     communityBtn: "Onalar hamjamiyati",
     retryBtn: "Qayta tekshirish",
@@ -50,13 +74,13 @@ const TG_COPY = {
     eyebrow: "OnaCare Telegram Mini App",
     checkingTitle: "Безопасный вход в кабинет...",
     checkingSub: "Проверяем подпись Telegram и связываем ваш профиль.",
-    readyTitle: "Подтверждено — перенаправляем",
-    notInTgTitle: "Страница для Telegram Mini App",
+    readyTitle: "Подтверждено — открываем кабинет",
+    notInTgTitle: "Вход в кабинет (Mini App)",
     notInTgSub:
-      "Нажмите кнопку «📱 Kabinet» внутри Telegram-бота или откройте веб-кабинет и сообщество мам ниже.",
-    notLinkedTitle: "Ваш Telegram еще не привязан",
+      "Войдите в свой аккаунт OnaCare — при следующем запуске из Telegram ваш кабинет откроется автоматически.",
+    notLinkedTitle: "Привяжите аккаунт к Telegram",
     notLinkedSub:
-      "Войдите или зарегистрируйтесь на сайте, затем привяжите свой аккаунт в настройках профиля.",
+      "Войдите один раз: ваш аккаунт автоматически привяжется к этому Telegram-профилю и сразу откроется кабинет.",
     pendingTitle: "Аккаунт проходит проверку",
     pendingSub:
       "Координатор клиники проверяет вашу заявку. После подтверждения кабинет откроется автоматически.",
@@ -64,8 +88,13 @@ const TG_COPY = {
     rejectedSub:
       "Для уточнения деталей обратитесь в @OnaCarePatronajBot или в регистратуру поликлиники.",
     errorTitle: "Ошибка авторизации Telegram",
+    emailLabel: "Электронная почта",
+    emailPlaceholder: "name@example.uz",
+    passwordLabel: "Пароль",
+    passwordPlaceholder: "Введите пароль",
+    signInSubmitBtn: "Войти и открыть кабинет",
+    signingInBtn: "Входим...",
     openBotBtn: "Открыть Telegram-бота",
-    loginBtn: "Войти на сайте",
     signupBtn: "Регистрация",
     communityBtn: "Сообщество мам",
     retryBtn: "Повторить",
@@ -75,13 +104,13 @@ const TG_COPY = {
     eyebrow: "OnaCare Telegram Mini App",
     checkingTitle: "Signing in securely...",
     checkingSub: "Verifying your Telegram WebApp session and loading your portal.",
-    readyTitle: "Verified — redirecting",
-    notInTgTitle: "Telegram Mini App Entry",
+    readyTitle: "Verified — opening dashboard",
+    notInTgTitle: "Sign In to OnaCare Mini App",
     notInTgSub:
-      "Open the «📱 Kabinet» menu button inside our Telegram bot, or use the web portal links below.",
-    notLinkedTitle: "Telegram Account Not Linked Yet",
+      "Sign in with your OnaCare email and password to go straight to your dashboard.",
+    notLinkedTitle: "Link Your Account to Telegram",
     notLinkedSub:
-      "Sign in or create your OnaCare account first, then link Telegram from your portal settings.",
+      "Sign in once below: your OnaCare account will be linked to this Telegram profile and open your dashboard right away.",
     pendingTitle: "Account Pending Verification",
     pendingSub:
       "A clinic coordinator is reviewing your registration. Your portal opens automatically once approved.",
@@ -89,8 +118,13 @@ const TG_COPY = {
     rejectedSub:
       "Please contact @OnaCarePatronajBot or your local clinic reception for assistance.",
     errorTitle: "Unable to Verify Telegram Session",
+    emailLabel: "Email address",
+    emailPlaceholder: "name@example.uz",
+    passwordLabel: "Password",
+    passwordPlaceholder: "Enter your password",
+    signInSubmitBtn: "Sign In & Open Dashboard",
+    signingInBtn: "Signing in...",
     openBotBtn: "Open Telegram Bot",
-    loginBtn: "Sign In (Web)",
     signupBtn: "Create Account",
     communityBtn: "Mothers Community",
     retryBtn: "Try Again",
@@ -107,12 +141,19 @@ function MiniAppInner() {
 
   const [status, setStatus] = useState("checking"); // checking | ready | not_in_tg | not_linked | pending | rejected | error
   const [errorMessage, setErrorMessage] = useState("");
-  const startedRef = useRef(false);
+  const [tgGreetingName, setTgGreetingName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [submittingLogin, setSubmittingLogin] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
-  const authenticate = useCallback(async () => {
-    setStatus("checking");
-    setErrorMessage("");
-    const tg = typeof window !== "undefined" ? window.Telegram?.WebApp : null;
+  const attemptedInitDataRef = useRef(false);
+  const initialCheckStartedRef = useRef(false);
+
+  const getTgInitData = useCallback(() => {
+    if (typeof window === "undefined") return "";
+    const tg = window.Telegram?.WebApp;
     if (tg) {
       try {
         tg.ready();
@@ -121,60 +162,138 @@ function MiniAppInner() {
         // ignore SDK readiness quirks
       }
     }
+    return tg?.initData || "";
+  }, []);
 
-    const initData = tg?.initData || "";
-    if (!initData) {
+  const redirectToPortal = useCallback(
+    async (targetPath) => {
+      setStatus("ready");
+      await refreshData();
+      router.replace(targetPath);
+    },
+    [refreshData, router]
+  );
+
+  const authenticate = useCallback(
+    async (forceInitDataCheck = false) => {
+      setStatus("checking");
+      setErrorMessage("");
+      setLoginError("");
+
+      const initData = getTgInitData();
+      if (initData) {
+        attemptedInitDataRef.current = true;
+        try {
+          const res = await fetch("/api/telegram/webapp-auth", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ initData }),
+          });
+          const json = await res.json().catch(() => ({}));
+          const portalTarget = json.redirectTo || json.portalPath;
+          if (res.ok && json.authenticated && portalTarget) {
+            await redirectToPortal(portalTarget);
+            return;
+          }
+          if (json.telegramUser?.firstName) {
+            setTgGreetingName(json.telegramUser.firstName);
+          }
+          if (json.code === "NOT_LINKED" || json.linked === false) {
+            setStatus("not_linked");
+            return;
+          }
+          if (json.code === "PENDING_VERIFICATION" || json.verificationStatus === "PENDING") {
+            setStatus("pending");
+            return;
+          }
+          if (json.code === "REJECTED" || json.verificationStatus === "REJECTED") {
+            setStatus("rejected");
+            return;
+          }
+          setErrorMessage(json.error || "");
+          setStatus("error");
+          return;
+        } catch {
+          setStatus("error");
+          return;
+        }
+      }
+
+      if (forceInitDataCheck) {
+        return;
+      }
+
+      // No initData: check if the user already has a valid browser/WebView session
+      try {
+        const meRes = await fetch("/api/auth/me", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (meRes.ok) {
+          const me = await meRes.json().catch(() => null);
+          if (me?.authenticated && me.user?.role) {
+            await redirectToPortal(getPortalForRole(me.user.role));
+            return;
+          }
+        }
+      } catch {
+        // ignore and show sign-in UI
+      }
+
       setStatus("not_in_tg");
-      return;
-    }
+    },
+    [getTgInitData, redirectToPortal]
+  );
 
+  useEffect(() => {
+    if (initialCheckStartedRef.current) return;
+    const timer = setTimeout(() => {
+      if (initialCheckStartedRef.current) return;
+      initialCheckStartedRef.current = true;
+      authenticate(false);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [authenticate]);
+
+  const handleInlineSignIn = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || !password) return;
+    setLoginError("");
+    setSubmittingLogin(true);
     try {
+      const initData = getTgInitData();
       const res = await fetch("/api/telegram/webapp-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ initData }),
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          ...(initData ? { initData } : {}),
+        }),
       });
-      const json = await res.json();
-      if (res.ok && json.authenticated && json.portalPath) {
-        setStatus("ready");
-        await refreshData();
-        router.replace(json.portalPath);
+      const json = await res.json().catch(() => ({}));
+      const portalTarget = json.redirectTo || json.portalPath;
+      if (res.ok && json.authenticated && portalTarget) {
+        await redirectToPortal(portalTarget);
         return;
       }
-      if (json.code === "NOT_LINKED") {
-        setStatus("not_linked");
-        return;
-      }
-      if (json.code === "PENDING_VERIFICATION") {
+      if (json.code === "PENDING_VERIFICATION" || json.verificationStatus === "PENDING") {
         setStatus("pending");
         return;
       }
-      if (json.code === "REJECTED") {
+      if (json.code === "REJECTED" || json.verificationStatus === "REJECTED") {
         setStatus("rejected");
         return;
       }
-      setErrorMessage(json.error || "");
-      setStatus("error");
+      setLoginError(json.error || t.errorTitle);
     } catch {
-      setStatus("error");
+      setLoginError(t.errorTitle);
+    } finally {
+      setSubmittingLogin(false);
     }
-  }, [refreshData, router]);
-
-  useEffect(() => {
-    if (startedRef.current) return;
-    const timer = setTimeout(() => {
-      if (startedRef.current) return;
-      if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-        startedRef.current = true;
-        authenticate();
-      } else {
-        startedRef.current = true;
-        authenticate();
-      }
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [authenticate]);
+  };
 
   const title =
     status === "checking"
@@ -184,7 +303,9 @@ function MiniAppInner() {
         : status === "not_in_tg"
           ? t.notInTgTitle
           : status === "not_linked"
-            ? t.notLinkedTitle
+            ? tgGreetingName
+              ? `${tgGreetingName} — ${t.notLinkedTitle}`
+              : t.notLinkedTitle
             : status === "pending"
               ? t.pendingTitle
               : status === "rejected"
@@ -204,21 +325,26 @@ function MiniAppInner() {
               ? t.rejectedSub
               : errorMessage || t.notInTgSub;
 
+  const showSignInForm = status === "not_in_tg" || status === "not_linked" || status === "error";
+
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#F7F5EF] dark:bg-[#161A18] text-[#292E2B] dark:text-[#F3F0E8] px-4 py-6">
       <Script
         src="https://telegram.org/js/telegram-web-app.js"
         strategy="afterInteractive"
         onLoad={() => {
-          if (!startedRef.current && window.Telegram?.WebApp?.initData) {
-            startedRef.current = true;
-            authenticate();
+          if (!attemptedInitDataRef.current && window.Telegram?.WebApp?.initData) {
+            initialCheckStartedRef.current = true;
+            authenticate(true);
           }
         }}
       />
 
       <div className="mx-auto flex w-full max-w-md items-center justify-between gap-2">
-        <Link href="/" className="inline-flex items-center gap-2 font-heading text-base font-bold text-[#244C40] dark:text-[#F3F0E8]">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 font-heading text-base font-bold text-[#244C40] dark:text-[#F3F0E8]"
+        >
           <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-[#244C40] text-[#F7F5EF]">
             <IconHeartHandshake className="h-4 w-4" />
           </span>
@@ -230,8 +356,8 @@ function MiniAppInner() {
         </div>
       </div>
 
-      <main className="mx-auto my-8 w-full max-w-md">
-        <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-6 space-y-5">
+      <main className="mx-auto my-6 w-full max-w-md">
+        <div className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 sm:p-6 space-y-5">
           <div className="flex items-center gap-3">
             <div
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border ${
@@ -273,37 +399,96 @@ function MiniAppInner() {
             </div>
           )}
 
-          {status !== "checking" && status !== "ready" && (
-            <div className="space-y-2.5 pt-1">
-              <a
-                href={`https://t.me/${botUsername}?start=webapp`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] px-4 py-2.5 text-xs font-semibold text-[#F7F5EF] transition-colors"
-              >
-                <IconBrandTelegram className="h-4 w-4" />
-                <span>{t.openBotBtn}</span>
-                <IconArrowRight className="h-3.5 w-3.5" />
-              </a>
+          {showSignInForm && (
+            <form onSubmit={handleInlineSignIn} className="space-y-3 pt-1">
+              <div>
+                <label
+                  htmlFor="tg-login-email"
+                  className="block text-[11px] font-semibold text-[#292E2B] dark:text-[#F3F0E8] mb-1"
+                >
+                  {t.emailLabel}
+                </label>
+                <input
+                  id="tg-login-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t.emailPlaceholder}
+                  className="min-h-[42px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] focus:outline-none"
+                />
+              </div>
 
+              <div>
+                <label
+                  htmlFor="tg-login-password"
+                  className="block text-[11px] font-semibold text-[#292E2B] dark:text-[#F3F0E8] mb-1"
+                >
+                  {t.passwordLabel}
+                </label>
+                <div className="relative">
+                  <input
+                    id="tg-login-password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t.passwordPlaceholder}
+                    className="min-h-[42px] w-full rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 pr-10 py-2 text-xs text-[#292E2B] dark:text-[#F3F0E8] focus:border-[#244C40] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#525954] hover:text-[#292E2B] dark:text-[#B8C2BA]"
+                  >
+                    {showPassword ? <IconEyeOff className="h-4 w-4" /> : <IconEye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {loginError && (
+                <p className="rounded-sm border border-[#D9B8AE] bg-[#F3EAE7] px-3 py-2 text-[11px] font-semibold text-[#7A2E2E]">
+                  {loginError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={submittingLogin || !email.trim() || !password}
+                className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-sm bg-[#244C40] hover:bg-[#1A382F] dark:bg-[#2C5B4D] px-4 py-2.5 text-xs font-semibold text-[#F7F5EF] transition-colors disabled:opacity-50"
+              >
+                <IconLogin className="h-4 w-4" />
+                <span>{submittingLogin ? t.signingInBtn : t.signInSubmitBtn}</span>
+                <IconArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </form>
+          )}
+
+          {status !== "checking" && status !== "ready" && (
+            <div className="space-y-2.5 pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
               <div className="grid grid-cols-2 gap-2">
                 <Link
-                  href="/login"
-                  className="min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40]"
-                >
-                  <IconLogin className="h-3.5 w-3.5" />
-                  <span>{t.loginBtn}</span>
-                </Link>
-                <Link
                   href="/signup?role=PATIENT"
-                  className="min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40]"
+                  className="min-h-[42px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#292E2B] dark:text-[#F3F0E8] hover:border-[#244C40]"
                 >
                   <IconUserPlus className="h-3.5 w-3.5" />
                   <span>{t.signupBtn}</span>
                 </Link>
+                <a
+                  href={`https://t.me/${botUsername}?start=webapp`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="min-h-[42px] inline-flex items-center justify-center gap-1.5 rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:border-[#244C40]"
+                >
+                  <IconBrandTelegram className="h-3.5 w-3.5" />
+                  <span>{t.openBotBtn}</span>
+                </a>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-[#DDD8CC] dark:border-[#2F3733]">
+              <div className="flex items-center justify-between pt-1">
                 <Link
                   href="/hamjamiyat"
                   className="text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4"
@@ -312,13 +497,18 @@ function MiniAppInner() {
                 </Link>
                 <button
                   type="button"
-                  onClick={authenticate}
+                  onClick={() => authenticate(false)}
                   className="inline-flex items-center gap-1 text-xs font-medium text-[#525954] dark:text-[#B8C2BA] hover:text-[#244C40]"
                 >
                   <IconRefresh className="h-3.5 w-3.5" />
                   <span>{t.retryBtn}</span>
                 </button>
               </div>
+
+              <p className="flex items-center gap-1.5 text-[10px] text-[#525954] dark:text-[#B8C2BA]">
+                <IconLock className="h-3 w-3 shrink-0" />
+                <span>HTTPS + HMAC-SHA256</span>
+              </p>
             </div>
           )}
         </div>

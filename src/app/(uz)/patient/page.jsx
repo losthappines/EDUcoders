@@ -126,6 +126,14 @@ const COPY = {
         psychSessionsTitle: "Belgilangan seanslarim",
         psychChatTitle: "Psixolog bilan shaxsiy chat",
         psychChatPlaceholder: "Psixologga yozing...",
+        remindersTitle: "Bugungi eslatmalar va jadval",
+        remindersMedItem: "Dori vaqtlari:",
+        remindersVisitItem: "24 soatlik uy tashrifi:",
+        remindersPsychItem: "Psixolog seansi:",
+        remindersWbDone: "Bugungi kayfiyat check-in topshirilgan ✓",
+        remindersWbTodo: "Bugungi kunlik check-in hali topshirilmagan",
+        remindersGoChat: "Shifokor / hamshira bilan chat →",
+        remindersEmpty: "Bugun uchun barcha asosiy eslatmalar bajarildi.",
     },
     ru: {
         loading: "Загрузка личного кабинета...",
@@ -350,6 +358,14 @@ const COPY = {
         psychSessionsTitle: "My Scheduled Sessions",
         psychChatTitle: "Direct Psychologist Chat",
         psychChatPlaceholder: "Message your psychologist...",
+        remindersTitle: "Today's Reminders & Schedule",
+        remindersMedItem: "Medication times:",
+        remindersVisitItem: "24h Home Visit:",
+        remindersPsychItem: "Psychologist session:",
+        remindersWbDone: "Today's wellbeing check-in completed ✓",
+        remindersWbTodo: "Today's wellbeing check-in is still pending",
+        remindersGoChat: "Chat with doctor / nurse →",
+        remindersEmpty: "All caught up for today.",
     },
 };
 function getLabTooltip(testName, lang) {
@@ -777,7 +793,7 @@ export default function PatientPortalPage() {
             });
             if (res.ok) {
                 setPsychChatBody("");
-                await refreshData();
+                await refreshData({ silent: true });
             }
         }
         finally {
@@ -790,6 +806,11 @@ export default function PatientPortalPage() {
       </div>);
     }
     const wbEpdsPreview = wbEpdsOpen ? computeEpdsScore(wbEpdsAnswers) : null;
+    const baseNowMs = data?.simState?.simulatedNow ? new Date(data.simState.simulatedNow).getTime() : dataLoadedAtMs;
+    const todayTashkent = baseNowMs ? new Date(baseNowMs + 5 * 3600000).toISOString().slice(0, 10) : "";
+    const hasWellbeingToday = Boolean(todayTashkent) && (ownPatient?.wellbeingCheckins ?? []).some((w) => String(w.createdAt || "").slice(0, 10) === todayTashkent);
+    const scheduledMeds = activePrescriptions.filter((rx) => rx.active !== false && rx.remindersEnabled !== false && (rx.reminderTimes ?? []).length > 0);
+    const upcomingPsych = psychSessions.filter((s) => s.status === "SCHEDULED" || s.status === "CONFIRMED");
     return (<div className="mx-auto max-w-3xl space-y-4">
       <Emergency103Banner />
 
@@ -830,6 +851,63 @@ export default function PatientPortalPage() {
           </div>
         </div>
       </div>
+
+      {/* Bugungi Eslatmalar / Today's Reminders Card */}
+      <section className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#FFFFFF] dark:bg-[#1D221F] p-4 space-y-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-heading text-sm font-bold text-[#292E2B] dark:text-[#F3F0E8] flex items-center gap-1.5">
+            <IconBell className="h-4 w-4 text-[#244C40] dark:text-[#A7BBAA]"/>
+            <span>{t.remindersTitle}</span>
+          </h2>
+          <a href="#doctor-direct-chat" className="text-xs font-semibold text-[#244C40] dark:text-[#A7BBAA] hover:underline underline-offset-4">
+            {t.remindersGoChat}
+          </a>
+        </div>
+
+        <div className="space-y-2 text-xs">
+          <div className={`rounded-sm border px-3 py-2 font-medium ${hasWellbeingToday
+            ? "border-[#A7BBAA] bg-[#EFECE3]/70 dark:bg-[#242A27] text-[#244C40] dark:text-[#A7BBAA]"
+            : "border-[#D9B8AE] bg-[#F3EAE7]/70 dark:bg-[#2E1E1D]/60 text-[#7A2E2E] dark:text-[#F0C8C4]"}`}>
+            {hasWellbeingToday ? t.remindersWbDone : t.remindersWbTodo}
+          </div>
+
+          {call && call.status !== "COMPLETED" && (<div className="rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+              <span className="font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                {t.remindersVisitItem} {call.assignedDoctor?.fullName} •{" "}
+                {new Date(call.scheduledWindowStart).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                –
+                {new Date(call.scheduledWindowEnd).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+              <span className="font-mono font-bold text-[#244C40] dark:text-[#A7BBAA]">
+                OTP: {call.patientOtpCode}
+              </span>
+            </div>)}
+
+          {scheduledMeds.map((rx) => (<div key={`rem-${rx.id}`} className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span className="font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                  {t.remindersMedItem} {rx.medicationName} ({rx.dosage})
+                </span>
+                <span className="ml-2 font-mono text-[11px] text-[#244C40] dark:text-[#A7BBAA]">
+                  {(rx.reminderTimes ?? []).join(", ")}
+                </span>
+              </div>
+              <button type="button" onClick={() => handleAdherence(rx.id)} className="inline-flex items-center gap-1 rounded-sm bg-[#244C40] px-2.5 py-1 text-[11px] font-semibold text-[#F7F5EF] hover:bg-[#1A382F]">
+                <IconCheck className="h-3 w-3"/>
+                {t.takenBtn}
+              </button>
+            </div>))}
+
+          {upcomingPsych.map((s) => (<div key={`rem-psych-${s.id}`} className="rounded-sm border border-[#DDD8CC] dark:border-[#2F3733] bg-[#F7F5EF] dark:bg-[#161A18] px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+              <span className="font-semibold text-[#292E2B] dark:text-[#F3F0E8]">
+                {t.remindersPsychItem} {s.psychologist?.fullName || "Psychologist"}
+              </span>
+              <span className="font-mono text-[11px] text-[#525954] dark:text-[#B8C2BA]">
+                {new Date(s.scheduledAt).toLocaleString("en-GB", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>))}
+        </div>
+      </section>
 
       {/* Daily Wellbeing & EPDS Check-in Card (Phase 1) */}
       <section className="rounded-sm border border-[#A7BBAA] dark:border-[#4D6452] bg-[#FFFFFF] dark:bg-[#1D221F] p-5 space-y-4">
@@ -1110,7 +1188,7 @@ export default function PatientPortalPage() {
       </section>
 
       {/* Direct Advice Chat with Assigned Doctor */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+      <section id="doctor-direct-chat" className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">

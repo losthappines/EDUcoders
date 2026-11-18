@@ -5,6 +5,7 @@ import { canViewClinicalNotes, recordAuditLog, resolveActorAfterSeed } from "@/l
 import { computeSlaMetrics, evaluateAllSlaTimers, getSimulatedNow, getSimulatedOffsetHours, } from "@/lib/sla-queue";
 import { haversineDistanceKm, resolveCoordinatesForLocation } from "@/lib/geo";
 import { parseReminderTimesJson } from "@/lib/wellbeing-catalog";
+import { maybeRunThrottledReminders } from "@/lib/med-reminders";
 function sanitizeUser(u) {
     return {
         id: u.id,
@@ -37,6 +38,7 @@ export async function GET(req) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
         await evaluateAllSlaTimers();
+        await maybeRunThrottledReminders();
         const simulatedNow = await getSimulatedNow();
         const timeOffsetHours = await getSimulatedOffsetHours();
         const [users, rawPatients, rawCalls, invoices, auditLogs, rawComplaints, rawMessages, rawSubscriptions, rawPsychConsents, rawPsychSessions] = await Promise.all([
@@ -142,7 +144,9 @@ export async function GET(req) {
             }
             if (actor.role === "FAMILY_MD" && actor.polyclinicId) {
                 return (p.polyclinicId === actor.polyclinicId ||
-                    p.assignedFamilyDoctorId === actor.userId);
+                    p.assignedFamilyDoctorId === actor.userId ||
+                    rawCalls.some((c) => c.patientId === p.id && c.assignedDoctorId === actor.userId) ||
+                    rawComplaints.some((c) => c.patientId === p.id && c.assignedDoctorId === actor.userId));
             }
             if (isPsychologist) {
                 return rawPsychConsents.some((c) => c.patientId === p.id && c.psychologistId === actor.userId && c.status === "ACTIVE");
@@ -291,6 +295,8 @@ export async function GET(req) {
                 }))
                 : actor.role === "FAMILY_MD"
                     ? rawMessages.filter((m) => scopedPatientIds.has(m.patientId) ||
+                        m.recipientUserId === actor.userId ||
+                        m.senderUserId === actor.userId ||
                         scopedComplaints.some((c) => c.patientId === m.patientId && c.assignedDoctorId === actor.userId))
                     : rawMessages;
 

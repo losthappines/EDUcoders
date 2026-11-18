@@ -55,29 +55,39 @@ const nextConfig = {
     },
   },
   async headers() {
+    const tgFrameableSources = [
+      "/tg",
+      "/tg/:path*",
+      "/patient",
+      "/patient/:path*",
+      "/clinical",
+      "/clinical/:path*",
+      "/psychologist",
+      "/psychologist/:path*",
+      "/admin",
+      "/admin/:path*",
+      "/login",
+      "/signup",
+      "/hamjamiyat",
+      "/telegram",
+    ];
     return [
       {
-        source: "/((?!tg(?:/|$)).*)",
+        source:
+          "/((?!tg(?:/|$)|patient(?:/|$)|clinical(?:/|$)|psychologist(?:/|$)|admin(?:/|$)|login(?:/|$)|signup(?:/|$)|hamjamiyat(?:/|$)|telegram(?:/|$)).*)",
         headers: [
           { key: "Content-Security-Policy", value: strictCsp },
           { key: "X-Frame-Options", value: "DENY" },
           ...commonSecurityHeaders,
         ],
       },
-      {
-        source: "/tg",
+      ...tgFrameableSources.map((source) => ({
+        source,
         headers: [
           { key: "Content-Security-Policy", value: tgMiniAppCsp },
           ...commonSecurityHeaders,
         ],
-      },
-      {
-        source: "/tg/:path*",
-        headers: [
-          { key: "Content-Security-Policy", value: tgMiniAppCsp },
-          ...commonSecurityHeaders,
-        ],
-      },
+      })),
     ];
   },
 };

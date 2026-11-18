@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ensureSeeded } from "@/lib/seed-data";
 import { processTelegramUpdate } from "@/lib/telegram-bot";
+import { maybeRunThrottledReminders } from "@/lib/med-reminders";
 
 export async function POST(req) {
   try {
@@ -13,6 +14,7 @@ export async function POST(req) {
     }
 
     await ensureSeeded();
+    await maybeRunThrottledReminders();
     const update = await req.json();
     const result = await processTelegramUpdate(update, { dryRun: false });
     return NextResponse.json({ ok: true, flowState: result.flowState });

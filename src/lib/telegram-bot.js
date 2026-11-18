@@ -14,7 +14,21 @@ export async function getTelegramBotUsername() {
   } catch {
     // ignore if table not ready yet
   }
-  return (process.env.TELEGRAM_BOT_USERNAME || "OnaCarePatronajBot").replace(/^@/, "");
+  const envUser = (process.env.TELEGRAM_BOT_USERNAME || "").trim().replace(/^@/, "");
+  if (envUser) return envUser;
+
+  const token = await getTelegramBotToken();
+  if (token) {
+    const meRes = await callTelegramApi("getMe", {}, token);
+    const liveUsername = meRes?.ok && meRes?.result?.username ? String(meRes.result.username).replace(/^@/, "") : "";
+    if (liveUsername) {
+      await prisma.systemSimState
+        .updateMany({ where: { id: "singleton" }, data: { telegramBotUsername: liveUsername } })
+        .catch(() => {});
+      return liveUsername;
+    }
+  }
+  return "onacare_bot";
 }
 
 export async function linkTelegramChatToUser({ chatId, userId, tgUsername = null }) {

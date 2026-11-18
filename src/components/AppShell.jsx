@@ -1,14 +1,48 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { usePathname, useRouter } from "next/navigation";
-import { IconBrandTelegram, IconBuildingHospital, IconCheck, IconCopy, IconExternalLink, IconHeartHandshake, IconLinkOff, IconLock, IconLogout, IconMenu2, IconShieldCheck, IconStethoscope, IconTrash, IconUserCheck, IconX, } from "@tabler/icons-react";
+import {
+  IconBrandTelegram,
+  IconBuildingHospital,
+  IconCalendarEvent,
+  IconCheck,
+  IconCopy,
+  IconExternalLink,
+  IconHeartHandshake,
+  IconLayoutDashboard,
+  IconLinkOff,
+  IconLock,
+  IconLogout,
+  IconMenu2,
+  IconMessageCircle,
+  IconPill,
+  IconReportAnalytics,
+  IconSettings,
+  IconShieldCheck,
+  IconStethoscope,
+  IconTrash,
+  IconUserCheck,
+  IconUsers,
+  IconX,
+} from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { InfoTooltip } from "@/components/InfoTooltip";
+
+const StaffNavContext = createContext({
+  activeView: "dashboard",
+  setActiveView: () => {},
+  searchQuery: "",
+  setSearchQuery: () => {},
+});
+
+export function useStaffNav() {
+  return useContext(StaffNavContext);
+}
 function getPortalForRole(role) {
     switch (role) {
         case "PATIENT":
@@ -76,6 +110,21 @@ const SHELL_COPY = {
         acctDeleteInputLabel: "Tasdiqlash uchun DELETE so'zini yozing:",
         acctDeleteBtn: "Hisob va barcha yozuvlarni o'chirish",
         acctDeleting: "O'chirilmoqda...",
+        brandTag: "Perinatal va klinik nazorat",
+        navDashboard: "Dashboard",
+        navPatients: "Bemorlar",
+        navPatientsBeds: "Bemorlar va koykalar",
+        navVisits: "24s tashriflar",
+        navAppointmentsVisits: "Tashriflar va navbat",
+        navDoctorsPharmacy: "Shifokorlar va dorixona",
+        navMedications: "Dorilar (E-retsept)",
+        navComplaintsChat: "Shikoyatlar va chat",
+        navReports: "Hisobot va audit",
+        navSettings: "Sozlamalar",
+        navMothersQueue: "Onalar navbati",
+        navSessions: "Seanslar",
+        navDirectChat: "Shaxsiy chat",
+        navAvailability: "Jadval va maxfiylik",
     },
     ru: {
         privateBadge: "Приватно и зашифровано",
@@ -112,6 +161,21 @@ const SHELL_COPY = {
         acctDeleteInputLabel: "Введите DELETE для подтверждения:",
         acctDeleteBtn: "Удалить аккаунт и все записи",
         acctDeleting: "Удаление...",
+        brandTag: "Клинический патронаж",
+        navDashboard: "Дашборд",
+        navPatients: "Пациенты",
+        navPatientsBeds: "Пациенты и койки",
+        navVisits: "Визиты 24ч",
+        navAppointmentsVisits: "Визиты и очередь",
+        navDoctorsPharmacy: "Врачи и аптека",
+        navMedications: "Лекарства (E-Rx)",
+        navComplaintsChat: "Жалобы и чат",
+        navReports: "Отчеты и аудит",
+        navSettings: "Настройки",
+        navMothersQueue: "Очередь мам",
+        navSessions: "Сеансы",
+        navDirectChat: "Личный чат",
+        navAvailability: "График и защита",
     },
     en: {
         privateBadge: "Encrypted & private",
@@ -148,6 +212,21 @@ const SHELL_COPY = {
         acctDeleteInputLabel: "Type DELETE to confirm permanent removal:",
         acctDeleteBtn: "Delete Account & All Records",
         acctDeleting: "Deleting...",
+        brandTag: "Perinatal & Clinical Care",
+        navDashboard: "Dashboard",
+        navPatients: "Patients",
+        navPatientsBeds: "Patients & Beds",
+        navVisits: "24h Visits",
+        navAppointmentsVisits: "Visits & Queue",
+        navDoctorsPharmacy: "Doctors & Pharmacy",
+        navMedications: "Medications (E-Rx)",
+        navComplaintsChat: "Complaints & Chat",
+        navReports: "Reports & Audit",
+        navSettings: "Settings",
+        navMothersQueue: "Mothers Queue",
+        navSessions: "Sessions",
+        navDirectChat: "Direct Chat",
+        navAvailability: "Schedule & Privacy",
     },
 };
 export function AppShell({ children }) {
@@ -163,9 +242,34 @@ export function AppShell({ children }) {
     const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
     const [deletingAcct, setDeletingAcct] = useState(false);
     const [deleteAcctErr, setDeleteAcctErr] = useState(null);
+    const [navState, setNavState] = useState({ path: "", view: "dashboard" });
+    const [searchQuery, setSearchQuery] = useState("");
     const { authUser, authChecked, data, toast, logout, deleteMyAccount, refreshData } = usePlatform();
     const isProtected = isProtectedPortalPath(pathname);
+    const isStaffPortal = pathname.startsWith("/admin") ||
+        pathname.startsWith("/clinical") ||
+        pathname.startsWith("/psychologist");
     const t = SHELL_COPY[lang];
+
+    const activeView = navState.path === pathname ? navState.view : "dashboard";
+    const setActiveView = useCallback((view, targetPath) => {
+        const dest = targetPath || pathname;
+        setNavState({ path: dest, view });
+    }, [pathname]);
+
+    useEffect(() => {
+        if (typeof window === "undefined")
+            return;
+        const raf = window.requestAnimationFrame(() => {
+            const params = new URLSearchParams(window.location.search);
+            const qView = params.get("view");
+            if (qView) {
+                setNavState({ path: pathname, view: qView });
+            }
+        });
+        return () => window.cancelAnimationFrame(raf);
+    }, [pathname]);
+
     const openAccountModal = () => {
         setMobileMenuOpen(false);
         setDeleteConfirmInput("");
@@ -250,9 +354,9 @@ export function AppShell({ children }) {
       </div>);
     }
     if (!authChecked || !authUser || !isRoleAllowedOnPath(authUser.role, pathname)) {
-        return (<div className="min-h-screen flex items-center justify-center bg-[#F4F8F7] dark:bg-[#091315] px-4">
+        return (<div className="min-h-screen flex items-center justify-center bg-[#F6F9FC] dark:bg-[#091315] px-4">
         <div className="max-w-sm w-full med-card oc-modal-in p-6 text-center space-y-4">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EDF5F3] dark:bg-[#16272B] text-teal-700 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A]">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EBF4FF] dark:bg-[#16272B] text-[#1D6CE0] dark:text-sky-300 border border-[#E3ECF3] dark:border-[#1E353A]">
             <IconLock className="h-5 w-5"/>
           </div>
           <h2 className="font-heading text-base font-bold text-slate-900 dark:text-slate-100">
@@ -294,7 +398,7 @@ export function AppShell({ children }) {
                             : "Siz faqat o'zingizning rolingizga tegishli kabinetni ko'rishingiz mumkin."}
           </p>
           {authChecked && (<div className="pt-1">
-              <Link href={!authUser ? "/login" : getPortalForRole(authUser.role)} className="inline-flex min-h-[46px] w-full sm:w-auto items-center justify-center rounded-xl bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white active:scale-[0.98] transition-all">
+              <Link href={!authUser ? "/login" : getPortalForRole(authUser.role)} className="inline-flex min-h-[46px] w-full sm:w-auto items-center justify-center rounded-xl bg-[#1D6CE0] hover:bg-[#1758BA] px-5 py-2.5 text-sm font-semibold text-white active:scale-[0.98] transition-all">
                 {!authUser
                     ? lang === "ru"
                         ? "Перейти ко входу"
@@ -321,187 +425,192 @@ export function AppShell({ children }) {
             ? {
                 badge: t.ovabmuBadge,
                 subtitle: t.ovabmuSub,
-                icon: <IconBuildingHospital className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+                icon: <IconBuildingHospital className="h-4 w-4 text-[#1D6CE0] dark:text-sky-300"/>,
             }
             : authUser.role === "FAMILY_MD"
                 ? {
                     badge: t.familyBadge,
                     subtitle: t.familySub,
-                    icon: <IconStethoscope className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+                    icon: <IconStethoscope className="h-4 w-4 text-[#1D6CE0] dark:text-sky-300"/>,
                 }
                 : authUser.role === "PSYCHOLOGIST"
                     ? {
                         badge: t.psychBadge,
                         subtitle: t.psychSub,
-                        icon: <IconHeartHandshake className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+                        icon: <IconHeartHandshake className="h-4 w-4 text-[#1D6CE0] dark:text-sky-300"/>,
                     }
                     : {
                         badge: t.adminBadge,
                         subtitle: t.adminSub,
-                        icon: <IconShieldCheck className="h-4 w-4 text-teal-700 dark:text-teal-300"/>,
+                        icon: <IconShieldCheck className="h-4 w-4 text-[#1D6CE0] dark:text-sky-300"/>,
                     };
-    return (<div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] transition-colors duration-200">
-      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="lazyOnload" onLoad={() => {
-            try {
-                window.Telegram?.WebApp?.ready();
-                window.Telegram?.WebApp?.expand();
-            }
-            catch {
-                // ignore
-            }
-        }}/>
-      {/* Strictly Role-Isolated Portal Header (Responsive at 375px) */}
-      <header className="sticky top-0 z-30 border-b border-[#D7E4E1] dark:border-[#1E353A] bg-white/95 dark:bg-[#101E21]/95 backdrop-blur-md transition-colors duration-200">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2.5 px-3.5 sm:px-6 py-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link href="/" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 text-white shadow-sm hover:bg-teal-800 active:scale-95 transition-all" title="OnaCare">
-              <IconHeartHandshake className="h-5 w-5"/>
-            </Link>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Link href="/" className="font-heading text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 hover:text-teal-700 dark:hover:text-teal-300 truncate">
-                  OnaCare
-                </Link>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#EDF5F3] dark:bg-[#16272B] px-2.5 py-0.5 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A] whitespace-nowrap">
-                  {portalMeta.icon}
-                  <span className="truncate max-w-[130px] sm:max-w-none">{portalMeta.badge}</span>
-                </span>
+
+    const pendingVerifCount = data?.pendingVerificationsCount ?? 0;
+    const sidebarItems = authUser.role === "ADMIN_RECEPTION"
+        ? [
+            { key: "dashboard", label: t.navDashboard, icon: IconLayoutDashboard, href: "/admin" },
+            { key: "patients", label: t.navPatientsBeds, icon: IconUsers, href: "/admin" },
+            { key: "visits", label: t.navVisits, icon: IconCalendarEvent, href: "/admin" },
+            { key: "doctors", label: t.navDoctorsPharmacy, icon: IconStethoscope, href: "/admin" },
+            {
+                key: "verifications",
+                label: t.adminVerificationsNav,
+                icon: IconUserCheck,
+                href: "/admin/verifications",
+                isRoute: true,
+                badge: pendingVerifCount,
+            },
+            { key: "reports", label: t.navReports, icon: IconReportAnalytics, href: "/admin" },
+            { key: "settings", label: t.navSettings, icon: IconSettings, href: "/admin" },
+        ]
+        : authUser.role === "PSYCHOLOGIST"
+            ? [
+                { key: "dashboard", label: t.navDashboard, icon: IconLayoutDashboard },
+                { key: "mothers", label: t.navMothersQueue, icon: IconUsers },
+                { key: "sessions", label: t.navSessions, icon: IconCalendarEvent },
+                { key: "chat", label: t.navDirectChat, icon: IconMessageCircle },
+                { key: "settings", label: t.navAvailability, icon: IconSettings },
+            ]
+            : [
+                { key: "dashboard", label: t.navDashboard, icon: IconLayoutDashboard },
+                { key: "patients", label: t.navPatients, icon: IconUsers },
+                { key: "visits", label: t.navAppointmentsVisits, icon: IconCalendarEvent },
+                { key: "medications", label: t.navMedications, icon: IconPill },
+                { key: "complaints", label: t.navComplaintsChat, icon: IconMessageCircle },
+                { key: "settings", label: t.navSettings, icon: IconSettings },
+            ];
+
+    const renderSidebarInner = (onCloseMobile) => (<div className="flex h-full flex-col justify-between py-5">
+        <div className="space-y-6">
+          {/* Brand Block matching DocPlace SaaS aesthetic */}
+          <div className="flex items-center justify-between px-5">
+            <Link href="/" className="flex items-center gap-3 group min-w-0">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#2585F5] to-[#1D6CE0] text-white shadow-sm group-hover:scale-[1.03] transition-transform">
+                <IconStethoscope className="h-5 w-5"/>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 hidden sm:block truncate mt-0.5">
-                {portalMeta.subtitle}
-              </p>
-            </div>
+              <div className="min-w-0">
+                <p className="font-heading text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-none truncate">
+                  OnaCare
+                </p>
+                <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">
+                  {portalMeta.badge}
+                </p>
+              </div>
+            </Link>
+            {onCloseMobile && (<button type="button" onClick={onCloseMobile} aria-label="Close sidebar" className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-[#16272B]">
+                <IconX className="h-5 w-5"/>
+              </button>)}
           </div>
 
-          {/* Desktop actions */}
-          <div className="hidden md:flex items-center gap-2 text-xs shrink-0">
-            <button type="button" onClick={openTelegramModal} className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border px-3 py-1.5 font-semibold transition-all active:scale-[0.98] ${data?.actor?.telegramLinked
-            ? "border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200"
-            : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#16272B] text-teal-800 dark:text-teal-200 hover:border-teal-600"}`}>
-              <IconBrandTelegram className="h-4 w-4"/>
-              <span className="hidden xl:inline">{data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}</span>
-            </button>
-            <LanguageSwitcher />
-            <ThemeToggle />
-            <span className="hidden lg:inline-flex min-h-[38px] items-center gap-1.5 rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-1.5 font-medium text-slate-700 dark:text-slate-200 border border-[#D7E4E1] dark:border-[#1E353A]">
-              <IconLock className="h-4 w-4 text-teal-700 dark:text-teal-400"/>
-              <InfoTooltip label={t.privateBadge} explanation={t.privateTooltip}/>
-            </span>
-            <button type="button" onClick={openAccountModal} title={t.acctTitle} className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-1.5 font-semibold text-teal-800 dark:text-teal-200 border border-teal-300/70 dark:border-teal-700/70 hover:border-teal-600 active:scale-[0.98] transition-all">
-              <IconUserCheck className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
-              {authUser.fullName}
-            </button>
-            <button type="button" onClick={logout} className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#16272B] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-[#EDF5F3] dark:hover:bg-[#1E353A] active:scale-[0.98] transition-all">
-              <IconLogout className="h-4 w-4"/>
-              {t.signOut}
-            </button>
-          </div>
+          {/* Nav Menu */}
+          <nav aria-label="Portal sidebar navigation" className="space-y-1">
+            {sidebarItems.map((item) => {
+            const IconComp = item.icon;
+            const isVerifRoute = item.isRoute && pathname.startsWith("/admin/verifications");
+            const isActive = item.isRoute
+                ? isVerifRoute
+                : !pathname.startsWith("/admin/verifications") && activeView === item.key;
 
-          {/* Mobile actions */}
-          <div className="flex md:hidden items-center gap-2 shrink-0">
-            <ThemeToggle />
-            <button type="button" onClick={() => setMobileMenuOpen((v) => !v)} aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close portal menu" : "Open portal menu"} className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#16272B] text-slate-800 dark:text-slate-100 hover:bg-[#EDF5F3] dark:hover:bg-[#1E353A] active:scale-95 transition-all">
-              {mobileMenuOpen ? <IconX className="h-5 w-5"/> : <IconMenu2 className="h-5 w-5"/>}
-            </button>
-          </div>
+            const itemContent = (<>
+                <span className="flex items-center gap-3 min-w-0">
+                  <IconComp className={`h-[19px] w-[19px] shrink-0 transition-colors ${isActive
+                        ? "text-[#1D6CE0] dark:text-sky-300"
+                        : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"}`} stroke={1.85}/>
+                  <span className="truncate">{item.label}</span>
+                </span>
+                {typeof item.badge === "number" && item.badge > 0 && (<span className={`ml-2 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${isActive
+                        ? "bg-[#1D6CE0] text-white"
+                        : "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300"}`}>
+                    {item.badge}
+                  </span>)}
+                {isActive && (<span aria-hidden="true" className="absolute right-0 top-1.5 bottom-1.5 w-[3.5px] rounded-l-full bg-[#1D6CE0] dark:bg-sky-400"/>)}
+              </>);
+
+            const itemClasses = `group relative flex w-full items-center justify-between px-5 py-2.5 min-h-[44px] text-sm transition-colors ${isActive
+                ? "bg-[#EBF4FF] dark:bg-sky-950/60 text-[#1D6CE0] dark:text-sky-300 font-semibold"
+                : "text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-[#132529] hover:text-slate-900 dark:hover:text-white"}`;
+
+            if (item.isRoute && item.href) {
+                return (<Link key={item.key} href={item.href} onClick={() => {
+                        setNavState({ path: item.href, view: item.key });
+                        if (onCloseMobile)
+                            onCloseMobile();
+                    }} className={itemClasses}>
+                    {itemContent}
+                  </Link>);
+            }
+
+            return (<button key={item.key} type="button" onClick={() => {
+                    if (item.href && pathname !== item.href) {
+                        setNavState({ path: item.href, view: item.key });
+                        router.push(`${item.href}?view=${encodeURIComponent(item.key)}`);
+                    }
+                    else {
+                        setActiveView(item.key);
+                    }
+                    if (onCloseMobile)
+                        onCloseMobile();
+                }} className={itemClasses}>
+                {itemContent}
+              </button>);
+        })}
+          </nav>
         </div>
 
-        {/* Mobile Drawer */}
-        {mobileMenuOpen && (<div className="md:hidden oc-slide-down border-t border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-4 py-4 space-y-3 text-sm shadow-lg">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <button type="button" onClick={openAccountModal} className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] px-3.5 py-2 font-semibold text-teal-800 dark:text-teal-200 border border-[#D7E4E1] dark:border-[#1E353A]">
-                <IconUserCheck className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
-                {authUser.fullName}
-              </button>
-              <span className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 border border-[#D7E4E1] dark:border-[#1E353A]">
-                <IconLock className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
-                {t.privateBadge}
-              </span>
-            </div>
-            <button type="button" onClick={openTelegramModal} className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#16272B] px-3.5 py-2.5 text-sm font-semibold text-teal-800 dark:text-teal-200 active:scale-[0.98] transition-all">
-              <IconBrandTelegram className="h-4 w-4"/>
-              {data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}
-            </button>
-            <div className="flex items-center justify-between gap-2 py-1">
-              <span className="font-semibold text-slate-600 dark:text-slate-300">
-                {t.languageLabel}
-              </span>
-              <LanguageSwitcher />
-            </div>
-            <button type="button" onClick={() => {
-                setMobileMenuOpen(false);
-                logout();
-            }} className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#16272B] px-3.5 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-[#EDF5F3] dark:hover:bg-[#1E353A] active:scale-[0.98] transition-all">
-              <IconLogout className="h-4 w-4"/>
-              {t.signOut}
-            </button>
-            {authUser.role === "ADMIN_RECEPTION" && (<div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[#D7E4E1] dark:border-[#1E353A]">
-                <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className={`min-h-[46px] inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold border transition-all ${pathname === "/admin"
-                    ? "border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200"
-                    : "border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100"}`}>
-                  {t.adminOverviewNav}
-                </Link>
-                <Link href="/admin/verifications" onClick={() => setMobileMenuOpen(false)} className={`min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold border transition-all ${pathname.startsWith("/admin/verifications")
-                    ? "border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200"
-                    : "border-[#D7E4E1] dark:border-[#1E353A] text-slate-800 dark:text-slate-100"}`}>
-                  {t.adminVerificationsNav}
-                  {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className="rounded-full bg-teal-700 px-2 py-0.5 text-xs font-bold text-white leading-none">
-                      {data?.pendingVerificationsCount}
-                    </span>)}
-                </Link>
-              </div>)}
-          </div>)}
-
-        {/* Admin Dashboard Sub-Navigation Bar */}
-        {authUser.role === "ADMIN_RECEPTION" && (<nav aria-label="Admin dashboard navigation" className="hidden md:block border-t border-[#D7E4E1] dark:border-[#1E353A] bg-[#EDF5F3]/80 dark:bg-[#16272B]">
-            <div className="mx-auto flex max-w-7xl items-center gap-2 px-6 py-2">
-              <Link href="/admin" className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-sm font-semibold transition-all ${pathname === "/admin"
-                ? "bg-teal-700 dark:bg-teal-600 text-white shadow-xs"
-                : "text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-[#101E21]"}`}>
-                <IconShieldCheck className="h-4 w-4"/>
-                {t.adminOverviewNav}
-              </Link>
-              <Link href="/admin/verifications" className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-sm font-semibold transition-all ${pathname.startsWith("/admin/verifications")
-                ? "bg-teal-700 dark:bg-teal-600 text-white shadow-xs"
-                : "text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-[#101E21]"}`}>
-                <IconUserCheck className="h-4 w-4"/>
-                {t.adminVerificationsNav}
-                {(data?.pendingVerificationsCount ?? 0) > 0 && (<span className={`rounded-full px-2 py-0.5 text-xs font-bold leading-none ${pathname.startsWith("/admin/verifications")
-                    ? "bg-white text-teal-800"
-                    : "bg-teal-700 text-white"}`}>
-                    {data?.pendingVerificationsCount}
-                  </span>)}
-              </Link>
-            </div>
-          </nav>)}
-      </header>
-
-      {toast && (<div className="mx-auto mt-3 w-full max-w-7xl px-3.5 sm:px-6 oc-fade-up">
-          <div className={`rounded-2xl border-l-4 px-4 py-3 text-sm font-semibold shadow-sm ${toast.type === "error"
-                ? "border-rose-600 bg-rose-50 text-rose-800 dark:bg-rose-950/70 dark:text-rose-200"
-                : toast.type === "success"
-                    ? "border-teal-700 bg-teal-50 text-teal-900 dark:border-teal-400 dark:bg-[#101E21] dark:text-teal-200"
-                    : "border-amber-600 bg-white text-slate-900 dark:bg-[#16272B] dark:text-slate-100"}`}>
-            {toast.text}
+        {/* Bottom Pinned Controls & Sign Out */}
+        <div className="space-y-3 px-4 pt-4 border-t border-[#E3ECF3] dark:border-[#1E353A]">
+          <div className="flex items-center justify-between gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
           </div>
-        </div>)}
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-3.5 sm:px-6 py-5 sm:py-7">
-        {children}
-      </main>
+          <button type="button" onClick={openTelegramModal} className={`w-full flex items-center justify-between gap-2 rounded-xl border px-3 py-2 min-h-[40px] text-xs font-semibold transition-colors ${data?.actor?.telegramLinked
+            ? "border-[#CFE3FB] dark:border-sky-800 bg-[#EBF4FF] dark:bg-sky-950/50 text-[#1D6CE0] dark:text-sky-300"
+            : "border-[#E3ECF3] dark:border-[#1E353A] bg-[#F6F9FC] dark:bg-[#132529] text-slate-700 dark:text-slate-200 hover:border-[#2585F5]"}`}>
+            <span className="flex items-center gap-2 truncate">
+              <IconBrandTelegram className="h-4 w-4 shrink-0"/>
+              <span className="truncate">{data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}</span>
+            </span>
+          </button>
 
+          <button type="button" onClick={openAccountModal} className="w-full flex items-center gap-2.5 rounded-xl border border-[#E3ECF3] dark:border-[#1E353A] bg-[#F6F9FC] dark:bg-[#132529] px-3 py-2 min-h-[44px] text-left hover:border-[#2585F5] transition-colors">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#EBF4FF] dark:bg-sky-950 text-[#1D6CE0] dark:text-sky-300">
+              <IconUserCheck className="h-4 w-4"/>
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-xs font-bold text-slate-900 dark:text-white">
+                {authUser.fullName}
+              </span>
+              <span className="block truncate text-[11px] text-slate-500 dark:text-slate-400">
+                {authUser.district || t.privateBadge}
+              </span>
+            </span>
+          </button>
+
+          <button type="button" onClick={() => {
+            if (onCloseMobile)
+                onCloseMobile();
+            logout();
+        }} className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 min-h-[44px] text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 transition-colors">
+            <IconLogout className="h-[18px] w-[18px] shrink-0"/>
+            <span>{t.signOut}</span>
+          </button>
+        </div>
+      </div>);
+
+    const modalsContent = (<>
       {tgModalOpen && (<div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 backdrop-blur-xs px-4 oc-fade-in">
           <div className="w-full max-w-md med-card oc-modal-in p-5 sm:p-6 space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 text-white shadow-xs">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1D6CE0] text-white shadow-xs">
                   <IconBrandTelegram className="h-5 w-5"/>
                 </div>
                 <div>
                   <h2 className="font-heading text-base font-bold text-slate-900 dark:text-slate-100">
                     {t.tgModalTitle}
                   </h2>
-                  <p className="text-xs font-medium text-teal-700 dark:text-teal-300">
+                  <p className="text-xs font-medium text-[#1D6CE0] dark:text-sky-300">
                     {tgLinkData?.linked || data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}
                   </p>
                 </div>
@@ -611,5 +720,194 @@ export function AppShell({ children }) {
             </div>
           </div>
         </div>)}
-    </div>);
+    </>);
+
+    if (isStaffPortal) {
+        return (<StaffNavContext.Provider value={{ activeView, setActiveView, searchQuery, setSearchQuery }}>
+        <div className="min-h-screen flex flex-col bg-[#F6F9FC] dark:bg-[#091315] transition-colors duration-200">
+          <Script src="https://telegram.org/js/telegram-web-app.js" strategy="lazyOnload" onLoad={() => {
+                try {
+                    window.Telegram?.WebApp?.ready();
+                    window.Telegram?.WebApp?.expand();
+                }
+                catch {
+                    // ignore
+                }
+            }}/>
+
+          {/* Desktop Fixed White Sidebar (DocPlace SaaS style) */}
+          <aside className="hidden lg:flex lg:w-[252px] lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 bg-white dark:bg-[#0D1A1D] border-r border-[#E3ECF3] dark:border-[#1E353A] z-30">
+            {renderSidebarInner(null)}
+          </aside>
+
+          {/* Mobile Sticky Top Bar */}
+          <header className="lg:hidden sticky top-0 z-30 border-b border-[#E3ECF3] dark:border-[#1E353A] bg-white/95 dark:bg-[#0D1A1D]/95 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <Link href="/" className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#2585F5] to-[#1D6CE0] text-white shadow-xs">
+                  <IconStethoscope className="h-4.5 w-4.5"/>
+                </div>
+                <div className="min-w-0">
+                  <p className="font-heading text-base font-bold text-slate-900 dark:text-white leading-none truncate">
+                    OnaCare
+                  </p>
+                  <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                    {portalMeta.badge}
+                  </p>
+                </div>
+              </Link>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <button type="button" onClick={() => setMobileMenuOpen(true)} aria-label="Open navigation menu" className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E3ECF3] dark:border-[#1E353A] bg-white dark:bg-[#101E21] text-slate-800 dark:text-slate-100 active:scale-95 transition-all">
+                  <IconMenu2 className="h-5 w-5"/>
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Mobile Slide-Out Drawer */}
+          {mobileMenuOpen && (<div className="lg:hidden fixed inset-0 z-50 flex">
+              <div onClick={() => setMobileMenuOpen(false)} className="fixed inset-0 bg-slate-950/45 backdrop-blur-xs oc-fade-in"/>
+              <aside className="relative w-72 max-w-[85vw] h-full bg-white dark:bg-[#0D1A1D] border-r border-[#E3ECF3] dark:border-[#1E353A] shadow-2xl overflow-y-auto">
+                {renderSidebarInner(() => setMobileMenuOpen(false))}
+              </aside>
+            </div>)}
+
+          <div className="lg:pl-[252px] flex-1 flex flex-col min-w-0">
+            {toast && (<div className="mx-auto mt-4 w-full max-w-7xl px-4 sm:px-7 oc-fade-up">
+                <div className={`rounded-2xl border-l-4 px-4 py-3 text-sm font-semibold shadow-sm ${toast.type === "error"
+                    ? "border-rose-600 bg-rose-50 text-rose-800 dark:bg-rose-950/70 dark:text-rose-200"
+                    : toast.type === "success"
+                        ? "border-[#1D6CE0] bg-[#EBF4FF] text-[#1D6CE0] dark:border-sky-400 dark:bg-sky-950/70 dark:text-sky-200"
+                        : "border-amber-600 bg-white text-slate-900 dark:bg-[#16272B] dark:text-slate-100"}`}>
+                  {toast.text}
+                </div>
+              </div>)}
+
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-7 py-5 sm:py-7">
+              {children}
+            </main>
+          </div>
+
+          {modalsContent}
+        </div>
+      </StaffNavContext.Provider>);
+    }
+
+    return (<StaffNavContext.Provider value={{ activeView, setActiveView, searchQuery, setSearchQuery }}>
+      <div className="min-h-screen flex flex-col bg-[#F4F8F7] dark:bg-[#091315] transition-colors duration-200">
+      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="lazyOnload" onLoad={() => {
+            try {
+                window.Telegram?.WebApp?.ready();
+                window.Telegram?.WebApp?.expand();
+            }
+            catch {
+                // ignore
+            }
+        }}/>
+      {/* Strictly Role-Isolated Portal Header (Patient Portal) */}
+      <header className="sticky top-0 z-30 border-b border-[#D7E4E1] dark:border-[#1E353A] bg-white/95 dark:bg-[#101E21]/95 backdrop-blur-md transition-colors duration-200">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2.5 px-3.5 sm:px-6 py-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Link href="/" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-700 dark:bg-teal-600 text-white shadow-sm hover:bg-teal-800 active:scale-95 transition-all" title="OnaCare">
+              <IconHeartHandshake className="h-5 w-5"/>
+            </Link>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link href="/" className="font-heading text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 hover:text-teal-700 dark:hover:text-teal-300 truncate">
+                  OnaCare
+                </Link>
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#EDF5F3] dark:bg-[#16272B] px-2.5 py-0.5 text-xs font-semibold text-teal-800 dark:text-teal-300 border border-[#D7E4E1] dark:border-[#1E353A] whitespace-nowrap">
+                  {portalMeta.icon}
+                  <span className="truncate max-w-[130px] sm:max-w-none">{portalMeta.badge}</span>
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 hidden sm:block truncate mt-0.5">
+                {portalMeta.subtitle}
+              </p>
+            </div>
+          </div>
+
+          {/* Desktop actions */}
+          <div className="hidden md:flex items-center gap-2 text-xs shrink-0">
+            <button type="button" onClick={openTelegramModal} className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border px-3 py-1.5 font-semibold transition-all active:scale-[0.98] ${data?.actor?.telegramLinked
+            ? "border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-200"
+            : "border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#16272B] text-teal-800 dark:text-teal-200 hover:border-teal-600"}`}>
+              <IconBrandTelegram className="h-4 w-4"/>
+              <span className="hidden xl:inline">{data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}</span>
+            </button>
+            <LanguageSwitcher />
+            <ThemeToggle />
+            <span className="hidden lg:inline-flex min-h-[38px] items-center gap-1.5 rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-1.5 font-medium text-slate-700 dark:text-slate-200 border border-[#D7E4E1] dark:border-[#1E353A]">
+              <IconLock className="h-4 w-4 text-teal-700 dark:text-teal-400"/>
+              <InfoTooltip label={t.privateBadge} explanation={t.privateTooltip}/>
+            </span>
+            <button type="button" onClick={openAccountModal} title={t.acctTitle} className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-1.5 font-semibold text-teal-800 dark:text-teal-200 border border-teal-300/70 dark:border-teal-700/70 hover:border-teal-600 active:scale-[0.98] transition-all">
+              <IconUserCheck className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
+              {authUser.fullName}
+            </button>
+            <button type="button" onClick={logout} className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#16272B] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-[#EDF5F3] dark:hover:bg-[#1E353A] active:scale-[0.98] transition-all">
+              <IconLogout className="h-4 w-4"/>
+              {t.signOut}
+            </button>
+          </div>
+
+          {/* Mobile actions */}
+          <div className="flex md:hidden items-center gap-2 shrink-0">
+            <ThemeToggle />
+            <button type="button" onClick={() => setMobileMenuOpen((v) => !v)} aria-expanded={mobileMenuOpen} aria-label={mobileMenuOpen ? "Close portal menu" : "Open portal menu"} className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#16272B] text-slate-800 dark:text-slate-100 hover:bg-[#EDF5F3] dark:hover:bg-[#1E353A] active:scale-95 transition-all">
+              {mobileMenuOpen ? <IconX className="h-5 w-5"/> : <IconMenu2 className="h-5 w-5"/>}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Drawer */}
+        {mobileMenuOpen && (<div className="md:hidden oc-slide-down border-t border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-4 py-4 space-y-3 text-sm shadow-lg">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <button type="button" onClick={openAccountModal} className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] px-3.5 py-2 font-semibold text-teal-800 dark:text-teal-200 border border-[#D7E4E1] dark:border-[#1E353A]">
+                <IconUserCheck className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
+                {authUser.fullName}
+              </button>
+              <span className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-[#EDF5F3] dark:bg-[#16272B] px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 border border-[#D7E4E1] dark:border-[#1E353A]">
+                <IconLock className="h-4 w-4 text-teal-700 dark:text-teal-300"/>
+                {t.privateBadge}
+              </span>
+            </div>
+            <button type="button" onClick={openTelegramModal} className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#16272B] px-3.5 py-2.5 text-sm font-semibold text-teal-800 dark:text-teal-200 active:scale-[0.98] transition-all">
+              <IconBrandTelegram className="h-4 w-4"/>
+              {data?.actor?.telegramLinked ? t.tgConnectedBtn : t.tgConnectBtn}
+            </button>
+            <div className="flex items-center justify-between gap-2 py-1">
+              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                {t.languageLabel}
+              </span>
+              <LanguageSwitcher />
+            </div>
+            <button type="button" onClick={() => {
+                setMobileMenuOpen(false);
+                logout();
+            }} className="w-full min-h-[46px] inline-flex items-center justify-center gap-2 rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-white dark:bg-[#16272B] px-3.5 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-[#EDF5F3] dark:hover:bg-[#1E353A] active:scale-[0.98] transition-all">
+              <IconLogout className="h-4 w-4"/>
+              {t.signOut}
+            </button>
+          </div>)}
+      </header>
+
+      {toast && (<div className="mx-auto mt-3 w-full max-w-7xl px-3.5 sm:px-6 oc-fade-up">
+          <div className={`rounded-2xl border-l-4 px-4 py-3 text-sm font-semibold shadow-sm ${toast.type === "error"
+                ? "border-rose-600 bg-rose-50 text-rose-800 dark:bg-rose-950/70 dark:text-rose-200"
+                : toast.type === "success"
+                    ? "border-teal-700 bg-teal-50 text-teal-900 dark:border-teal-400 dark:bg-[#101E21] dark:text-teal-200"
+                    : "border-amber-600 bg-white text-slate-900 dark:bg-[#16272B] dark:text-slate-100"}`}>
+            {toast.text}
+          </div>
+        </div>)}
+
+      <main className="mx-auto w-full max-w-7xl flex-1 px-3.5 sm:px-6 py-5 sm:py-7">
+        {children}
+      </main>
+
+      {modalsContent}
+    </div>
+    </StaffNavContext.Provider>);
 }

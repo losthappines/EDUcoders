@@ -1,9 +1,10 @@
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { IconAlertTriangle, IconArrowLeft, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClock, IconCrown, IconHeartHandshake, IconMail, IconMapPin, IconPhone, IconSearch, IconStethoscope, IconTrash, IconUser, IconUserCheck, IconX, } from "@tabler/icons-react";
+import { IconAlertTriangle, IconArrowLeft, IconBrandTelegram, IconBuildingHospital, IconCheck, IconCircleCheck, IconClock, IconCrown, IconHeartHandshake, IconMail, IconMapPin, IconPhone, IconStethoscope, IconTrash, IconUser, IconUserCheck, IconUsers, IconX, } from "@tabler/icons-react";
 import { usePlatform } from "@/context/PlatformContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { StaffKpiCard, StaffWelcomeHeader } from "@/components/StaffAnalyticsWidgets";
 const COPY = {
     uz: {
         backDash: "Umumiy boshqaruvga qaytish",
@@ -295,60 +296,21 @@ export default function AdminVerificationsPage() {
         };
     };
     return (<div className="space-y-6 oc-fade-up">
-      <div className="med-card p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <Link href="/admin" className="inline-flex min-h-[36px] items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300 hover:underline mb-2">
+      <StaffWelcomeHeader greeting={t.title} dateLabel={t.subtitle} searchValue={query} onSearchChange={setQuery} searchPlaceholder={t.searchPlaceholder} rightSlot={<Link href="/admin" className="inline-flex h-11 items-center gap-1.5 rounded-full border border-[#E3ECF3] dark:border-[#1E353A] bg-white dark:bg-[#101E21] px-4 text-xs sm:text-sm font-semibold text-[#1D6CE0] dark:text-sky-300 hover:border-[#2585F5] transition-colors shrink-0">
             <IconArrowLeft className="h-4 w-4"/>
-            {t.backDash}
-          </Link>
-          <h1 className="font-heading text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
-            <IconUserCheck className="h-6 w-6 text-teal-700 dark:text-teal-300 shrink-0"/>
-            {t.title}
-          </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-            {t.subtitle}
-          </p>
-        </div>
-      </div>
+            <span>{t.backDash}</span>
+          </Link>}/>
 
       {/* Summary KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="rounded-2xl border border-amber-200 dark:border-amber-800/70 bg-amber-50/70 dark:bg-amber-950/40 p-4 sm:p-5">
-          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-            {t.pendingCard}
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold text-amber-900 dark:text-amber-200 mt-1 tabular-nums">
-            {counts.pending}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800/70 bg-emerald-50/70 dark:bg-emerald-950/40 p-4 sm:p-5">
-          <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
-            {t.verifiedCard}
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold text-emerald-900 dark:text-emerald-200 mt-1 tabular-nums">
-            {counts.verified}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-rose-200 dark:border-rose-800/70 bg-rose-50/70 dark:bg-rose-950/40 p-4 sm:p-5">
-          <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
-            {t.rejectedCard}
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold text-rose-900 dark:text-rose-200 mt-1 tabular-nums">
-            {counts.rejected}
-          </p>
-        </div>
-        <div className="med-card p-4 sm:p-5">
-          <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-            {t.totalCard}
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1 tabular-nums">
-            {counts.total}
-          </p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StaffKpiCard tone="amber" icon={<IconClock className="h-5 w-5"/>} label={t.pendingCard} value={counts.pending} onClick={() => setStatusFilter("PENDING")}/>
+        <StaffKpiCard tone="green" icon={<IconCircleCheck className="h-5 w-5"/>} label={t.verifiedCard} value={counts.verified} onClick={() => setStatusFilter("VERIFIED")}/>
+        <StaffKpiCard tone="red" icon={<IconAlertTriangle className="h-5 w-5"/>} label={t.rejectedCard} value={counts.rejected} onClick={() => setStatusFilter("REJECTED")}/>
+        <StaffKpiCard tone="blue" icon={<IconUsers className="h-5 w-5"/>} label={t.totalCard} value={counts.total} onClick={() => setStatusFilter("ALL")}/>
       </div>
 
       {/* Filters & Search */}
-      <section className="med-card p-5 space-y-4">
+      <section className="rounded-2xl border border-[#E3ECF3] dark:border-[#1E353A] bg-white dark:bg-[#101E21] p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.03)] space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {[
@@ -356,38 +318,31 @@ export default function AdminVerificationsPage() {
             { key: "VERIFIED", label: `${t.tabVerified} (${counts.verified})` },
             { key: "REJECTED", label: `${t.tabRejected} (${counts.rejected})` },
             { key: "ALL", label: `${t.tabAll} (${counts.total})` },
-        ].map((tab) => (<button key={tab.key} type="button" onClick={() => setStatusFilter(tab.key)} className={`min-h-[42px] rounded-xl px-3.5 py-2 text-sm font-semibold border transition-colors ${statusFilter === tab.key
-                ? "bg-teal-700 text-white border-teal-700"
-                : "bg-[#F4F8F7] dark:bg-[#091315] text-slate-700 dark:text-slate-200 border-[#D7E4E1] dark:border-[#1E353A] hover:border-teal-600"}`}>
+        ].map((tab) => (<button key={tab.key} type="button" onClick={() => setStatusFilter(tab.key)} className={`min-h-[40px] rounded-full px-4 py-1.5 text-sm font-semibold border transition-colors ${statusFilter === tab.key
+                ? "bg-[#1D6CE0] text-white border-[#1D6CE0] shadow-xs"
+                : "bg-[#F6F9FC] dark:bg-[#091315] text-slate-700 dark:text-slate-200 border-[#E3ECF3] dark:border-[#1E353A] hover:border-[#2585F5]"}`}>
                 {tab.label}
               </button>))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="inline-flex flex-wrap rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-1 gap-1">
-              {[
+          <div className="inline-flex flex-wrap rounded-full border border-[#E3ECF3] dark:border-[#1E353A] bg-[#F6F9FC] dark:bg-[#091315] p-1 gap-1">
+            {[
             { key: "ALL", label: t.roleAll },
             { key: "PATIENT", label: t.rolePatients },
             { key: "DOCTOR", label: t.roleDoctors },
             { key: "PSYCHOLOGIST", label: t.rolePsychologists },
-        ].map((rf) => (<button key={rf.key} type="button" onClick={() => setRoleFilter(rf.key)} className={`min-h-[36px] rounded-lg px-3 py-1 text-xs font-semibold transition-colors ${roleFilter === rf.key
-                ? "bg-white dark:bg-[#101E21] text-slate-900 dark:text-white shadow-2xs"
+        ].map((rf) => (<button key={rf.key} type="button" onClick={() => setRoleFilter(rf.key)} className={`min-h-[34px] rounded-full px-3 py-1 text-xs font-semibold transition-colors ${roleFilter === rf.key
+                ? "bg-white dark:bg-[#101E21] text-[#1D6CE0] dark:text-sky-300 shadow-2xs"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}>
-                  {rf.label}
-                </button>))}
-            </div>
-
-            <div className="relative w-full sm:w-72">
-              <IconSearch className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"/>
-              <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.searchPlaceholder} aria-label={t.searchPlaceholder} className="min-h-[44px] w-full rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] pl-10 pr-3.5 py-2 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none"/>
-            </div>
+                {rf.label}
+              </button>))}
           </div>
         </div>
 
         {/* Account Cards */}
-        {loadingList ? (<div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-8 text-center text-sm text-slate-600 dark:text-slate-300">
+        {loadingList ? (<div className="rounded-xl border border-[#E3ECF3] dark:border-[#1E353A] bg-[#F6F9FC] dark:bg-[#091315] p-8 text-center text-sm text-slate-600 dark:text-slate-300">
             {t.loading}
-          </div>) : filtered.length === 0 ? (<div className="rounded-xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7] dark:bg-[#091315] p-8 text-center text-sm text-slate-600 dark:text-slate-300">
+          </div>) : filtered.length === 0 ? (<div className="rounded-xl border border-[#E3ECF3] dark:border-[#1E353A] bg-[#F6F9FC] dark:bg-[#091315] p-8 text-center text-sm text-slate-600 dark:text-slate-300">
             {t.empty}
           </div>) : (<div className="space-y-3.5">
             {filtered.map((acc) => {
@@ -396,10 +351,10 @@ export default function AdminVerificationsPage() {
                 const isRejecting = rejectingId === acc.id;
                 const latVal = acc.latitude ?? acc.patientProfile?.latitude ?? null;
                 const lngVal = acc.longitude ?? acc.patientProfile?.longitude ?? null;
-                return (<div key={acc.id} className="rounded-2xl border border-[#D7E4E1] dark:border-[#1E353A] bg-[#F4F8F7]/70 dark:bg-[#091315]/70 p-4 sm:p-5 space-y-3">
+                return (<div key={acc.id} className="rounded-2xl border border-[#E3ECF3] dark:border-[#1E353A] bg-[#F6F9FC]/75 dark:bg-[#091315]/70 p-4 sm:p-5 space-y-3">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex items-start gap-3.5 min-w-0">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#101E21] border border-[#D7E4E1] dark:border-[#1E353A]">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-[#101E21] border border-[#E3ECF3] dark:border-[#1E353A]">
                         {roleMeta.icon}
                       </div>
                       <div className="min-w-0 space-y-1.5">

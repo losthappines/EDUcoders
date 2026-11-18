@@ -14,6 +14,7 @@ import {
 
 const DEFAULT_VOICELAB_BASE_URL = "https://api.voicelab.uz";
 const LEGACY_AISHA_BASE_URL = "https://back.aisha.group";
+const DEFAULT_GROQ_BASE_URL = "https://api.groq.com/openai/v1";
 const VOICE_CACHE_TTL_MS = 15 * 60 * 1000;
 
 const clientCache = new Map();
@@ -25,6 +26,14 @@ export function getVoiceLabApiKey() {
     process.env.AISHA_API_KEY ||
     ""
   ).trim();
+}
+
+export function getGroqApiKey() {
+  return (process.env.GROQ_API_KEY || "").trim();
+}
+
+export function isGroqConfigured() {
+  return Boolean(getGroqApiKey());
 }
 
 export function isLegacyAishaMode(apiKey = getVoiceLabApiKey()) {
@@ -72,8 +81,8 @@ function getGeminiApiKey() {
 
 export function normalizeVoiceLang(lang) {
   const s = String(lang || "").trim().toLowerCase();
-  if (s.startsWith("ru")) return "ru";
-  if (s.startsWith("en")) return "en";
+  if (s === "ru" || s.startsWith("ru") || s === "russian") return "ru";
+  if (s === "en" || s.startsWith("en") || s === "english") return "en";
   return "uz";
 }
 
@@ -715,12 +724,201 @@ async function transcribeWithGeminiFallback(audioBuffer, mimeType = "audio/ogg")
   return { ok: false, error: lastError };
 }
 
-// ==================== PUBLIC API ====================
+// ==================== GROQ WHISPER STT ====================
+
+async function callGroqWhisperOnce({
+  audioBuffer,
+  mimeType,
+  filename,
+  model,
+  language,
+  apiKey,
+  baseUrl,
+}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 18_000);
+  try {
+    const form = new FormData();
+    form.append("file", new Blob([audioBuffer], { type: mimeType }), filename);
+    form.append("model", model);
+    form.append("response_format", "verbose_json");
+    form.append("temperature", "0");
+
+    if (language) {
+      const langCode = normalizeVoiceLang(language);
+      form.append("language", langCode);
+      if (langCode === "uz") {
+        form.append(
+          "prompt",
+          "OnaCare patronaj. O'zbek tilida murojaat: isitma, bosh og'rig'i, qon bosimi, chaqaloq, emizish, shifokor, tuman."
+        );
+      }
+    }
+
+    const res = await fetch(`${baseUrl}/audio/transcriptions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: form,
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.warn(`[groq-stt] ${model} HTTP ${res.status}: ${errBody.slice(0, 180)}`);
+      return { ok: false, status: res.status, error: `GROQ_HTTP_${res.status}` };
+    }
+
+    const json = await res.json().catch(() => ({}));
+    const transcript = typeof json?.text === "string" ? json.text.trim() : "";
+    if (transcript) {
+      return {
+        ok: true,
+        provider: `groq:${model}`,
+        transcript,
+        language: normalizeVoiceLang(json?.language || language || "uz"),
+      };
+    }
+    return { ok: false, status: 200, error: "GROQ_EMPTY_TRANSCRIPT" };
+  } catch (err) {
+    const isAbort = err instanceof Error && err.name === "AbortError";
+    console.warn(`[groq-stt] ${model} error:`, err instanceof Error ? err.message : String(err));
+    return {
+      ok: false,
+      status: 0,
+      error: isAbort ? "GROQ_TIMEOUT" : "GROQ_NETWORK_ERR",
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
- * Speech-to-Text via official @voicelab/sdk (https://api.voicelab.uz).
- * Polls queued transcription jobs when needed, retries validation failures on default Uzbek language,
- * and falls back to Gemini native audio transcription only if VoiceLab fails.
+ * Speech-to-Text via Groq OpenAI-compatible Whisper API (whisper-large-v3 / whisper-large-v3-turbo).
+ * Supports Uzbek, Russian, and English with auto-detection when preferredLang is omitted.
+ */
+export async function transcribeWithGroqWhisper({
+  audioBuffer,
+  mimeType = "audio/ogg",
+  filename = "voice.ogg",
+  preferredLang = "",
+}) {
+  const apiKey = getGroqApiKey();
+  if (!apiKey || !audioBuffer || audioBuffer.length === 0) {
+    return { ok: false, error: "NO_GROQ_KEY" };
+  }
+
+  const baseUrl = (process.env.GROQ_BASE_URL || DEFAULT_GROQ_BASE_URL).trim().replace(/\/+$/, "");
+  const normalized = normalizeAudioFormat(mimeType, filename);
+  const envModel = (process.env.GROQ_WHISPER_MODEL || "").trim();
+  const models = [
+    ...new Set([envModel, "whisper-large-v3", "whisper-large-v3-turbo"].filter(Boolean)),
+  ];
+
+  let lastError = "GROQ_STT_FAILED";
+  for (const model of models) {
+    const attempt = await callGroqWhisperOnce({
+      audioBuffer,
+      mimeType: normalized.mimeType,
+      filename: normalized.filename,
+      model,
+      language: preferredLang,
+      apiKey,
+      baseUrl,
+    });
+    if (attempt.ok) return attempt;
+    lastError = attempt.error || lastError;
+
+    // Retry once without language hint if strict language validation failed
+    if (preferredLang && (attempt.status === 400 || attempt.status === 422 || attempt.error === "GROQ_EMPTY_TRANSCRIPT")) {
+      const retry = await callGroqWhisperOnce({
+        audioBuffer,
+        mimeType: normalized.mimeType,
+        filename: normalized.filename,
+        model,
+        language: "",
+        apiKey,
+        baseUrl,
+      });
+      if (retry.ok) return retry;
+      lastError = retry.error || lastError;
+    }
+
+    // Don't burn extra calls on invalid API keys
+    if (attempt.status === 401 || attempt.status === 403) break;
+  }
+
+  return { ok: false, error: lastError };
+}
+
+// ==================== PUBLIC API ====================
+
+async function tryVoiceLabStt({ audioBuffer, normalized, preferredLang }) {
+  const apiKey = getVoiceLabApiKey();
+  if (!apiKey) return { ok: false, error: "NO_VOICELAB_KEY" };
+
+  const baseUrl = getVoiceLabBaseUrl(apiKey);
+  const useLegacy = isLegacyAishaMode(apiKey);
+
+  if (useLegacy) {
+    const firstTry = await callLegacyAishaSttOnce({
+      audioBuffer,
+      mimeType: normalized.mimeType,
+      filename: normalized.filename,
+      language: preferredLang,
+      apiKey,
+      baseUrl,
+    });
+    if (firstTry.ok) return firstTry;
+
+    if (preferredLang && (firstTry.status === 400 || firstTry.status === 422 || firstTry.error === "AISHA_EMPTY_TRANSCRIPT")) {
+      const retry = await callLegacyAishaSttOnce({
+        audioBuffer,
+        mimeType: normalized.mimeType,
+        filename: normalized.filename,
+        language: "",
+        apiKey,
+        baseUrl,
+      });
+      if (retry.ok) return retry;
+      return { ok: false, error: retry.error || firstTry.error || "AISHA_STT_FAILED" };
+    }
+    return { ok: false, error: firstTry.error || "AISHA_STT_FAILED" };
+  }
+
+  const firstTry = await callVoiceLabSdkSttOnce({
+    audioBuffer,
+    mimeType: normalized.mimeType,
+    filename: normalized.filename,
+    language: preferredLang,
+    apiKey,
+    baseUrl,
+  });
+  if (firstTry.ok) return firstTry;
+
+  if (
+    preferredLang &&
+    normalizeVoiceLang(preferredLang) !== "uz" &&
+    (firstTry.status === 400 || firstTry.status === 422 || firstTry.error === "VOICELAB_EMPTY_TRANSCRIPT")
+  ) {
+    const retry = await callVoiceLabSdkSttOnce({
+      audioBuffer,
+      mimeType: normalized.mimeType,
+      filename: normalized.filename,
+      language: "uz",
+      apiKey,
+      baseUrl,
+    });
+    if (retry.ok) return retry;
+    return { ok: false, error: retry.error || firstTry.error || "VOICELAB_STT_FAILED" };
+  }
+  return { ok: false, error: firstTry.error || "VOICELAB_STT_FAILED" };
+}
+
+/**
+ * Speech-to-Text across VoiceLab (@voicelab/sdk), Groq Whisper (whisper-large-v3), and Gemini fallback.
+ * Respects optional STT_PROVIDER ("groq" | "voicelab" | "gemini" | "auto").
  */
 export async function transcribeVoiceAudio({
   audioBuffer,
@@ -732,76 +930,49 @@ export async function transcribeVoiceAudio({
     return { ok: false, error: "EMPTY_AUDIO" };
   }
 
-  const apiKey = getVoiceLabApiKey();
-  const baseUrl = getVoiceLabBaseUrl(apiKey);
-  const useLegacy = isLegacyAishaMode(apiKey);
   const normalized = normalizeAudioFormat(mimeType, filename);
-  let voiceLabErr = apiKey ? "" : "NO_VOICELAB_KEY";
+  const sttPref = (process.env.STT_PROVIDER || "auto").trim().toLowerCase();
 
-  if (apiKey) {
-    if (useLegacy) {
-      const firstTry = await callLegacyAishaSttOnce({
+  const hasVoiceLab = isVoiceLabConfigured();
+  const hasGroq = isGroqConfigured();
+  const hasGemini = Boolean(getGeminiApiKey());
+
+  if (!hasVoiceLab && !hasGroq && !hasGemini) {
+    return { ok: false, error: "NO_STT_KEY" };
+  }
+
+  const order =
+    sttPref === "groq"
+      ? ["groq", "voicelab", "gemini"]
+      : sttPref === "gemini"
+        ? ["gemini", "groq", "voicelab"]
+        : ["voicelab", "groq", "gemini"];
+
+  const errors = [];
+  for (const provider of order) {
+    if (provider === "voicelab" && hasVoiceLab) {
+      const res = await tryVoiceLabStt({ audioBuffer, normalized, preferredLang });
+      if (res.ok) return res;
+      if (res.error) errors.push(res.error);
+    } else if (provider === "groq" && hasGroq) {
+      const res = await transcribeWithGroqWhisper({
         audioBuffer,
         mimeType: normalized.mimeType,
         filename: normalized.filename,
-        language: preferredLang,
-        apiKey,
-        baseUrl,
+        preferredLang,
       });
-      if (firstTry.ok) return firstTry;
-      voiceLabErr = firstTry.error || "AISHA_STT_FAILED";
-
-      if (preferredLang && (firstTry.status === 400 || firstTry.status === 422 || firstTry.error === "AISHA_EMPTY_TRANSCRIPT")) {
-        const retry = await callLegacyAishaSttOnce({
-          audioBuffer,
-          mimeType: normalized.mimeType,
-          filename: normalized.filename,
-          language: "",
-          apiKey,
-          baseUrl,
-        });
-        if (retry.ok) return retry;
-        voiceLabErr = retry.error || voiceLabErr;
-      }
-    } else {
-      const firstTry = await callVoiceLabSdkSttOnce({
-        audioBuffer,
-        mimeType: normalized.mimeType,
-        filename: normalized.filename,
-        language: preferredLang,
-        apiKey,
-        baseUrl,
-      });
-      if (firstTry.ok) return firstTry;
-      voiceLabErr = firstTry.error || "VOICELAB_STT_FAILED";
-
-      // If strict language validation rejected an explicit ru/en hint, retry once with default "uz"
-      if (
-        preferredLang &&
-        normalizeVoiceLang(preferredLang) !== "uz" &&
-        (firstTry.status === 400 || firstTry.status === 422 || firstTry.error === "VOICELAB_EMPTY_TRANSCRIPT")
-      ) {
-        const retry = await callVoiceLabSdkSttOnce({
-          audioBuffer,
-          mimeType: normalized.mimeType,
-          filename: normalized.filename,
-          language: "uz",
-          apiKey,
-          baseUrl,
-        });
-        if (retry.ok) return retry;
-        voiceLabErr = retry.error || voiceLabErr;
-      }
+      if (res.ok) return res;
+      if (res.error) errors.push(res.error);
+    } else if (provider === "gemini" && hasGemini) {
+      const res = await transcribeWithGeminiFallback(audioBuffer, normalized.mimeType);
+      if (res.ok) return res;
+      if (res.error) errors.push(res.error);
     }
   }
 
-  // Secondary safety net via Gemini native audio STT
-  const fallback = await transcribeWithGeminiFallback(audioBuffer, normalized.mimeType);
-  if (fallback.ok) return fallback;
-
   return {
     ok: false,
-    error: `${voiceLabErr}|${fallback.error || "STT_FAILED"}`,
+    error: errors.join("|") || "STT_FAILED",
   };
 }
 

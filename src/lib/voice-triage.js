@@ -1,6 +1,6 @@
 import { UZ_REGIONS } from "@/lib/uz-locations";
 import { parseReminderTimesJson } from "@/lib/wellbeing-catalog";
-import { normalizeVoiceLang } from "@/lib/voicelab";
+import { getGroqApiKey, normalizeVoiceLang } from "@/lib/voicelab";
 
 const VOICE_INTENT_SCHEMA = {
   type: "OBJECT",
@@ -305,7 +305,9 @@ export async function runVoiceIntentAssistant({
     ""
   ).trim();
 
-  if (!apiKey || !cleanTranscript) {
+  const groqKey = getGroqApiKey();
+
+  if ((!apiKey && !groqKey) || !cleanTranscript) {
     return buildDeterministicVoiceFallback({
       transcript: cleanTranscript,
       flowState,
@@ -318,8 +320,8 @@ export async function runVoiceIntentAssistant({
   const patientContext = buildSafePatientSummary(linkedUser);
 
   const systemPrompt = [
-    "You are OnaCare AI Voice Triage & Onboarding Assistant on Telegram (powered by Gemini 3.5 Flash).",
-    "A mother (or clinician) just sent a Telegram voice note that was transcribed by VoiceLab STT.",
+    "You are OnaCare AI Voice Triage & Onboarding Assistant on Telegram.",
+    "A mother (or clinician) just sent a Telegram voice note that was transcribed by VoiceLab / Groq Whisper STT.",
     `Current Telegram bot flowState: ${flowState}`,
     `User linked status: ${linkedUser ? `${linkedUser.role} (${linkedUser.fullName})` : "UNLINKED_GUEST"}`,
     `Current draft state: ${JSON.stringify(draft || {})}`,
@@ -335,83 +337,138 @@ export async function runVoiceIntentAssistant({
     "   - `GENERAL_QUESTION`: If user asks a question about medications, doses, breastfeeding, postpartum recovery, 24h home visit, or how OnaCare works.",
     "3. Extract ONLY fields clearly spoken in the transcript—never fabricate phone numbers, emails, or addresses.",
     "4. Set `urgentEmergency103: true` for ANY postpartum or newborn red flag (heavy bleeding, fever >=38C, severe headache/blurred vision, chest pain, breathing trouble, seizures, baby refusing to feed, newborn jaundice, or self-harm).",
-    "5. Keep `replyText` warm, natural, spoken-friendly plain text (NO HTML tags, NO markdown, NO emojis, max 700 chars) so VoiceLab TTS reads it clearly out loud.",
+    "5. Keep `replyText` warm, natural, spoken-friendly plain text (NO HTML tags, NO markdown, NO emojis, max 700 chars) so TTS reads it clearly out loud.",
     "6. Never ask users to speak passwords aloud.",
+    '7. Return strict JSON matching: {"intent":"SIGNUP|ILLNESS_REPORT|WELLBEING_CHECKIN|GENERAL_QUESTION","detectedLanguage":"uz|ru|en","urgentEmergency103":boolean,"replyText":"...","signupFields":{},"illnessFields":{},"wellbeingFields":{}}.',
   ].join("\n");
 
-  const payload = {
-    systemInstruction: { parts: [{ text: systemPrompt }] },
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: `Voice transcript:\n"${cleanTranscript}"` }],
-      },
-    ],
-    generationConfig: {
-      temperature: 0.25,
-      maxOutputTokens: 700,
-      responseMimeType: "application/json",
-      responseSchema: VOICE_INTENT_SCHEMA,
-    },
+  const normalizeParsed = (parsed, modelUsed) => {
+    const urgent = Boolean(parsed.urgentEmergency103) || detectVoiceRedFlags(cleanTranscript);
+    return {
+      modelUsed,
+      intent: ["SIGNUP", "ILLNESS_REPORT", "WELLBEING_CHECKIN", "GENERAL_QUESTION"].includes(parsed.intent)
+        ? parsed.intent
+        : "GENERAL_QUESTION",
+      detectedLanguage: normalizeVoiceLang(parsed.detectedLanguage || detectedFallbackLang),
+      urgentEmergency103: urgent,
+      replyText: parsed.replyText.trim(),
+      signupFields: parsed.signupFields && typeof parsed.signupFields === "object" ? parsed.signupFields : {},
+      illnessFields: parsed.illnessFields && typeof parsed.illnessFields === "object" ? parsed.illnessFields : {},
+      wellbeingFields: parsed.wellbeingFields && typeof parsed.wellbeingFields === "object" ? parsed.wellbeingFields : {},
+    };
   };
 
-  const configured = (process.env.GEMINI_MODEL || "").trim();
-  const models = [
-    ...new Set([configured, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash"].filter(Boolean)),
-  ];
-
-  for (const model of models) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 14_000);
+  const extractJson = (rawText) => {
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      return JSON.parse(rawText);
+    } catch {
+      const fenced = rawText.match(/```(?:json)?\s*([\s\S]*?)```/i);
+      const jsonCandidate =
+        fenced?.[1] ||
+        (rawText.includes("{") ? rawText.slice(rawText.indexOf("{"), rawText.lastIndexOf("}") + 1) : "");
+      if (jsonCandidate) {
+        return JSON.parse(jsonCandidate.trim());
+      }
+      return null;
+    }
+  };
+
+  if (apiKey) {
+    const payload = {
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [
         {
+          role: "user",
+          parts: [{ text: `Voice transcript:\n"${cleanTranscript}"` }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.25,
+        maxOutputTokens: 700,
+        responseMimeType: "application/json",
+        responseSchema: VOICE_INTENT_SCHEMA,
+      },
+    };
+
+    const configured = (process.env.GEMINI_MODEL || "").trim();
+    const models = [
+      ...new Set([configured, "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"].filter(Boolean)),
+    ];
+
+    for (const model of models) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 14_000);
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey,
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          }
+        );
+        if (!res.ok) {
+          continue;
+        }
+        const json = await res.json();
+        const parts = json?.candidates?.[0]?.content?.parts || [];
+        const textPart = parts.find((p) => typeof p?.text === "string" && !p?.thought) || parts[0];
+        const rawText = (textPart?.text || "").trim();
+        const parsed = extractJson(rawText);
+        if (parsed && typeof parsed.replyText === "string") {
+          return normalizeParsed(parsed, model);
+        }
+      } catch {
+        // retry next model
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+  }
+
+  if (groqKey) {
+    const groqBase = (process.env.GROQ_BASE_URL || "https://api.groq.com/openai/v1").trim().replace(/\/+$/, "");
+    const groqModels = [
+      ...new Set([(process.env.GROQ_LLM_MODEL || "").trim(), "llama-3.3-70b-versatile", "llama-3.1-8b-instant"].filter(Boolean)),
+    ];
+    for (const model of groqModels) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 14_000);
+      try {
+        const res = await fetch(`${groqBase}/chat/completions`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-goog-api-key": apiKey,
+            Authorization: `Bearer ${groqKey}`,
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            model,
+            temperature: 0.2,
+            max_tokens: 700,
+            response_format: { type: "json_object" },
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: `Voice transcript:\n"${cleanTranscript}"` },
+            ],
+          }),
           signal: controller.signal,
+        });
+        if (!res.ok) continue;
+        const json = await res.json();
+        const rawText = (json?.choices?.[0]?.message?.content || "").trim();
+        const parsed = extractJson(rawText);
+        if (parsed && typeof parsed.replyText === "string") {
+          return normalizeParsed(parsed, `groq:${model}`);
         }
-      );
-      if (!res.ok) {
-        continue;
-      }
-      const json = await res.json();
-      const parts = json?.candidates?.[0]?.content?.parts || [];
-      const textPart = parts.find((p) => typeof p?.text === "string" && !p?.thought) || parts[0];
-      const rawText = (textPart?.text || "").trim();
-      let parsed = null;
-      try {
-        parsed = JSON.parse(rawText);
       } catch {
-        const fenced = rawText.match(/```(?:json)?\s*([\s\S]*?)```/i);
-        const jsonCandidate = fenced?.[1] || (rawText.includes("{") ? rawText.slice(rawText.indexOf("{"), rawText.lastIndexOf("}") + 1) : "");
-        if (jsonCandidate) {
-          parsed = JSON.parse(jsonCandidate.trim());
-        }
+        // retry next model
+      } finally {
+        clearTimeout(timer);
       }
-      if (parsed && typeof parsed.replyText === "string") {
-        const urgent = Boolean(parsed.urgentEmergency103) || detectVoiceRedFlags(cleanTranscript);
-        return {
-          modelUsed: model,
-          intent: ["SIGNUP", "ILLNESS_REPORT", "WELLBEING_CHECKIN", "GENERAL_QUESTION"].includes(parsed.intent)
-            ? parsed.intent
-            : "GENERAL_QUESTION",
-          detectedLanguage: normalizeVoiceLang(parsed.detectedLanguage || detectedFallbackLang),
-          urgentEmergency103: urgent,
-          replyText: parsed.replyText.trim(),
-          signupFields: parsed.signupFields && typeof parsed.signupFields === "object" ? parsed.signupFields : {},
-          illnessFields: parsed.illnessFields && typeof parsed.illnessFields === "object" ? parsed.illnessFields : {},
-          wellbeingFields: parsed.wellbeingFields && typeof parsed.wellbeingFields === "object" ? parsed.wellbeingFields : {},
-        };
-      }
-    } catch {
-      // retry next model
-    } finally {
-      clearTimeout(timer);
     }
   }
 

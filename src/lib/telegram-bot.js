@@ -12,7 +12,7 @@ import {
   triggerWellbeingRiskAlerts,
 } from "@/lib/wellbeing";
 import { parseReminderTimesJson } from "@/lib/wellbeing-catalog";
-import { isVoiceLabConfigured, synthesizeVoiceSpeech, transcribeVoiceAudio } from "@/lib/voicelab";
+import { isGroqConfigured, isVoiceLabConfigured, synthesizeVoiceSpeech, transcribeVoiceAudio } from "@/lib/voicelab";
 import { runVoiceIntentAssistant } from "@/lib/voice-triage";
 
 export function getTelegramMiniAppUrl() {
@@ -274,10 +274,15 @@ export async function getTelegramBotStatus() {
     prisma.telegramSession.count(),
   ]);
 
+  const voiceLabReady = isVoiceLabConfigured();
+  const groqReady = isGroqConfigured();
+
   if (!token) {
     return {
       configured: false,
-      voiceLabConfigured: isVoiceLabConfigured(),
+      voiceLabConfigured: voiceLabReady,
+      groqConfigured: groqReady,
+      voiceSttConfigured: voiceLabReady || groqReady,
       username: state?.telegramBotUsername || process.env.TELEGRAM_BOT_USERNAME || "OnaCarePatronajBot",
       webhookUrl: null,
       linkedPatients,
@@ -293,7 +298,9 @@ export async function getTelegramBotStatus() {
 
   return {
     configured: true,
-    voiceLabConfigured: isVoiceLabConfigured(),
+    voiceLabConfigured: voiceLabReady,
+    groqConfigured: groqReady,
+    voiceSttConfigured: voiceLabReady || groqReady,
     botLive: Boolean(meRes?.ok),
     username: meRes?.result?.username || state?.telegramBotUsername || "OnaCarePatronajBot",
     firstName: meRes?.result?.first_name || "OnaCare Bot",

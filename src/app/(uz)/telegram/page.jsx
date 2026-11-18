@@ -933,13 +933,21 @@ function TelegramConsoleContent() {
 
               <div
                 className={`rounded-xl border px-3.5 py-2.5 text-xs font-semibold flex items-center gap-2 ${
-                  botStatus?.voiceLabConfigured
+                  botStatus?.voiceSttConfigured || botStatus?.voiceLabConfigured || botStatus?.groqConfigured
                     ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200"
                     : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300"
                 }`}
               >
                 <IconVolume className="h-4 w-4 shrink-0" />
-                <span>{botStatus?.voiceLabConfigured ? t.voiceLabActive : t.voiceLabNeedsKey}</span>
+                <span>
+                  {botStatus?.voiceLabConfigured && botStatus?.groqConfigured
+                    ? `${t.voiceLabActive} + Groq Whisper`
+                    : botStatus?.voiceLabConfigured
+                      ? t.voiceLabActive
+                      : botStatus?.groqConfigured
+                        ? "Groq Whisper STT (UZ / RU / EN) faol"
+                        : t.voiceLabNeedsKey}
+                </span>
               </div>
 
               {botStatus?.username && (
